@@ -6,12 +6,11 @@ final notificationServiceProvider = Provider((ref) {
 });
 
 final streakReminderEnabledProvider =
-    StateNotifierProvider<StreamNotifier, bool>((ref) {
-  return StreamNotifier();
-});
+    NotifierProvider<StreakReminderNotifier, bool>(StreakReminderNotifier.new);
 
-class StreamNotifier extends StateNotifier<bool> {
-  StreamNotifier() : super(true);
+class StreakReminderNotifier extends Notifier<bool> {
+  @override
+  bool build() => true;
 
   void toggle() {
     state = !state;
