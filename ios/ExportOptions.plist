@@ -10,7 +10,7 @@
 	<string>manual</string>
 	<key>provisioningProfiles</key>
 	<dict>
-		<key>com.petitworksapps.okanekore</key>
+		<key>com.yourwish.okanekore</key>
 		<string>OkaneKore_App_Store</string>
 	</dict>
 	<key>uploadSymbols</key>
