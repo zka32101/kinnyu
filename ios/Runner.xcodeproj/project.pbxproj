@@ -382,6 +382,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				CODE_SIGN_STYLE = Manual;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution";
+				PROVISIONING_PROFILE_SPECIFIER = OkaneKore_App_Store;
 				DEVELOPMENT_TEAM = 6UWJGP52W5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yourwish.okanekore;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -585,6 +588,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				CODE_SIGN_STYLE = Manual;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution";
+				PROVISIONING_PROFILE_SPECIFIER = OkaneKore_App_Store;
 				DEVELOPMENT_TEAM = 6UWJGP52W5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yourwish.okanekore;
 				PRODUCT_NAME = "$(TARGET_NAME)";

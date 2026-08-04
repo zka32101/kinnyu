@@ -72,6 +72,7 @@ jobs:
     # 署名付きビルド+TestFlightアップロード。最もコストが高いジョブのため、
     # 手動実行(workflow_dispatch)限定。push/PRでは絶対に自動起動しない。
     if: github.event_name == 'workflow_dispatch'
+    needs: analyze-and-test
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
