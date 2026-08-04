@@ -121,6 +121,21 @@ const IMAGE_SPECS = [
       'a cute kawaii piggy bank mascot character wearing a tiny golden crown, glowing warm golden aura around it, ' +
       'proud confident pose, soft pastel pink and blue color scheme, chibi style',
   },
+
+  // --- ④ アプリアイコン（1枚） ---
+  // 小サイズでも視認性が高いよう、背景いっぱいに大きく1体だけを配置するアイコン専用構図。
+  // ホーム画面スプラッシュと世界観を統一するため貯金箱マスコットを採用。
+  {
+    id: 'app_icon',
+    category: 'icon',
+    label: 'アプリアイコン',
+    prompt:
+      'app icon design, a cute kawaii piggy bank mascot character filling most of the frame, ' +
+      'simple bold shapes, thick clean outlines, high contrast, gentle happy smile, ' +
+      'centered composition with small margin, flat solid vivid blue background, ' +
+      'soft pastel pink piggy bank body, no small details, easily recognizable at small sizes, ' +
+      'square composition, chibi style, mobile app icon',
+  },
 ];
 
 function buildPrompt(spec) {

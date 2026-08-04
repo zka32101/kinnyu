@@ -97,5 +97,14 @@
     "provider": "leonardo",
     "modelId": "de7d3faf-762f-48e0-b3b7-9d0ac3a3fcf3",
     "generatedAt": "2026-08-01T03:12:24.991Z"
+  },
+  "app_icon": {
+    "label": "アプリアイコン",
+    "category": "icon",
+    "file": "app_icon.png",
+    "prompt": "app icon design, a cute kawaii piggy bank mascot character filling most of the frame, simple bold shapes, thick clean outlines, high contrast, gentle happy smile, centered composition with small margin, flat solid vivid blue background, soft pastel pink piggy bank body, no small details, easily recognizable at small sizes, square composition, chibi style, mobile app icon, flat vector illustration, cute minimalist character design, soft rounded shapes, warm friendly color palette, clean professional fintech education app illustration style, simple soft gradient background, centered composition, no text no watermark no border",
+    "provider": "leonardo",
+    "modelId": "de7d3faf-762f-48e0-b3b7-9d0ac3a3fcf3",
+    "generatedAt": "2026-08-04T08:26:19.830Z"
   }
 }
