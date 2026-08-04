@@ -1,0 +1,101 @@
+{
+  "diag_chiritsumo": {
+    "label": "ちりつも支出タイプ",
+    "category": "diagnosis",
+    "file": "diag_chiritsumo.png",
+    "prompt": "a cheerful young Japanese person happily holding a coffee cup and a convenience store bag, small coins gently scattering around like falling leaves, symbolizing frequent small purchases, light and playful mood, flat vector illustration, cute minimalist character design, soft rounded shapes, warm friendly color palette, clean professional fintech education app illustration style, simple soft gradient background, centered composition, no text no watermark no border",
+    "provider": "leonardo",
+    "modelId": "de7d3faf-762f-48e0-b3b7-9d0ac3a3fcf3",
+    "generatedAt": "2026-08-01T02:14:05.097Z"
+  },
+  "diag_merihari": {
+    "label": "メリハリ消費タイプ",
+    "category": "diagnosis",
+    "file": "diag_merihari.png",
+    "prompt": "an excited young Japanese person celebrating with shopping bags and a restaurant receipt, joyful bursty spending energy, small confetti and sparkle effects around, dynamic happy pose, flat vector illustration, cute minimalist character design, soft rounded shapes, warm friendly color palette, clean professional fintech education app illustration style, simple soft gradient background, centered composition, no text no watermark no border",
+    "provider": "leonardo",
+    "modelId": "de7d3faf-762f-48e0-b3b7-9d0ac3a3fcf3",
+    "generatedAt": "2026-08-01T02:14:15.234Z"
+  },
+  "diag_kotei": {
+    "label": "固定費モヤモヤタイプ",
+    "category": "diagnosis",
+    "file": "diag_kotei.png",
+    "prompt": "a puzzled young Japanese person looking at a small stack of subscription bills and insurance papers, gentle question marks floating around their head, mildly confused but approachable expression, flat vector illustration, cute minimalist character design, soft rounded shapes, warm friendly color palette, clean professional fintech education app illustration style, simple soft gradient background, centered composition, no text no watermark no border",
+    "provider": "leonardo",
+    "modelId": "de7d3faf-762f-48e0-b3b7-9d0ac3a3fcf3",
+    "generatedAt": "2026-08-01T03:11:21.375Z"
+  },
+  "roleplay_young_family": {
+    "label": "若い家族",
+    "category": "roleplay",
+    "file": "roleplay_young_family.png",
+    "prompt": "a warm happy Japanese family of four, two parents and two small children standing together, cozy home living room background, gentle smiles, wholesome family portrait pose, flat vector illustration, cute minimalist character design, soft rounded shapes, warm friendly color palette, clean professional fintech education app illustration style, simple soft gradient background, centered composition, no text no watermark no border",
+    "provider": "leonardo",
+    "modelId": "de7d3faf-762f-48e0-b3b7-9d0ac3a3fcf3",
+    "generatedAt": "2026-08-01T03:11:29.257Z"
+  },
+  "roleplay_single_professional": {
+    "label": "独身社会人",
+    "category": "roleplay",
+    "file": "roleplay_single_professional.png",
+    "prompt": "a confident young Japanese office worker in smart business casual attire, standing alone with a bag, modern city skyline background, energetic independent pose, flat vector illustration, cute minimalist character design, soft rounded shapes, warm friendly color palette, clean professional fintech education app illustration style, simple soft gradient background, centered composition, no text no watermark no border",
+    "provider": "leonardo",
+    "modelId": "de7d3faf-762f-48e0-b3b7-9d0ac3a3fcf3",
+    "generatedAt": "2026-08-01T03:11:37.155Z"
+  },
+  "roleplay_pre_retirement": {
+    "label": "退職前夫婦",
+    "category": "roleplay",
+    "file": "roleplay_pre_retirement.png",
+    "prompt": "a warm mature Japanese couple in their fifties with graying hair, standing together smiling, comfortable cozy home background, calm reassuring pose, flat vector illustration, cute minimalist character design, soft rounded shapes, warm friendly color palette, clean professional fintech education app illustration style, simple soft gradient background, centered composition, no text no watermark no border",
+    "provider": "leonardo",
+    "modelId": "de7d3faf-762f-48e0-b3b7-9d0ac3a3fcf3",
+    "generatedAt": "2026-08-01T03:11:45.208Z"
+  },
+  "mascot_normal": {
+    "label": "マスコット・通常",
+    "category": "mascot",
+    "file": "mascot_normal.png",
+    "prompt": "a cute kawaii piggy bank mascot character, simple round chubby body, small stubby legs, gentle friendly smile, standing pose, soft pastel pink and blue color scheme, chibi style, flat vector illustration, cute minimalist character design, soft rounded shapes, warm friendly color palette, clean professional fintech education app illustration style, simple soft gradient background, centered composition, no text no watermark no border",
+    "provider": "leonardo",
+    "modelId": "de7d3faf-762f-48e0-b3b7-9d0ac3a3fcf3",
+    "generatedAt": "2026-08-01T03:11:53.143Z"
+  },
+  "mascot_streak": {
+    "label": "マスコット・ストリーク達成",
+    "category": "mascot",
+    "file": "mascot_streak.png",
+    "prompt": "a cute kawaii piggy bank mascot character celebrating with a small orange flame icon glowing above its head, excited jumping pose, sparkles around, soft pastel pink and blue color scheme, chibi style, flat vector illustration, cute minimalist character design, soft rounded shapes, warm friendly color palette, clean professional fintech education app illustration style, simple soft gradient background, centered composition, no text no watermark no border",
+    "provider": "leonardo",
+    "modelId": "de7d3faf-762f-48e0-b3b7-9d0ac3a3fcf3",
+    "generatedAt": "2026-08-01T03:12:01.329Z"
+  },
+  "mascot_correct": {
+    "label": "マスコット・正解",
+    "category": "mascot",
+    "file": "mascot_correct.png",
+    "prompt": "a cute kawaii piggy bank mascot character with a big joyful smile, one stubby arm raised in victory, small gold coins happily flying around it, soft pastel pink and blue color scheme, chibi style, flat vector illustration, cute minimalist character design, soft rounded shapes, warm friendly color palette, clean professional fintech education app illustration style, simple soft gradient background, centered composition, no text no watermark no border",
+    "provider": "leonardo",
+    "modelId": "de7d3faf-762f-48e0-b3b7-9d0ac3a3fcf3",
+    "generatedAt": "2026-08-01T03:12:09.284Z"
+  },
+  "mascot_incorrect": {
+    "label": "マスコット・不正解",
+    "category": "mascot",
+    "file": "mascot_incorrect.png",
+    "prompt": "a cute kawaii piggy bank mascot character with a slightly disappointed but still endearing expression, one small teardrop, encouraging not sad, soft pastel pink and blue color scheme, chibi style, flat vector illustration, cute minimalist character design, soft rounded shapes, warm friendly color palette, clean professional fintech education app illustration style, simple soft gradient background, centered composition, no text no watermark no border",
+    "provider": "leonardo",
+    "modelId": "de7d3faf-762f-48e0-b3b7-9d0ac3a3fcf3",
+    "generatedAt": "2026-08-01T03:12:17.133Z"
+  },
+  "mascot_levelup": {
+    "label": "マスコット・レベルアップ",
+    "category": "mascot",
+    "file": "mascot_levelup.png",
+    "prompt": "a cute kawaii piggy bank mascot character wearing a tiny golden crown, glowing warm golden aura around it, proud confident pose, soft pastel pink and blue color scheme, chibi style, flat vector illustration, cute minimalist character design, soft rounded shapes, warm friendly color palette, clean professional fintech education app illustration style, simple soft gradient background, centered composition, no text no watermark no border",
+    "provider": "leonardo",
+    "modelId": "de7d3faf-762f-48e0-b3b7-9d0ac3a3fcf3",
+    "generatedAt": "2026-08-01T03:12:24.991Z"
+  }
+}
