@@ -51,3 +51,11 @@ app.*.map.json
 *.cer
 *.key
 *_base64.txt
+
+# Firebase configuration (DO NOT COMMIT)
+google-services.json
+GoogleService-Info.plist
+.firebaserc
+*.mobileprovision
+*.p8
+*.p12
