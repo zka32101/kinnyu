@@ -30,7 +30,11 @@ class HomePage extends ConsumerWidget {
 
     // ホーム表示時に通知をスケジュール
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      NotificationService().scheduleStreakReminder();
+      try {
+        NotificationService().scheduleStreakReminder();
+      } catch (e) {
+        print('Failed to schedule streak reminder: $e');
+      }
     });
 
     return Scaffold(

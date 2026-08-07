@@ -30,19 +30,24 @@ class NotificationService {
 
       await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
-      const AndroidNotificationChannel channel = AndroidNotificationChannel(
-        streakChannelId,
-        streakChannelName,
-        description: 'ストリークを続けるためのリマインダー通知',
-        importance: Importance.defaultImportance,
-        enableVibration: true,
-      );
-      await flutterLocalNotificationsPlugin
+      // Android のみ：通知チャネルを作成
+      final androidImpl = flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
-          ?.createNotificationChannel(channel);
+              AndroidFlutterLocalNotificationsPlugin>();
+
+      if (androidImpl != null) {
+        const AndroidNotificationChannel channel = AndroidNotificationChannel(
+          streakChannelId,
+          streakChannelName,
+          description: 'ストリークを続けるためのリマインダー通知',
+          importance: Importance.defaultImportance,
+          enableVibration: true,
+        );
+        await androidImpl.createNotificationChannel(channel);
+      }
     } catch (e) {
       print('NotificationService init error: $e');
+      // 通知初期化失敗時もアプリは起動可能にする
     }
   }
 
