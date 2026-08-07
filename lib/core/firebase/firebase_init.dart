@@ -26,15 +26,22 @@ class FirebaseInitializer {
     final firestore = FirebaseFirestore.instance;
 
     try {
+      print('FirebaseInitializer: Starting test data initialization...');
       final questionsRef = firestore.collection('questions');
-      final snapshot = await questionsRef.get();
+
+      // Firestore へのアクセステスト
+      final snapshot = await questionsRef.limit(1).get();
+      print('FirebaseInitializer: Firestore connection successful');
 
       final questions = allQuestions();
 
       // 既存データが最新の問題数と一致していれば何もしない
       if (!forceReseed && snapshot.docs.length >= questions.length) {
+        print('FirebaseInitializer: Test data already up to date (${snapshot.docs.length} docs)');
         return;
       }
+
+      print('FirebaseInitializer: Writing ${questions.length} questions to Firestore...');
 
       // バッチ書き込みで全問題を投入（upsert）
       final batch = firestore.batch();
@@ -42,8 +49,12 @@ class FirebaseInitializer {
         batch.set(questionsRef.doc(question.id), question.toJson());
       }
       await batch.commit();
+
+      print('FirebaseInitializer: Test data initialization completed successfully');
     } catch (e) {
-      print('Failed to initialize test data: $e');
+      // ネットワーク接続なし、Firebase未初期化などの場合もアプリは起動できるように
+      print('FirebaseInitializer: Warning - Failed to initialize test data: $e');
+      print('FirebaseInitializer: App will continue to run without test data');
     }
   }
 }

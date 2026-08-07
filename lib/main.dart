@@ -14,22 +14,65 @@ import 'core/subscription/subscription_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await NotificationService().initialize();
-  await SubscriptionService().initialize();
-  // クイズ問題データを Firestore に投入（初回のみ）
-  await FirebaseInitializer().initializeTestData();
+
+  // Firebase 初期化（エラーハンドリング付き）
+  try {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  } catch (e) {
+    print('Firebase initialization failed: $e');
+  }
+
+  // 通知サービス初期化
+  try {
+    await NotificationService().initialize();
+  } catch (e) {
+    print('NotificationService initialization failed: $e');
+  }
+
+  // サブスクリプション初期化
+  try {
+    await SubscriptionService().initialize();
+  } catch (e) {
+    print('SubscriptionService initialization failed: $e');
+  }
+
+  // Firestore 初期化（Firebaseの完全初期化後）
+  try {
+    // Firebase.initializeApp() 完了後に少し待機してから Firestore にアクセス
+    await Future.delayed(const Duration(milliseconds: 500));
+    await FirebaseInitializer().initializeTestData();
+  } catch (e) {
+    print('FirebaseInitializer.initializeTestData() failed: $e');
+    // クイズデータ初期化失敗時もアプリは起動可能にする
+  }
+
   runApp(const ProviderScope(child: OkaneKoreApp()));
 }
 
-class OkaneKoreApp extends ConsumerWidget {
+class OkaneKoreApp extends ConsumerStatefulWidget {
   const OkaneKoreApp({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(isPremiumProvider.notifier).refresh();
+  ConsumerState<OkaneKoreApp> createState() => _OkaneKoreAppState();
+}
+
+class _OkaneKoreAppState extends ConsumerState<OkaneKoreApp> {
+  bool _initializedPremium = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // 一度だけプレミアム状態を取得（initState で一度実行）
+    Future.microtask(() {
+      if (!_initializedPremium) {
+        ref.read(isPremiumProvider.notifier).refresh();
+        _initializedPremium = true;
+      }
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp(
       title: 'お金コレ！',
       theme: AppTheme.lightTheme(),
