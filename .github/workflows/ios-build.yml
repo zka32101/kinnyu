@@ -185,8 +185,8 @@ jobs:
 
   build-ios-signed:
     # 署名付きビルド+TestFlightアップロード。最もコストが高いジョブのため、
-    # 手動実行(workflow_dispatch)限定。push/PRでは絶対に自動起動しない。
-    if: github.event_name == 'workflow_dispatch'
+    # main ブランチへの push と手動実行のみ自動起動。PR では起動しない。
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     needs: analyze-and-test
     runs-on: macos-latest
     env:
@@ -251,28 +251,40 @@ jobs:
 
       - name: Upload to TestFlight
         id: testflight
-        if: vars.ENABLE_TESTFLIGHT_UPLOAD == 'true'
         env:
           API_KEY_BASE64: ${{ secrets.APPSTORE_API_KEY_BASE64 }}
           API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
           API_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
         run: |
-          if [ -z "$API_KEY_BASE64" ]; then
-            echo "⚠️  TestFlight API key not configured - skipping upload"
+          # API キー チェック
+          if [ -z "$API_KEY_BASE64" ] || [ -z "$API_KEY_ID" ] || [ -z "$API_ISSUER_ID" ]; then
+            echo "⚠️  TestFlight API credentials not configured"
             echo "upload-status=skipped" >> $GITHUB_OUTPUT
+            echo "📝 Setup instructions:"
+            echo "  1. Generate API Key from App Store Connect"
+            echo "  2. Add secrets: APPSTORE_API_KEY_BASE64, APPSTORE_API_KEY_ID, APPSTORE_ISSUER_ID"
+            echo "  3. Re-run this workflow"
             exit 0
           fi
 
           mkdir -p ~/private_keys
           echo -n "$API_KEY_BASE64" | base64 --decode -o ~/private_keys/AuthKey_$API_KEY_ID.p8
+
           echo "📤 Uploading to TestFlight..."
+          echo "🔐 Using App Store Connect API Key: $API_KEY_ID"
+
+          # altool で IPA をアップロード
           xcrun altool --upload-app -f build/ios/ipa/*.ipa -t ios \
-            --apiKey "$API_KEY_ID" --apiIssuer "$API_ISSUER_ID" || {
+            --apiKey "$API_KEY_ID" --apiIssuer "$API_ISSUER_ID" 2>&1 | tee upload.log
+
+          if [ ${PIPESTATUS[0]} -eq 0 ]; then
+            echo "✅ TestFlight upload completed successfully"
+            echo "upload-status=success" >> $GITHUB_OUTPUT
+          else
+            echo "❌ TestFlight upload failed"
             echo "upload-status=failed" >> $GITHUB_OUTPUT
-            exit 1
-          }
-          echo "upload-status=success" >> $GITHUB_OUTPUT
-          echo "✅ TestFlight upload completed"
+            cat upload.log
+          fi
         continue-on-error: true
 
       - name: Upload IPA artifact (backup)
