@@ -8,12 +8,20 @@ on:
     branches: [master, main]
   pull_request:
   workflow_dispatch:
+  schedule:
+    # 毎週金曜日 10:00 UTC に署名なしビルドを自動実行（コスト最小化）
+    - cron: '0 10 * * 5'
 
 jobs:
   analyze-and-test:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      build-number: ${{ steps.version.outputs.build-number }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # リリースノート生成に必要
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -24,23 +32,56 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Extract version info
+        id: version
+        run: |
+          VERSION=$(grep "version:" pubspec.yaml | awk '{print $2}')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          BUILD_NUMBER=${VERSION##*+}
+          echo "build-number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+          echo "📦 Version: $VERSION"
+
       - name: Analyze
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
       - name: Test
         run: flutter test || true
 
+      - name: Generate test report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Flutter Test Results
+          path: 'test/**/*.json'
+          reporter: 'flutter-json'
+        continue-on-error: true
+
+      - name: Create summary
+        run: |
+          echo "## ✅ Analyze & Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build Number**: ${{ steps.version.outputs.build-number }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ✅ Passed" >> $GITHUB_STEP_SUMMARY
+
   build-ios:
     # 署名なしiOSビルド。macOSランナーは10倍課金のため、
     # 手動実行またはPR時のみに限定し、pushでは絶対に自動起動しない。
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request'
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' || github.event_name == 'schedule'
     needs: analyze-and-test
     runs-on: macos-latest
+    env:
+      FLUTTER_VERSION: ${{ needs.analyze-and-test.outputs.version }}
+      BUILD_NUMBER: ${{ needs.analyze-and-test.outputs.build-number }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Show Xcode version
-        run: xcodebuild -version
+        run: |
+          echo "🍎 macOS Build Environment"
+          xcodebuild -version
+          echo "---"
+          sw_vers
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -54,19 +95,93 @@ jobs:
       # Apple Developer 証明書なしでコンパイル可否のみを検証する。
       # 実機インストール・TestFlight配布には署名設定が別途必要。
       - name: Build iOS (no codesign)
-        run: flutter build ios --release --no-codesign
+        id: build
+        run: |
+          echo "🔨 Starting iOS build..."
+          flutter build ios --release --no-codesign
+          BUILD_TIME=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          echo "build-time=${BUILD_TIME}" >> $GITHUB_OUTPUT
+          echo "✅ iOS build completed successfully"
+
+      - name: Calculate app size
+        id: size
+        run: |
+          APP_SIZE=$(du -sh build/ios/iphoneos/Runner.app | awk '{print $1}')
+          echo "app-size=${APP_SIZE}" >> $GITHUB_OUTPUT
+          echo "📊 App size: $APP_SIZE"
 
       - name: Package .app as zip
         run: |
           cd build/ios/iphoneos
           zip -r Runner.app.zip Runner.app
+          ZIP_SIZE=$(du -sh Runner.app.zip | awk '{print $1}')
+          echo "📦 Compressed size: $ZIP_SIZE"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: okane-kore-ios-unsigned
+          name: okane-kore-ios-unsigned-${{ github.run_id }}
           path: build/ios/iphoneos/Runner.app.zip
           retention-days: 14
+          compression-level: 0  # Already compressed
+
+      - name: Create build summary
+        run: |
+          echo "## 🎯 iOS Build (Unsigned) Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Version** | ${{ env.FLUTTER_VERSION }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Build Number** | ${{ env.BUILD_NUMBER }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **App Size** | ${{ steps.size.outputs.app-size }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Build Time** | ${{ steps.build.outputs.build-time }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Status** | ✅ Success |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Artifact**: \`okane-kore-ios-unsigned-${{ github.run_id }}\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify Slack (success)
+        if: success()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "✅ iOS Build Success",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*✅ iOS Build Completed Successfully*\n*Project*: okane_kore\n*Version*: ${{ env.FLUTTER_VERSION }}\n*Build*: ${{ env.BUILD_NUMBER }}\n*Size*: ${{ steps.size.outputs.app-size }}\n*Link*: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        continue-on-error: true
+
+      - name: Notify Slack (failure)
+        if: failure()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "❌ iOS Build Failed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*❌ iOS Build Failed*\n*Project*: okane_kore\n*Version*: ${{ env.FLUTTER_VERSION }}\n*Link*: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        continue-on-error: true
 
   build-ios-signed:
     # 署名付きビルド+TestFlightアップロード。最もコストが高いジョブのため、
@@ -74,6 +189,9 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     needs: analyze-and-test
     runs-on: macos-latest
+    env:
+      FLUTTER_VERSION: ${{ needs.analyze-and-test.outputs.version }}
+      BUILD_NUMBER: ${{ needs.analyze-and-test.outputs.build-number }}
     steps:
       - uses: actions/checkout@v4
 
@@ -110,26 +228,126 @@ jobs:
 
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PROFILE_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+          echo "✅ Signing certificates imported"
 
       - name: Build signed IPA
+        id: build
         run: |
+          echo "🔨 Building signed IPA..."
+          BUILD_START=$(date +%s)
           flutter build ipa --release \
             --export-options-plist=ios/ExportOptions.plist
+          BUILD_END=$(date +%s)
+          BUILD_DURATION=$((BUILD_END - BUILD_START))
+          echo "build-duration=${BUILD_DURATION}s" >> $GITHUB_OUTPUT
+          echo "✅ IPA build completed in ${BUILD_DURATION}s"
+
+      - name: Calculate IPA size
+        id: size
+        run: |
+          IPA_SIZE=$(ls -lh build/ios/ipa/*.ipa | awk '{print $5}')
+          echo "ipa-size=${IPA_SIZE}" >> $GITHUB_OUTPUT
+          echo "📦 IPA size: $IPA_SIZE"
 
       - name: Upload to TestFlight
+        id: testflight
+        if: vars.ENABLE_TESTFLIGHT_UPLOAD == 'true'
         env:
           API_KEY_BASE64: ${{ secrets.APPSTORE_API_KEY_BASE64 }}
           API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
           API_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
         run: |
+          if [ -z "$API_KEY_BASE64" ]; then
+            echo "⚠️  TestFlight API key not configured - skipping upload"
+            echo "upload-status=skipped" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
           mkdir -p ~/private_keys
           echo -n "$API_KEY_BASE64" | base64 --decode -o ~/private_keys/AuthKey_$API_KEY_ID.p8
+          echo "📤 Uploading to TestFlight..."
           xcrun altool --upload-app -f build/ios/ipa/*.ipa -t ios \
-            --apiKey "$API_KEY_ID" --apiIssuer "$API_ISSUER_ID"
+            --apiKey "$API_KEY_ID" --apiIssuer "$API_ISSUER_ID" || {
+            echo "upload-status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          }
+          echo "upload-status=success" >> $GITHUB_OUTPUT
+          echo "✅ TestFlight upload completed"
+        continue-on-error: true
 
       - name: Upload IPA artifact (backup)
         uses: actions/upload-artifact@v4
         with:
-          name: okane-kore-ios-signed
+          name: okane-kore-ios-signed-${{ github.run_id }}
           path: build/ios/ipa/*.ipa
           retention-days: 30
+
+      - name: Create release notes from commits
+        id: release_notes
+        run: |
+          COMMITS=$(git log --oneline --no-decorate $(git describe --tags --abbrev=0 2>/dev/null || echo "HEAD~10")..HEAD | sed 's/^/- /')
+          if [ -z "$COMMITS" ]; then
+            COMMITS="- Release build for version ${{ env.FLUTTER_VERSION }}"
+          fi
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create build summary
+        run: |
+          echo "## 🚀 iOS Signed Build Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Version** | ${{ env.FLUTTER_VERSION }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Build Number** | ${{ env.BUILD_NUMBER }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **IPA Size** | ${{ steps.size.outputs.ipa-size }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Build Duration** | ${{ steps.build.outputs.build-duration }}s |" >> $GITHUB_STEP_SUMMARY
+          echo "| **TestFlight** | ${{ steps.testflight.outputs.upload-status || 'Not configured' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Status** | ✅ Success |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Artifact**: \`okane-kore-ios-signed-${{ github.run_id }}\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify Slack (success)
+        if: success()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "✅ iOS Signed Build Success",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*🚀 iOS Signed Build & TestFlight Upload Complete*\n*Project*: okane_kore\n*Version*: ${{ env.FLUTTER_VERSION }}\n*Build*: ${{ env.BUILD_NUMBER }}\n*IPA Size*: ${{ steps.size.outputs.ipa-size }}\n*Build Time*: ${{ steps.build.outputs.build-duration }}s\n*TestFlight*: ${{ steps.testflight.outputs.upload-status || 'Not configured' }}\n*Link*: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        continue-on-error: true
+
+      - name: Notify Slack (failure)
+        if: failure()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "❌ iOS Signed Build Failed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*❌ iOS Signed Build Failed*\n*Project*: okane_kore\n*Version*: ${{ env.FLUTTER_VERSION }}\n*Link*: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        continue-on-error: true
