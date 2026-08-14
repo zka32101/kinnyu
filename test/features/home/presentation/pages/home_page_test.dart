@@ -15,7 +15,7 @@ void main() {
         ),
       );
 
-      expect(find.text('お金コレ！'), findsOneWidget);
+      expect(find.text('金融オンライン大学'), findsOneWidget);
       expect(find.text('ストリーク'), findsOneWidget);
       expect(find.text('ジャンルを選択'), findsOneWidget);
     });

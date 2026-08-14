@@ -78,7 +78,7 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
     final packages = _offerings?.current?.availablePackages ?? [];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('お金コレ！プレミアム')),
+      appBar: AppBar(title: const Text('金融オンライン大学 プレミアム')),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [

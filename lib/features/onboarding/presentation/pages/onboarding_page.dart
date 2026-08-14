@@ -61,7 +61,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
             const Icon(Icons.savings, size: 80, color: Colors.white),
             const SizedBox(height: 24),
             const Text(
-              'お金コレ！',
+              '金融オンライン大学',
               style: TextStyle(
                 fontSize: 36,
                 fontWeight: FontWeight.bold,
