@@ -138,7 +138,7 @@ class _HouseholdSimulatorPageState
       final file = await HouseholdExcelExporter.export(results);
       await Share.shareXFiles(
         [XFile(file.path)],
-        text: 'お金コレ！ 家計シミュレーション結果',
+        text: '金融オンライン大学 家計シミュレーション結果',
       );
     } catch (e) {
       if (mounted) {

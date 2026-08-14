@@ -90,7 +90,7 @@ void main() {
       await tester.tap(find.text('新NISAつみたて満額'));
       await tester.pumpAndSettle();
 
-      expect(find.text('お金コレ！プレミアム'), findsOneWidget);
+      expect(find.text('金融オンライン大学 プレミアム'), findsOneWidget);
     });
 
     testWidgets('switching to real-fluctuation mode shows yearly returns',
@@ -223,7 +223,7 @@ void main() {
       await tester.tap(find.byIcon(Icons.ios_share));
       await tester.pumpAndSettle();
 
-      expect(find.text('お金コレ！プレミアム'), findsOneWidget);
+      expect(find.text('金融オンライン大学 プレミアム'), findsOneWidget);
     });
   });
 }

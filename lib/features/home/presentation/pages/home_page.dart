@@ -39,7 +39,7 @@ class HomePage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('お金コレ！'),
+        title: const Text('金融オンライン大学'),
         centerTitle: true,
         elevation: 0,
         actions: [

@@ -12,7 +12,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('お金コレ！プレミアム'), findsOneWidget);
+      expect(find.text('金融オンライン大学 プレミアム'), findsOneWidget);
       expect(find.textContaining('投資シミュレーション'), findsWidgets);
       expect(find.textContaining('Excel出力'), findsWidgets);
 
