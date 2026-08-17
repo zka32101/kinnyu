@@ -136,10 +136,19 @@ class _HouseholdSimulatorPageState
       }
 
       final file = await HouseholdExcelExporter.export(results);
-      await Share.shareXFiles(
+      final shareResult = await Share.shareXFiles(
         [XFile(file.path)],
         text: '金融オンライン大学 家計シミュレーション結果',
       );
+      // Share.shareXFiles does not throw when the user dismisses the share
+      // sheet without picking a target — it resolves normally with a
+      // ShareResult whose status reflects the dismissal. That is not an
+      // error, so it's only logged here for debugging; the `finally` below
+      // unconditionally resets the loading state on every path (success,
+      // dismissal, or error).
+      if (shareResult.status == ShareResultStatus.dismissed) {
+        debugPrint('Excel export share sheet was dismissed by the user');
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -147,6 +156,8 @@ class _HouseholdSimulatorPageState
         );
       }
     } finally {
+      // Runs on every path above — normal completion, dismissal, and
+      // errors/early returns via catch — so _isExporting never gets stuck.
       if (mounted) setState(() => _isExporting = false);
     }
   }

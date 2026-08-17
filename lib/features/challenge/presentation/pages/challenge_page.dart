@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/challenge.dart';
@@ -23,7 +24,19 @@ class ChallengePage extends ConsumerWidget {
           return _buildChallengeDetail(context, ref, user.uid, challenge);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('エラー: $error')),
+        error: (error, stack) => Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('エラー: $error'),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: () => ref.invalidate(currentChallengeProvider),
+                child: const Text('再読み込み'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -144,16 +157,31 @@ class ChallengePage extends ConsumerWidget {
     final service = ref.read(challengeServiceProvider);
     final analytics = ref.read(analyticsServiceProvider);
 
-    await service.joinChallenge(challengeId, uid);
-    await analytics.logEvent('challenge_joined', parameters: {
-      'user_id': uid,
-      'challenge_id': challengeId,
-    });
+    try {
+      await service.joinChallenge(challengeId, uid);
 
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('チャレンジに参加しました！')),
-      );
+      try {
+        await analytics.logEvent('challenge_joined', parameters: {
+          'user_id': uid,
+          'challenge_id': challengeId,
+        });
+      } catch (e) {
+        // Analytics failures should never block the user-facing join flow.
+        debugPrint('challenge_joined analytics logging failed: $e');
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('チャレンジに参加しました！')),
+        );
+      }
+    } catch (e) {
+      debugPrint('joinChallenge failed: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('参加に失敗しました')),
+        );
+      }
     }
   }
 }

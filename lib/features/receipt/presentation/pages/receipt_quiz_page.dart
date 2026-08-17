@@ -97,7 +97,10 @@ class _ReceiptQuizPageState extends ConsumerState<ReceiptQuizPage> {
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
+                    onPressed: () {
+                      if (!context.mounted) return;
+                      Navigator.popUntil(context, (route) => route.isFirst);
+                    },
                     child: const Text('ホームに戻る'),
                   ),
                 ],

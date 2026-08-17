@@ -34,6 +34,7 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
   }
 
   Future<void> _purchase(Package package) async {
+    if (_purchasing) return;
     setState(() => _purchasing = true);
     final service = ref.read(subscriptionServiceProvider);
     try {
@@ -54,22 +55,32 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
   }
 
   Future<void> _restore() async {
+    if (_restoring) return;
     setState(() => _restoring = true);
-    final restored = await ref.read(isPremiumProvider.notifier).refresh().then(
-          (_) => ref.read(isPremiumProvider),
-        );
-    if (mounted) {
-      setState(() => _restoring = false);
-      if (restored) {
+    try {
+      await ref.read(isPremiumProvider.notifier).refresh();
+      final restored = ref.read(isPremiumProvider);
+      if (mounted) {
+        if (restored) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('購入履歴を復元しました')),
+          );
+          Navigator.pop(context, true);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('復元できる購入履歴が見つかりませんでした')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Restore purchases failed: $e');
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('購入履歴を復元しました')),
-        );
-        Navigator.pop(context, true);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('復元できる購入履歴が見つかりませんでした')),
+          SnackBar(content: Text('復元処理に失敗しました: $e')),
         );
       }
+    } finally {
+      if (mounted) setState(() => _restoring = false);
     }
   }
 

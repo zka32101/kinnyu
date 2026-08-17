@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tzdata;
@@ -8,6 +9,12 @@ class NotificationService {
   static const String streakChannelName = 'ストリークリマインダー';
 
   late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+
+  // initialize() が正常に完了した場合のみ true になる。
+  // late フィールド flutterLocalNotificationsPlugin は initialize() が
+  // 失敗（例外）した場合は未初期化のままになり得るため、他の公開メソッドは
+  // 呼び出し前に必ずこのフラグを確認すること（LateInitializationError 対策）。
+  bool _initialized = false;
 
   NotificationService._internal();
 
@@ -45,13 +52,20 @@ class NotificationService {
         );
         await androidImpl.createNotificationChannel(channel);
       }
+
+      // ここまで例外なく到達した場合のみ初期化完了とみなす
+      _initialized = true;
     } catch (e) {
-      print('NotificationService init error: $e');
-      // 通知初期化失敗時もアプリは起動可能にする
+      debugPrint('NotificationService init error: $e');
+      // 通知初期化失敗時もアプリは起動可能にする（_initialized は false のまま）
     }
   }
 
   Future<void> scheduleStreakReminder() async {
+    if (!_initialized) {
+      debugPrint('NotificationService: not initialized, skipping scheduleStreakReminder');
+      return;
+    }
     try {
       final now = tz.TZDateTime.now(tz.local);
       var scheduledDate = tz.TZDateTime(
@@ -94,11 +108,15 @@ class NotificationService {
         matchDateTimeComponents: DateTimeComponents.time,
       );
     } catch (e) {
-      print('通知スケジュール失敗: $e');
+      debugPrint('通知スケジュール失敗: $e');
     }
   }
 
   Future<void> showMissionCompletedNotification(String missionTitle) async {
+    if (!_initialized) {
+      debugPrint('NotificationService: not initialized, skipping showMissionCompletedNotification');
+      return;
+    }
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'mission_completed',
@@ -123,6 +141,10 @@ class NotificationService {
   }
 
   Future<void> showDiagnosisResultNotification() async {
+    if (!_initialized) {
+      debugPrint('NotificationService: not initialized, skipping showDiagnosisResultNotification');
+      return;
+    }
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'diagnosis_result',
@@ -147,10 +169,18 @@ class NotificationService {
   }
 
   Future<void> cancelAllNotifications() async {
+    if (!_initialized) {
+      debugPrint('NotificationService: not initialized, skipping cancelAllNotifications');
+      return;
+    }
     await flutterLocalNotificationsPlugin.cancelAll();
   }
 
   Future<void> cancelNotification(int id) async {
+    if (!_initialized) {
+      debugPrint('NotificationService: not initialized, skipping cancelNotification');
+      return;
+    }
     await flutterLocalNotificationsPlugin.cancel(id);
   }
 }

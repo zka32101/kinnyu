@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../domain/models/receipt.dart';
 
 class ReceiptService {
@@ -15,8 +16,9 @@ class ReceiptService {
     String? imagePath,
   }) async {
     final now = DateTime.now();
+    final docRef = _receiptsRef(uid).doc();
     final receipt = Receipt(
-      id: 'receipt_${now.millisecondsSinceEpoch}',
+      id: docRef.id,
       uid: uid,
       imagePath: imagePath,
       date: now,
@@ -25,10 +27,18 @@ class ReceiptService {
       createdAt: now,
     );
 
-    await _receiptsRef(uid).doc(receipt.id).set(receipt.toJson());
-    return receipt;
+    try {
+      await docRef.set(receipt.toJson());
+      return receipt;
+    } catch (e) {
+      debugPrint('ReceiptService.saveReceipt failed for uid=$uid: $e');
+      rethrow;
+    }
   }
 
+  // NOTE: This uses simple limit-based pagination. For full cursor-based
+  // pagination (e.g. via startAfterDocument()), the method signature would
+  // need to accept a document cursor / last-fetched document.
   Future<List<Receipt>> getRecentReceipts(String uid, {int limit = 10}) async {
     try {
       final snapshot = await _receiptsRef(uid)

@@ -16,11 +16,16 @@ class DiagnosisResultPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final user = ref.read(userProvider);
-      final analytics = ref.read(analyticsServiceProvider);
-      if (user != null) {
-        analytics.logAhaMomentReached(user.uid, diagnosis.patternId);
-        await NotificationService().showDiagnosisResultNotification();
+      if (!context.mounted) return;
+      try {
+        final user = ref.read(userProvider);
+        final analytics = ref.read(analyticsServiceProvider);
+        if (user != null) {
+          analytics.logAhaMomentReached(user.uid, diagnosis.patternId);
+          await NotificationService().showDiagnosisResultNotification();
+        }
+      } catch (e, stack) {
+        debugPrint('Failed to show diagnosis result notification: $e\n$stack');
       }
     });
 

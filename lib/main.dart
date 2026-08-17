@@ -15,34 +15,41 @@ import 'core/subscription/subscription_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 以下の初期化は意図的に「順番に」await している。
+  // Firebase.initializeApp() が完了して初めて、Firestore に依存する
+  // NotificationService / SubscriptionService / FirebaseInitializer が
+  // 安全に動作できるため、並列化はせずこの順序を維持すること。
+
   // Firebase 初期化（エラーハンドリング付き）
   try {
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   } catch (e) {
-    print('Firebase initialization failed: $e');
+    debugPrint('[main] Firebase initialization failed: $e');
   }
 
   // 通知サービス初期化
   try {
     await NotificationService().initialize();
   } catch (e) {
-    print('NotificationService initialization failed: $e');
+    debugPrint('[main] NotificationService initialization failed: $e');
   }
 
   // サブスクリプション初期化
   try {
     await SubscriptionService().initialize();
   } catch (e) {
-    print('SubscriptionService initialization failed: $e');
+    debugPrint('[main] SubscriptionService initialization failed: $e');
   }
 
   // Firestore 初期化（Firebaseの完全初期化後）
   try {
-    // Firebase.initializeApp() 完了後に少し待機してから Firestore にアクセス
-    await Future.delayed(const Duration(milliseconds: 500));
+    // Firebase.initializeApp() は上で await 済みなので、それ自体が
+    // Firebase の準備完了の合図であり、追加の待機は本来不要。
+    // 念のためごく短い安全マージンだけ残す（不安定な環境向けの保険）。
+    await Future.delayed(const Duration(milliseconds: 100));
     await FirebaseInitializer().initializeTestData();
   } catch (e) {
-    print('FirebaseInitializer.initializeTestData() failed: $e');
+    debugPrint('[main] FirebaseInitializer.initializeTestData() failed: $e');
     // クイズデータ初期化失敗時もアプリは起動可能にする
   }
 
@@ -63,10 +70,15 @@ class _OkaneKoreAppState extends ConsumerState<OkaneKoreApp> {
   void initState() {
     super.initState();
     // 一度だけプレミアム状態を取得（initState で一度実行）
-    Future.microtask(() {
+    Future.microtask(() async {
       if (!_initializedPremium) {
-        ref.read(isPremiumProvider.notifier).refresh();
-        _initializedPremium = true;
+        try {
+          await ref.read(isPremiumProvider.notifier).refresh();
+        } catch (e) {
+          debugPrint('[OkaneKoreApp] isPremiumProvider.refresh() failed: $e');
+        } finally {
+          _initializedPremium = true;
+        }
       }
     });
   }
@@ -86,9 +98,11 @@ class _OkaneKoreAppState extends ConsumerState<OkaneKoreApp> {
         loading: () => const Scaffold(
           body: Center(child: CircularProgressIndicator()),
         ),
-        error: (error, stack) => Scaffold(
-          body: Center(child: Text('エラー: $error')),
-        ),
+        error: (error, stack) {
+          debugPrint('[OkaneKoreApp] onboardingCompletedProvider error: $error\n$stack');
+          // エラー画面で行き止まりにせず、オンボーディングへ安全にフォールバックする
+          return const OnboardingPage();
+        },
       ),
     );
   }

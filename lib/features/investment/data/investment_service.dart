@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../domain/models/investment.dart';
 import '../domain/services/market_simulator.dart';
 
@@ -17,8 +20,9 @@ class InvestmentService {
     final now = DateTime.now();
     final purchaseIndexValue = MarketSimulator.getCurrentIndexValue(type, asOf: now);
 
+    final docRef = _investmentsRef(uid).doc();
     final investment = Investment(
-      id: 'inv_${now.millisecondsSinceEpoch}',
+      id: docRef.id,
       uid: uid,
       savingsAmount: savingsAmount,
       investmentType: type,
@@ -26,8 +30,13 @@ class InvestmentService {
       purchaseIndexValue: purchaseIndexValue,
     );
 
-    await _investmentsRef(uid).doc(investment.id).set(investment.toJson());
-    return investment;
+    try {
+      await docRef.set(investment.toJson());
+      return investment;
+    } catch (e) {
+      debugPrint('createInvestment error: $e');
+      rethrow;
+    }
   }
 
   Future<List<Investment>> getActiveInvestments(String uid) async {
@@ -50,25 +59,46 @@ class InvestmentService {
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => Investment.fromJson({...doc.data(), 'id': doc.id}))
-            .toList());
+            .toList())
+        .transform(
+          StreamTransformer.fromHandlers(
+            handleError: (error, stack, sink) {
+              debugPrint('watchActiveInvestments error: $error');
+              sink.addError(error, stack);
+            },
+          ),
+        );
   }
 
   Future<void> realizeInvestment(String uid, String investmentId) async {
     try {
-      final doc = await _investmentsRef(uid).doc(investmentId).get();
-      if (!doc.exists) return;
+      final docRef = _investmentsRef(uid).doc(investmentId);
 
-      final investment = Investment.fromJson({...doc.data()!, 'id': doc.id});
-      final currentIndexValue =
-          MarketSimulator.getCurrentIndexValue(investment.investmentType);
+      await _firestore.runTransaction((transaction) async {
+        final doc = await transaction.get(docRef);
+        if (!doc.exists) {
+          throw Exception('投資が見つかりません');
+        }
 
-      await _investmentsRef(uid).doc(investmentId).update({
-        'status': InvestmentStatus.realized.index,
-        'realizedAt': DateTime.now().toIso8601String(),
-        'realizedIndexValue': currentIndexValue,
+        final data = doc.data()!;
+        final currentStatus = data['status'] as int?;
+        if (currentStatus == InvestmentStatus.realized.index) {
+          throw Exception('既に実現済みです');
+        }
+
+        final investment = Investment.fromJson({...data, 'id': doc.id});
+        final currentIndexValue =
+            MarketSimulator.getCurrentIndexValue(investment.investmentType);
+
+        transaction.update(docRef, {
+          'status': InvestmentStatus.realized.index,
+          'realizedAt': DateTime.now().toIso8601String(),
+          'realizedIndexValue': currentIndexValue,
+        });
       });
     } catch (e) {
-      throw Exception('Failed to realize investment: $e');
+      debugPrint('realizeInvestment error: $e');
+      rethrow;
     }
   }
 }

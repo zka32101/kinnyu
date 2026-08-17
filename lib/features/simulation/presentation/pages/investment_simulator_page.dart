@@ -48,6 +48,12 @@ class _InvestmentSimulatorPageState
       _applyPattern(p);
       return;
     }
+    // PaywallPage only ever calls Navigator.pop(context, true) after a
+    // confirmed successful purchase or restore (see
+    // features/premium/presentation/pages/paywall_page.dart `_purchase` /
+    // `_restore`). Dismissing the paywall via the back button/gesture pops
+    // with no argument, which resolves to `null` here — so this `== true`
+    // check already excludes any non-genuine unlock and is safe as-is.
     final unlocked = await Navigator.push<bool>(
       context,
       MaterialPageRoute(builder: (_) => const PaywallPage()),

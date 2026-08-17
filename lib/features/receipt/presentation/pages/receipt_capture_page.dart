@@ -156,29 +156,41 @@ class _ReceiptCapturePageState extends ConsumerState<ReceiptCapturePage> {
     final service = ref.read(receiptServiceProvider);
     final analytics = ref.read(analyticsServiceProvider);
 
-    final receipt = await service.saveReceipt(
-      uid: uid,
-      category: selectedCategory,
-      amount: amount,
-      imagePath: capturedImage?.path,
-    );
-
-    await analytics.logEvent('receipt_uploaded', parameters: {
-      'user_id': uid,
-      'category': selectedCategory.index.toString(),
-      'amount': amount,
-    });
-
-    final quiz = ReceiptQuizGenerator.generate(receipt);
-
-    if (mounted) {
-      setState(() => isSaving = false);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ReceiptQuizPage(question: quiz, receipt: receipt),
-        ),
+    try {
+      final receipt = await service.saveReceipt(
+        uid: uid,
+        category: selectedCategory,
+        amount: amount,
+        imagePath: capturedImage?.path,
       );
+
+      await analytics.logEvent('receipt_uploaded', parameters: {
+        'user_id': uid,
+        'category': selectedCategory.index.toString(),
+        'amount': amount,
+      });
+
+      final quiz = ReceiptQuizGenerator.generate(receipt);
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ReceiptQuizPage(question: quiz, receipt: receipt),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('ReceiptCapturePage: failed to save receipt: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('保存に失敗しました')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isSaving = false);
+      }
     }
   }
 }
