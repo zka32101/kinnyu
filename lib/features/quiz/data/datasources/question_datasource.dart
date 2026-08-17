@@ -64,8 +64,30 @@ class QuestionDataSource {
         .collection('questions')
         .where('category', isEqualTo: category.index)
         .snapshots()
-        .map((query) => query.docs
-            .map((doc) => Question.fromJson({...doc.data(), 'id': doc.id}))
-            .toList());
+        .map((query) {
+          final questions = <Question>[];
+          for (final doc in query.docs) {
+            try {
+              questions.add(
+                  Question.fromJson({...doc.data(), 'id': doc.id}));
+            } catch (e, stack) {
+              // 1件のドキュメントの解析失敗でストリーム全体を落とさないよう、
+              // 不正なドキュメントはログに残してスキップする。
+              debugPrint(
+                  'getQuestionsStream: failed to parse question ${doc.id}: $e\n$stack');
+            }
+          }
+          return questions;
+        })
+        .transform(
+          StreamTransformer<List<Question>, List<Question>>.fromHandlers(
+            handleError: (error, stack, sink) {
+              // Firestore側のエラー（権限エラー・接続断など）をログに残しつつ、
+              // UI側のAsyncValue.errorハンドリングに伝播させる。
+              debugPrint('getQuestionsStream error: $error\n$stack');
+              sink.addError(error, stack);
+            },
+          ),
+        );
   }
 }

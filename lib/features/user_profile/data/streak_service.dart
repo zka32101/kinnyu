@@ -60,49 +60,78 @@ class StreakService {
 
   Future<void> updateStreak(String uid) async {
     try {
-      final streak = await getStreak(uid);
+      final docRef = _firestore.collection('streaks').doc(uid);
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
-      final lastDate = streak.lastCompletedDate;
       final yesterday =
           DateTime(now.year, now.month, now.day).subtract(const Duration(days: 1));
 
-      int newStreak = streak.currentStreak;
-      int newLongestStreak = streak.longestStreak;
+      // Read, calculate and write inside a single transaction so concurrent
+      // calls (e.g. rapid taps or multiple devices) serialize correctly
+      // instead of racing and clobbering each other (lost update).
+      await _firestore.runTransaction((transaction) async {
+        final doc = await transaction.get(docRef);
+        final streak = doc.exists
+            ? StreakData.fromJson(doc.data()!)
+            : StreakData(uid: uid, currentStreak: 0, longestStreak: 0);
 
-      if (lastDate == null) {
-        newStreak = 1;
-      } else {
-        final lastDay = DateTime(lastDate.year, lastDate.month, lastDate.day);
-        if (lastDay.isAtSameMomentAs(yesterday)) {
-          newStreak = streak.currentStreak + 1;
-        } else if (!lastDay.isAtSameMomentAs(today)) {
+        final lastDate = streak.lastCompletedDate;
+
+        int newStreak = streak.currentStreak;
+        int newLongestStreak = streak.longestStreak;
+
+        if (lastDate == null) {
           newStreak = 1;
+        } else {
+          final lastDay = DateTime(lastDate.year, lastDate.month, lastDate.day);
+          if (lastDay.isAtSameMomentAs(yesterday)) {
+            newStreak = streak.currentStreak + 1;
+          } else if (!lastDay.isAtSameMomentAs(today)) {
+            newStreak = 1;
+          }
         }
-      }
 
-      if (newStreak > newLongestStreak) {
-        newLongestStreak = newStreak;
-      }
+        if (newStreak > newLongestStreak) {
+          newLongestStreak = newStreak;
+        }
 
-      await _firestore.collection('streaks').doc(uid).set({
-        'uid': uid,
-        'currentStreak': newStreak,
-        'longestStreak': newLongestStreak,
-        'lastCompletedDate': Timestamp.fromDate(today),
-        'updatedAt': FieldValue.serverTimestamp(),
+        final data = {
+          'uid': uid,
+          'currentStreak': newStreak,
+          'longestStreak': newLongestStreak,
+          'lastCompletedDate': Timestamp.fromDate(today),
+          'updatedAt': FieldValue.serverTimestamp(),
+        };
+
+        if (doc.exists) {
+          transaction.update(docRef, data);
+        } else {
+          transaction.set(docRef, data);
+        }
       });
     } catch (e) {
-      print('Failed to update streak: $e');
+      debugPrint('Failed to update streak: $e');
     }
   }
 
   Stream<StreakData> getStreakStream(String uid) {
-    return _firestore.collection('streaks').doc(uid).snapshots().map((doc) {
-      if (!doc.exists) {
-        return StreakData(uid: uid, currentStreak: 0, longestStreak: 0);
-      }
-      return StreakData.fromJson(doc.data()!);
-    });
+    return _firestore
+        .collection('streaks')
+        .doc(uid)
+        .snapshots()
+        .map((doc) {
+          if (!doc.exists) {
+            return StreakData(uid: uid, currentStreak: 0, longestStreak: 0);
+          }
+          return StreakData.fromJson(doc.data()!);
+        })
+        .transform(
+          StreamTransformer.fromHandlers(
+            handleError: (error, stack, sink) {
+              debugPrint('getStreakStream error: $error');
+              sink.addError(error, stack);
+            },
+          ),
+        );
   }
 }

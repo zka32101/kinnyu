@@ -33,7 +33,7 @@ class HomePage extends ConsumerWidget {
       try {
         NotificationService().scheduleStreakReminder();
       } catch (e) {
-        print('Failed to schedule streak reminder: $e');
+        debugPrint('Failed to schedule streak reminder: $e');
       }
     });
 

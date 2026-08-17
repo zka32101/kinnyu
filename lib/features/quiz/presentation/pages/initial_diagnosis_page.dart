@@ -39,6 +39,7 @@ class _DiagnosisFlowState extends ConsumerState<_DiagnosisFlow> {
     if (currentIndex >= questions.length) {
       final diagnosis = _generateDiagnosis();
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
