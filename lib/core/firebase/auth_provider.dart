@@ -13,7 +13,7 @@ final currentUserProvider = StreamProvider((ref) {
 
 final userProfileProvider = FutureProvider((ref) async {
   final authService = ref.watch(authServiceProvider);
-  final user = FirebaseAuth.instance.currentUser;
+  final user = await ref.watch(currentUserProvider.future);
 
   if (user == null) {
     final result = await authService.signInAnonymously();

@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../domain/models/mission.dart';
 
 class MissionService {
@@ -26,11 +29,32 @@ class MissionService {
     }
   }
 
+  /// 現在の暦週に対して決定的なシード値を計算する。
+  /// 同じ週内であれば何度呼び出しても同じ値になるため、
+  /// 同時に走った `_seedWeeklyMissions` 呼び出し同士が
+  /// 同じミッションID群を生成し、書き込みが冪等になる。
+  int _weeklySeed() {
+    final now = DateTime.now();
+    final firstDayOfYear = DateTime(now.year, 1, 1);
+    final dayOfYear = now.difference(firstDayOfYear).inDays + 1;
+    final weekNumber = ((dayOfYear - now.weekday + 10) / 7).floor();
+    return now.year * 100 + weekNumber;
+  }
+
   Future<List<Mission>> _seedWeeklyMissions(String uid) async {
-    final missions = MissionTemplates.generateWeeklyMissions();
+    // 週単位で決定的なシードを使うことで、同時に複数回シードが
+    // 走っても同じドキュメントIDが生成され、バッチ書き込みが
+    // 上書き（冪等）になり重複ミッションを防ぐ。
+    final missions =
+        MissionTemplates.generateWeeklyMissions(seed: _weeklySeed());
+
+    final batch = _firestore.batch();
     for (final mission in missions) {
-      await _userMissionsRef(uid).doc(mission.id).set(mission.toJson());
+      final docRef = _userMissionsRef(uid).doc(mission.id);
+      batch.set(docRef, mission.toJson(), SetOptions(merge: true));
     }
+    await batch.commit();
+
     return missions;
   }
 
@@ -51,6 +75,14 @@ class MissionService {
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => Mission.fromJson({...doc.data(), 'id': doc.id}))
-            .toList());
+            .toList())
+        .transform(
+          StreamTransformer.fromHandlers(
+            handleError: (error, stack, sink) {
+              debugPrint('watchActiveMissions error: $error');
+              sink.addError(error, stack);
+            },
+          ),
+        );
   }
 }

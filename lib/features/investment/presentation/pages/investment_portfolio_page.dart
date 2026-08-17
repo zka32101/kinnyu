@@ -6,8 +6,17 @@ import '../providers/investment_provider.dart';
 import '../../../user_profile/presentation/providers/user_provider.dart';
 import '../../../../core/analytics/analytics_provider.dart';
 
-class InvestmentPortfolioPage extends ConsumerWidget {
+class InvestmentPortfolioPage extends ConsumerStatefulWidget {
   const InvestmentPortfolioPage({Key? key}) : super(key: key);
+
+  @override
+  ConsumerState<InvestmentPortfolioPage> createState() =>
+      _InvestmentPortfolioPageState();
+}
+
+class _InvestmentPortfolioPageState
+    extends ConsumerState<InvestmentPortfolioPage> {
+  String? _realizingInvestmentId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -196,8 +205,16 @@ class InvestmentPortfolioPage extends ConsumerWidget {
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: () => _realizeInvestment(context, ref, uid, inv),
-                child: const Text('利益確定'),
+                onPressed: _realizingInvestmentId == inv.id
+                    ? null
+                    : () => _realizeInvestment(context, ref, uid, inv),
+                child: _realizingInvestmentId == inv.id
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('利益確定'),
               ),
             ),
           ],
@@ -208,19 +225,35 @@ class InvestmentPortfolioPage extends ConsumerWidget {
 
   Future<void> _realizeInvestment(
       BuildContext context, WidgetRef ref, String uid, Investment inv) async {
+    if (_realizingInvestmentId != null) return;
+
     final service = ref.read(investmentServiceProvider);
     final analytics = ref.read(analyticsServiceProvider);
 
-    await service.realizeInvestment(uid, inv.id);
-    await analytics.logEvent('investment_profit_realized', parameters: {
-      'user_id': uid,
-      'investment_type': inv.investmentType.index.toString(),
-    });
+    setState(() => _realizingInvestmentId = inv.id);
+    try {
+      await service.realizeInvestment(uid, inv.id);
+      await analytics.logEvent('investment_profit_realized', parameters: {
+        'user_id': uid,
+        'investment_type': inv.investmentType.index.toString(),
+      });
 
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('利益を確定しました')),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('利益を確定しました')),
+        );
+      }
+    } catch (e) {
+      debugPrint('_realizeInvestment error: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('利益確定に失敗しました: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _realizingInvestmentId = null);
+      }
     }
   }
 
@@ -280,14 +313,28 @@ class InvestmentPortfolioPage extends ConsumerWidget {
                     if (amount <= 0) return;
 
                     final service = ref.read(investmentServiceProvider);
-                    await service.createInvestment(
-                      uid: uid,
-                      savingsAmount: amount,
-                      type: selectedType,
-                    );
+                    try {
+                      await service.createInvestment(
+                        uid: uid,
+                        savingsAmount: amount,
+                        type: selectedType,
+                      );
 
-                    if (dialogContext.mounted) {
-                      Navigator.pop(dialogContext);
+                      if (dialogContext.mounted) {
+                        Navigator.pop(dialogContext);
+                      }
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('投資を開始しました')),
+                        );
+                      }
+                    } catch (e) {
+                      debugPrint('createInvestment error: $e');
+                      if (dialogContext.mounted) {
+                        ScaffoldMessenger.of(dialogContext).showSnackBar(
+                          SnackBar(content: Text('投資の作成に失敗しました: $e')),
+                        );
+                      }
                     }
                   },
                   child: const Text('投資する'),

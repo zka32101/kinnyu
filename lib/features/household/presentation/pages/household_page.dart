@@ -175,12 +175,14 @@ class HouseholdPage extends ConsumerWidget {
               final service = ref.read(householdServiceProvider);
               final analytics = ref.read(analyticsServiceProvider);
 
-              await service.createGroup(uid: uid, name: nameController.text.trim());
+              final createdGroup =
+                  await service.createGroup(uid: uid, name: nameController.text.trim());
               await analytics.logEvent('household_joined', parameters: {
                 'user_id': uid,
               });
 
               ref.invalidate(userGroupProvider(uid));
+              ref.invalidate(groupStreamProvider(createdGroup.id));
 
               if (dialogContext.mounted) {
                 Navigator.pop(dialogContext);
@@ -228,6 +230,7 @@ class HouseholdPage extends ConsumerWidget {
                   'user_id': uid,
                 });
                 ref.invalidate(userGroupProvider(uid));
+                ref.invalidate(groupStreamProvider(group.id));
               }
 
               if (dialogContext.mounted) {

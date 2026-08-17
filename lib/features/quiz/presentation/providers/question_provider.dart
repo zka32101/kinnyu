@@ -83,10 +83,19 @@ class QuizSessionNotifier extends Notifier<QuizSessionState?> {
     return null;
   }
 
+  /// クイズを開始する。以前のセッションがどのような状態で残っていても
+  /// （例: 結果画面に到達せずにユーザーが画面を離脱した場合）、
+  /// 常に完全にクリーンな初期状態から新しいセッションを開始することを保証する。
   void startQuiz(QuizCategory category, List<Question> questions) {
+    // 古いセッションの影響を受けないよう、一度明示的にクリアしてから
+    // 新規セッションを構築する。
+    reset();
     state = QuizSessionState(
       category: category,
       questions: questions,
+      currentQuestionIndex: 0,
+      userAnswers: List<int?>.filled(questions.length, null),
+      score: 0,
     );
   }
 
@@ -115,6 +124,13 @@ class QuizSessionNotifier extends Notifier<QuizSessionState?> {
   }
 
   void endQuiz() {
+    reset();
+  }
+
+  /// セッション状態を完全にクリアする。結果画面に到達する前にユーザーが
+  /// クイズを離脱した場合などに、次回このプロバイダが利用されるときへ
+  /// 古いセッションの状態が持ち越されないようにするために使用する。
+  void reset() {
     state = null;
   }
 }

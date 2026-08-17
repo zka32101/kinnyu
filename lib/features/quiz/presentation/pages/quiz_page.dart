@@ -41,9 +41,29 @@ class QuizPage extends ConsumerWidget {
                   return const Text('問題がありません');
                 }
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  ref
-                      .read(quizSessionProvider.notifier)
-                      .startQuiz(category, questions);
+                  if (!context.mounted) return;
+                  try {
+                    ref
+                        .read(quizSessionProvider.notifier)
+                        .startQuiz(category, questions);
+                  } catch (e, stack) {
+                    debugPrint('Failed to start quiz: $e\n$stack');
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text(
+                              'クイズの開始に失敗しました。もう一度お試しください。'),
+                          action: SnackBarAction(
+                            label: '再試行',
+                            onPressed: () {
+                              ref.invalidate(
+                                  questionsByCategoryProvider(category));
+                            },
+                          ),
+                        ),
+                      );
+                    }
+                  }
                 });
                 return const CircularProgressIndicator();
               },
@@ -92,6 +112,7 @@ class QuizPage extends ConsumerWidget {
                     if (session.currentQuestionIndex <
                         session.questions.length - 1) {
                       Future.delayed(const Duration(milliseconds: 500), () {
+                        if (!context.mounted) return;
                         ref.read(quizSessionProvider.notifier).nextQuestion();
                       });
                     }
@@ -122,22 +143,27 @@ class QuizPage extends ConsumerWidget {
   Widget _buildResultsScreen(
       BuildContext context, WidgetRef ref, QuizSessionState session) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final user = ref.read(userProvider);
-      final analytics = ref.read(analyticsServiceProvider);
-      final streakService = ref.read(streakServiceProvider);
+      try {
+        final user = ref.read(userProvider);
+        final analytics = ref.read(analyticsServiceProvider);
+        final streakService = ref.read(streakServiceProvider);
 
-      if (user != null) {
-        final categoryName = _getCategoryName(session.category);
-        analytics.logQuizComplete(user.uid, categoryName, session.score);
+        if (user != null) {
+          final categoryName = _getCategoryName(session.category);
+          analytics.logQuizComplete(user.uid, categoryName, session.score);
 
-        ref.read(userProvider.notifier).addXP(session.score);
+          ref.read(userProvider.notifier).addXP(session.score);
 
-        streakService.updateStreak(user.uid);
+          streakService.updateStreak(user.uid);
 
-        if (!user.ahaAchieved && session.score >= 20) {
-          analytics.logAhaMomentReached(user.uid, '${session.category.index}');
-          ref.read(userProvider.notifier).setAhaAchieved();
+          if (!user.ahaAchieved && session.score >= 20) {
+            analytics.logAhaMomentReached(
+                user.uid, '${session.category.index}');
+            ref.read(userProvider.notifier).setAhaAchieved();
+          }
         }
+      } catch (e, stack) {
+        debugPrint('Failed to record quiz completion: $e\n$stack');
       }
     });
 

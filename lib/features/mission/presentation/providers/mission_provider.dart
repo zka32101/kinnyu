@@ -12,8 +12,10 @@ final activeMissionsProvider =
   return service.getActiveMissions(uid);
 });
 
+// autoDispose: このプロバイダーが監視されなくなったら Firestore の
+// ストリーム購読を確実に解除し、リークを防ぐ。
 final missionsStreamProvider =
-    StreamProvider.family<List<Mission>, String>((ref, uid) {
+    StreamProvider.autoDispose.family<List<Mission>, String>((ref, uid) {
   final service = ref.watch(missionServiceProvider);
   return service.watchActiveMissions(uid);
 });

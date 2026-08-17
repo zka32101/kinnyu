@@ -55,10 +55,10 @@ class BenchmarkService {
   }
 
   Future<List<Benchmark>> getAllBenchmarks(String uid) async {
-    final benchmarks = <Benchmark>[];
-    for (final category in BenchmarkCategory.values) {
-      benchmarks.add(await getBenchmark(uid: uid, category: category));
-    }
-    return benchmarks;
+    final results = await Future.wait(
+      BenchmarkCategory.values
+          .map((category) => getBenchmark(uid: uid, category: category)),
+    );
+    return results;
   }
 }

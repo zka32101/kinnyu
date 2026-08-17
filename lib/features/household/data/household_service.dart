@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../domain/models/household_group.dart';
 
 class HouseholdService {
@@ -31,10 +33,17 @@ class HouseholdService {
       createdAt: now,
     );
 
-    await _groupsRef.doc(inviteCode).set(group.toJson());
-    await _firestore.collection('users').doc(uid).update({
-      'householdGroupId': inviteCode,
-    });
+    try {
+      await _firestore.runTransaction((transaction) async {
+        transaction.set(_groupsRef.doc(inviteCode), group.toJson());
+        transaction.update(_firestore.collection('users').doc(uid), {
+          'householdGroupId': inviteCode,
+        });
+      });
+    } catch (e) {
+      debugPrint('createGroup transaction failed: $e');
+      rethrow;
+    }
 
     return group;
   }
@@ -43,24 +52,37 @@ class HouseholdService {
     required String uid,
     required String inviteCode,
   }) async {
+    final code = inviteCode.toUpperCase();
+    final groupDocRef = _groupsRef.doc(code);
+    final userDocRef = _firestore.collection('users').doc(uid);
+
     try {
-      final doc = await _groupsRef.doc(inviteCode.toUpperCase()).get();
-      if (!doc.exists) return null;
+      return await _firestore.runTransaction<HouseholdGroup?>((transaction) async {
+        final doc = await transaction.get(groupDocRef);
+        if (!doc.exists) return null;
 
-      final group = HouseholdGroup.fromJson({...doc.data()!, 'id': doc.id});
+        final group = HouseholdGroup.fromJson({...doc.data()!, 'id': doc.id});
 
-      if (!group.members.contains(uid)) {
-        final updatedMembers = [...group.members, uid];
-        await _groupsRef.doc(inviteCode.toUpperCase()).update({
-          'members': updatedMembers,
-        });
-        await _firestore.collection('users').doc(uid).update({
-          'householdGroupId': inviteCode.toUpperCase(),
-        });
-      }
+        if (!group.members.contains(uid)) {
+          transaction.update(groupDocRef, {
+            'members': FieldValue.arrayUnion([uid]),
+          });
+          transaction.update(userDocRef, {
+            'householdGroupId': code,
+          });
 
-      final updatedDoc = await _groupsRef.doc(inviteCode.toUpperCase()).get();
-      return HouseholdGroup.fromJson({...updatedDoc.data()!, 'id': updatedDoc.id});
+          return HouseholdGroup(
+            id: group.id,
+            name: group.name,
+            members: [...group.members, uid],
+            totalSavings: group.totalSavings,
+            monthlyGoal: group.monthlyGoal,
+            createdAt: group.createdAt,
+          );
+        }
+
+        return group;
+      });
     } catch (e) {
       throw Exception('Failed to join group: $e');
     }
@@ -86,12 +108,24 @@ class HouseholdService {
     return _groupsRef.doc(groupId).snapshots().map((doc) {
       if (!doc.exists) return null;
       return HouseholdGroup.fromJson({...doc.data()!, 'id': doc.id});
-    });
+    }).transform(
+      StreamTransformer.fromHandlers(
+        handleError: (error, stack, sink) {
+          debugPrint('watchGroup error: $error');
+          sink.addError(error, stack);
+        },
+      ),
+    );
   }
 
   Future<void> addSavings(String groupId, int amount) async {
-    await _groupsRef.doc(groupId).update({
-      'totalSavings': FieldValue.increment(amount),
-    });
+    try {
+      await _groupsRef.doc(groupId).update({
+        'totalSavings': FieldValue.increment(amount),
+      });
+    } catch (e) {
+      debugPrint('addSavings failed: $e');
+      rethrow;
+    }
   }
 }
