@@ -106,7 +106,7 @@ class RoleplayScenarios {
           options: ['学資保険で計画的に積立', '銀行預金でコツコツ貯める', '特に準備していない'],
           scoreDeltas: [10, 7, 0],
           explanation: '学資保険や積立NISAなど、計画的な準備が教育資金の負担を軽減します。',
-          relatedProcedureIds: ['koukou_shugaku', 'jido_teate'],
+          relatedProcedureIds: ['koukou_shugaku', 'jido_teate', 'kodomo_iryohi_jyosei'],
         ),
         RoleplayDecision(
           question: '突然の出費（家電故障¥5万）が発生。どう対応しますか？',
@@ -119,7 +119,7 @@ class RoleplayScenarios {
           options: ['固定金利で返済額を安定させる', '変動金利で当初の負担を抑える', 'よく分からず勧められるまま契約'],
           scoreDeltas: [8, 6, -3],
           explanation: '金利タイプは家計の安定性に直結します。仕組みを理解して選ぶことが最も重要です。',
-          relatedProcedureIds: ['juutaku_loan_koujo'],
+          relatedProcedureIds: ['juutaku_loan_koujo', 'juutaku_shikin_zouyo'],
         ),
         RoleplayDecision(
           question: '毎月の家計に少し余裕が。どうしますか？',
@@ -172,7 +172,7 @@ class RoleplayScenarios {
           options: ['生活防衛資金＋長期投資の両立', '保険にたくさん入る', '特に何もしない'],
           scoreDeltas: [10, 3, 0],
           explanation: 'まず生活防衛資金を確保し、余裕資金で長期投資。独身期の手厚すぎる保険は不要なことが多いです。',
-          relatedProcedureIds: ['nisa', 'furusato'],
+          relatedProcedureIds: ['nisa', 'furusato', 'kyouiku_kunren_kyufu'],
         ),
       ],
     );
@@ -198,7 +198,7 @@ class RoleplayScenarios {
           options: ['繰下げ受給で受給額を増やすか検討', '65歳から普通に受給', '仕組みを知らず放置'],
           scoreDeltas: [9, 6, -2],
           explanation: '年金は繰下げると受給額が増えます。健康状態や就労状況を踏まえて受給開始年齢を検討しましょう。',
-          relatedProcedureIds: ['nenkin_kuridage'],
+          relatedProcedureIds: ['nenkin_kuridage', 'koureisha_koyou_keizoku'],
         ),
         RoleplayDecision(
           question: '老後の生活費、把握していますか？',
@@ -212,7 +212,7 @@ class RoleplayScenarios {
           options: ['過剰な死亡保障を減らし保険料を節約', '不安なので今のまま継続', '逆に保障を増やす'],
           scoreDeltas: [9, 4, 0],
           explanation: '扶養する家族が減れば大きな死亡保障の必要性は下がります。ライフステージに応じた見直しが有効です。',
-          relatedProcedureIds: ['seimei_hoken_koujo', 'iryohi_koujo'],
+          relatedProcedureIds: ['seimei_hoken_koujo', 'iryohi_koujo', 'koukyoiryohi', 'jishin_hoken_koujo'],
         ),
         RoleplayDecision(
           question: '「高利回り確実」をうたう海外不動産の勧誘が。',
