@@ -21,6 +21,9 @@ class InvestmentSimulatorPage extends ConsumerStatefulWidget {
 
 class _InvestmentSimulatorPageState
     extends ConsumerState<InvestmentSimulatorPage> {
+  // 日本銀行が長年掲げる「物価安定の目標」2%を、実質価値換算の想定インフレ率として使用。
+  static const double _assumedInflationRatePercent = 2.0;
+
   final _amountController = TextEditingController(text: '10000');
   double _years = 20;
   InvestmentType _type = InvestmentType.allCountry;
@@ -71,6 +74,7 @@ class _InvestmentSimulatorPageState
       monthlyContribution: amount,
       annualRatePercent: rate,
       years: _years.round(),
+      inflationRatePercent: _assumedInflationRatePercent,
     );
   }
 
@@ -85,6 +89,7 @@ class _InvestmentSimulatorPageState
       volatilityPercent: volatility,
       years: _years.round(),
       seed: _randomSeed,
+      inflationRatePercent: _assumedInflationRatePercent,
     );
   }
 
@@ -329,6 +334,11 @@ class _InvestmentSimulatorPageState
               _statColumn('運用益', '¥${last.profit.round()}'),
             ],
           ),
+          const SizedBox(height: 8),
+          Text(
+            '実質価値（現在のお金で換算・想定インフレ率${_assumedInflationRatePercent.toStringAsFixed(0)}%）: ¥${last.realBalance.round()}',
+            style: const TextStyle(color: Colors.white70, fontSize: 11),
+          ),
         ],
       ),
     );
@@ -407,6 +417,11 @@ class _InvestmentSimulatorPageState
               _statColumn('積立元本', '¥${last.principal}'),
               _statColumn('運用益', '¥${last.profit.round()}'),
             ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '実質価値（現在のお金で換算・想定インフレ率${_assumedInflationRatePercent.toStringAsFixed(0)}%）: ¥${last.realBalance.round()}',
+            style: const TextStyle(color: Colors.white70, fontSize: 11),
           ),
           const SizedBox(height: 8),
           const Text(

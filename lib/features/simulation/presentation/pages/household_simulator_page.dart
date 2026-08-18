@@ -26,6 +26,7 @@ class _HouseholdSimulatorPageState
 
   // 共通
   double _returnRate = 0; // 0 = 貯金のみ
+  double _inflationRate = 2.0;
   double _years = 10;
 
   // 詳細モード用：年度ごとの入力コントローラー
@@ -82,6 +83,7 @@ class _HouseholdSimulatorPageState
         monthlyExpense: expense,
         investmentReturnPercent: _returnRate,
         years: _years.round(),
+        inflationRatePercent: _inflationRate,
       ),
     );
   }
@@ -102,6 +104,7 @@ class _HouseholdSimulatorPageState
     return HouseholdSimulator.simulateDetailed(
       plans: _detailedPlans,
       investmentReturnPercent: _returnRate,
+      inflationRatePercent: _inflationRate,
     );
   }
 
@@ -125,11 +128,13 @@ class _HouseholdSimulatorPageState
             monthlyIncome: income,
             monthlyExpense: expense,
             years: _years.round(),
+            inflationRatePercent: _inflationRate,
           ),
         );
         results = HouseholdSimulator.simulateDetailed(
           plans: plans,
           investmentReturnPercent: _returnRate,
+          inflationRatePercent: _inflationRate,
         );
       } else {
         results = _detailedResults;
@@ -271,6 +276,7 @@ class _HouseholdSimulatorPageState
           principal: last.principal,
           balance: last.balance,
           profit: last.profit,
+          realBalance: last.realBalance,
         ),
       ],
     ];
@@ -352,6 +358,7 @@ class _HouseholdSimulatorPageState
           principal: last.principal,
           balance: last.balance,
           profit: last.profit,
+          realBalance: last.realBalance,
         ),
       if (results.length > 1) ...[
         const SizedBox(height: 16),
@@ -374,6 +381,21 @@ class _HouseholdSimulatorPageState
       ),
       const Text(
         '0%は「貯金のみ」を意味します。投資に回す場合の利回りを想定して調整できます。',
+        style: TextStyle(fontSize: 12, color: Colors.grey),
+      ),
+      const SizedBox(height: 16),
+      Text('想定インフレ率: ${_inflationRate.toStringAsFixed(1)}%',
+          style: Theme.of(context).textTheme.titleMedium),
+      Slider(
+        value: _inflationRate,
+        min: 0,
+        max: 5,
+        divisions: 10,
+        label: '${_inflationRate.toStringAsFixed(1)}%',
+        onChanged: (v) => setState(() => _inflationRate = v),
+      ),
+      const Text(
+        '物価上昇を考慮した「実質的な価値」を試算に反映します（日銀の物価目標は2%）。',
         style: TextStyle(fontSize: 12, color: Colors.grey),
       ),
       const SizedBox(height: 16),
@@ -469,6 +491,7 @@ class _HouseholdSimulatorPageState
     required int principal,
     required double balance,
     required double profit,
+    required double realBalance,
   }) {
     return Container(
       width: double.infinity,
@@ -502,6 +525,11 @@ class _HouseholdSimulatorPageState
               _statColumn('積立元本', '¥$principal'),
               _statColumn('運用益', '¥${profit.round()}'),
             ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '実質価値（現在のお金で換算）: ¥${realBalance.round()}',
+            style: const TextStyle(color: Colors.white70, fontSize: 12),
           ),
         ],
       ),
