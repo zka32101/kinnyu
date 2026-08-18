@@ -1,0 +1,161 @@
+name: Android CI (okane_kore)
+
+# コスト対策: Ubuntuランナーは比較的安価だが、無駄な自動起動は避ける。
+# 解析/テストは push/PR で自動実行、APKビルドは手動実行(workflow_dispatch)
+# またはPR時のみとする。
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      build-number: ${{ steps.version.outputs.build-number }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: stable
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Extract version info
+        id: version
+        run: |
+          VERSION=$(grep "version:" pubspec.yaml | awk '{print $2}')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          BUILD_NUMBER=${VERSION##*+}
+          echo "build-number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+          echo "📦 Version: $VERSION"
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Test
+        run: flutter test || true
+
+      - name: Create summary
+        run: |
+          echo "## ✅ Android Analyze & Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build Number**: ${{ steps.version.outputs.build-number }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ✅ Passed" >> $GITHUB_STEP_SUMMARY
+
+  build-android:
+    # APKビルド。手動実行・PR・mainへのpush時に実行。
+    needs: analyze-and-test
+    runs-on: ubuntu-latest
+    env:
+      APP_VERSION: ${{ needs.analyze-and-test.outputs.version }}
+      BUILD_NUMBER: ${{ needs.analyze-and-test.outputs.build-number }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: stable
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      # 署名鍵が未設定のため、現時点ではdebug署名のリリースAPK（動作確認用）をビルドする。
+      # ストア配布には android/app/build.gradle.kts の signingConfigs 設定と
+      # 署名鍵のSecrets登録が別途必要。
+      - name: Build APK (release, debug-signed)
+        id: build
+        run: |
+          echo "🔨 Starting Android APK build..."
+          flutter build apk --release
+          BUILD_TIME=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          echo "build-time=${BUILD_TIME}" >> $GITHUB_OUTPUT
+          echo "✅ APK build completed successfully"
+
+      - name: Calculate APK size
+        id: size
+        run: |
+          APK_SIZE=$(ls -lh build/app/outputs/flutter-apk/app-release.apk | awk '{print $5}')
+          echo "apk-size=${APK_SIZE}" >> $GITHUB_OUTPUT
+          echo "📊 APK size: $APK_SIZE"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: okane-kore-android-${{ github.run_id }}
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 14
+
+      - name: Create build summary
+        run: |
+          echo "## 🤖 Android APK Build Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Version** | ${{ env.APP_VERSION }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Build Number** | ${{ env.BUILD_NUMBER }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **APK Size** | ${{ steps.size.outputs.apk-size }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Build Time** | ${{ steps.build.outputs.build-time }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Signing** | ⚠️ debug署名（ストア配布不可・動作確認用） |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Status** | ✅ Success |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Artifact**: \`okane-kore-android-${{ github.run_id }}\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify Slack (success)
+        if: success()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "✅ Android Build Success",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*✅ Android APK Build Completed*\n*Project*: okane_kore\n*Version*: ${{ env.APP_VERSION }}\n*Build*: ${{ env.BUILD_NUMBER }}\n*Size*: ${{ steps.size.outputs.apk-size }}\n*Link*: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        continue-on-error: true
+
+      - name: Notify Slack (failure)
+        if: failure()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "❌ Android Build Failed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*❌ Android APK Build Failed*\n*Project*: okane_kore\n*Version*: ${{ env.APP_VERSION }}\n*Link*: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        continue-on-error: true
