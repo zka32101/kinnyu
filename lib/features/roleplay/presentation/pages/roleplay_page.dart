@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/roleplay_scenario.dart';
+import '../../domain/models/procedure_info.dart';
 import '../providers/roleplay_provider.dart';
 import '../../../user_profile/presentation/providers/user_provider.dart';
 import '../../../../core/analytics/analytics_provider.dart';
@@ -195,6 +196,8 @@ class _RoleplayPageState extends ConsumerState<RoleplayPage> {
   }
 
   Widget _buildDecision(BuildContext context, RoleplayDecision decision) {
+    final procedures = ProcedureLibrary.byIds(decision.relatedProcedureIds);
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -208,6 +211,40 @@ class _RoleplayPageState extends ConsumerState<RoleplayPage> {
             decision.question,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
+          if (procedures.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: () => _showProcedureSheet(
+                context,
+                title: 'このシーンで使える制度・手続き',
+                procedures: procedures,
+              ),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.indigo.shade50,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.indigo.shade200),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.account_balance, size: 16, color: Colors.indigo.shade600),
+                    const SizedBox(width: 6),
+                    Text(
+                      '使える制度・補助金を見る（${procedures.length}件）',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.indigo.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 24),
           ...List.generate(decision.options.length, (index) {
             return Padding(
@@ -221,6 +258,167 @@ class _RoleplayPageState extends ConsumerState<RoleplayPage> {
               ),
             );
           }),
+        ],
+      ),
+    );
+  }
+
+  /// カテゴリの選択チップで絞り込める、制度・手続き一覧のボトムシート
+  void _showProcedureSheet(
+    BuildContext context, {
+    required String title,
+    required List<ProcedureInfo> procedures,
+  }) {
+    ProcedureCategory? selectedCategory;
+    final categories = procedures.map((p) => p.category).toSet().toList()
+      ..sort((a, b) => a.label.compareTo(b.label));
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final filtered = selectedCategory == null
+                ? procedures
+                : procedures.where((p) => p.category == selectedCategory).toList();
+
+            return DraggableScrollableSheet(
+              initialChildSize: 0.75,
+              minChildSize: 0.4,
+              maxChildSize: 0.95,
+              expand: false,
+              builder: (context, scrollController) {
+                return Column(
+                  children: [
+                    const SizedBox(height: 12),
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            '制度の内容・金額は変更される場合があります。利用の際は記載の窓口で最新情報をご確認ください。',
+                            style: TextStyle(fontSize: 11, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (categories.length > 1)
+                      SizedBox(
+                        height: 40,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              child: ChoiceChip(
+                                label: const Text('すべて'),
+                                selected: selectedCategory == null,
+                                onSelected: (_) =>
+                                    setSheetState(() => selectedCategory = null),
+                              ),
+                            ),
+                            ...categories.map((c) => Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                                  child: ChoiceChip(
+                                    avatar: Icon(c.icon, size: 16, color: c.color),
+                                    label: Text(c.label),
+                                    selected: selectedCategory == c,
+                                    onSelected: (_) =>
+                                        setSheetState(() => selectedCategory = c),
+                                  ),
+                                )),
+                          ],
+                        ),
+                      ),
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: ListView.builder(
+                        controller: scrollController,
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                        itemCount: filtered.length,
+                        itemBuilder: (context, index) {
+                          final p = filtered[index];
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            child: ExpansionTile(
+                              leading: CircleAvatar(
+                                backgroundColor: p.category.color.withAlpha(30),
+                                child: Icon(p.category.icon, color: p.category.color, size: 20),
+                              ),
+                              title: Text(
+                                p.title,
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                              ),
+                              subtitle: Text(
+                                p.category.label,
+                                style: TextStyle(fontSize: 11, color: p.category.color),
+                              ),
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      _procedureDetailRow('概要', p.summary),
+                                      _procedureDetailRow('対象者', p.eligibility),
+                                      _procedureDetailRow('金額の目安', p.benefitAmount),
+                                      _procedureDetailRow('申請方法', p.howToApply),
+                                      _procedureDetailRow('タイミング', p.applyWindow),
+                                      _procedureDetailRow('相談・申請先', p.sourceNote),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _procedureDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade600,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(value, style: const TextStyle(fontSize: 13)),
         ],
       ),
     );
@@ -333,7 +531,19 @@ class _RoleplayPageState extends ConsumerState<RoleplayPage> {
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: () => _showProcedureSheet(
+                context,
+                title: '${scenario!.title}\nで使える制度・手続きまとめ',
+                procedures: ProcedureLibrary.byScenario(scenario!.type),
+              ),
+              icon: const Icon(Icons.account_balance),
+              label: const Text('使える制度・補助金をまとめて見る'),
+              style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(48)),
+            ),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
                 setState(() {
