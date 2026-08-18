@@ -110,6 +110,8 @@ class _RoleplayPageState extends ConsumerState<RoleplayPage> {
                         children: [
                           Text(
                             s.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 15),
                           ),
@@ -205,8 +207,13 @@ class _RoleplayPageState extends ConsumerState<RoleplayPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          LinearProgressIndicator(
-            value: (currentDecisionIndex + 1) / scenario!.decisions.length,
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: (currentDecisionIndex + 1) / scenario!.decisions.length,
+              minHeight: 6,
+              backgroundColor: Colors.grey.shade200,
+            ),
           ),
           const SizedBox(height: 24),
           Text(
@@ -256,7 +263,10 @@ class _RoleplayPageState extends ConsumerState<RoleplayPage> {
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: Text(decision.options[index]),
+                child: Text(
+                  decision.options[index],
+                  textAlign: TextAlign.center,
+                ),
               ),
             );
           }),
