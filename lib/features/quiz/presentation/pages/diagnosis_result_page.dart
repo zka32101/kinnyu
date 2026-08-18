@@ -7,22 +7,34 @@ import '../../../../core/widgets/lottie_animations.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/notification_service.dart';
 
-class DiagnosisResultPage extends ConsumerWidget {
+class DiagnosisResultPage extends ConsumerStatefulWidget {
   final PatternDiagnosis diagnosis;
 
   const DiagnosisResultPage({Key? key, required this.diagnosis})
       : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DiagnosisResultPage> createState() =>
+      _DiagnosisResultPageState();
+}
+
+class _DiagnosisResultPageState extends ConsumerState<DiagnosisResultPage> {
+  // 端末回転やテキストサイズ変更などによる再ビルドで、アナリティクス送信・
+  // ローカル通知が重複して実行されるのを防ぐためのフラグ。
+  bool _notifiedOnce = false;
+
+  @override
+  Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!context.mounted) return;
+      if (_notifiedOnce) return;
       try {
         final user = ref.read(userProvider);
         final analytics = ref.read(analyticsServiceProvider);
         if (user != null) {
-          analytics.logAhaMomentReached(user.uid, diagnosis.patternId);
+          analytics.logAhaMomentReached(user.uid, widget.diagnosis.patternId);
           await NotificationService().showDiagnosisResultNotification();
+          _notifiedOnce = true;
         }
       } catch (e, stack) {
         debugPrint('Failed to show diagnosis result notification: $e\n$stack');
@@ -50,10 +62,10 @@ class DiagnosisResultPage extends ConsumerWidget {
               padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
-                  if (diagnosis.imageAsset.isNotEmpty)
+                  if (widget.diagnosis.imageAsset.isNotEmpty)
                     ClipOval(
                       child: Image.asset(
-                        diagnosis.imageAsset,
+                        widget.diagnosis.imageAsset,
                         width: 96,
                         height: 96,
                         fit: BoxFit.cover,
@@ -66,7 +78,7 @@ class DiagnosisResultPage extends ConsumerWidget {
                   else
                     const Icon(Icons.emoji_events, color: Colors.white, size: 48),
                   const SizedBox(height: 16),
-                  if (diagnosis.typeName.isNotEmpty) ...[
+                  if (widget.diagnosis.typeName.isNotEmpty) ...[
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 4),
@@ -75,7 +87,7 @@ class DiagnosisResultPage extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        'あなたは「${diagnosis.typeName}」',
+                        'あなたは「${widget.diagnosis.typeName}」',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 14,
@@ -95,7 +107,7 @@ class DiagnosisResultPage extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '月額 ¥${diagnosis.estimatedMonthlySavings.toString()}の節約が見込めます！',
+                    '月額 ¥${widget.diagnosis.estimatedMonthlySavings.toString()}の節約が見込めます！',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14,
@@ -107,19 +119,19 @@ class DiagnosisResultPage extends ConsumerWidget {
             const SizedBox(height: 24),
             _buildTipCard(
               title: '1位',
-              content: diagnosis.savingsTip1,
+              content: widget.diagnosis.savingsTip1,
               color: Colors.amber,
             ),
             const SizedBox(height: 12),
             _buildTipCard(
               title: '2位',
-              content: diagnosis.savingsTip2,
+              content: widget.diagnosis.savingsTip2,
               color: Colors.grey.shade400,
             ),
             const SizedBox(height: 12),
             _buildTipCard(
               title: '3位',
-              content: diagnosis.savingsTip3,
+              content: widget.diagnosis.savingsTip3,
               color: Colors.brown.shade300,
             ),
             const SizedBox(height: 24),
@@ -131,7 +143,7 @@ class DiagnosisResultPage extends ConsumerWidget {
               ),
               padding: const EdgeInsets.all(12),
               child: Text(
-                diagnosis.disclaimer,
+                widget.diagnosis.disclaimer,
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.orange.shade900,

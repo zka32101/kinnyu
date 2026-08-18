@@ -39,6 +39,7 @@ class QuizSessionState {
   final int currentQuestionIndex;
   final List<int?> userAnswers;
   final int score;
+  final bool rewarded;
 
   QuizSessionState({
     required this.category,
@@ -46,6 +47,7 @@ class QuizSessionState {
     this.currentQuestionIndex = 0,
     List<int?>? userAnswers,
     this.score = 0,
+    this.rewarded = false,
   }) : userAnswers = userAnswers ?? List.filled(questions.length, null);
 
   QuizSessionState copyWith({
@@ -54,6 +56,7 @@ class QuizSessionState {
     int? currentQuestionIndex,
     List<int?>? userAnswers,
     int? score,
+    bool? rewarded,
   }) {
     return QuizSessionState(
       category: category ?? this.category,
@@ -61,6 +64,7 @@ class QuizSessionState {
       currentQuestionIndex: currentQuestionIndex ?? this.currentQuestionIndex,
       userAnswers: userAnswers ?? this.userAnswers,
       score: score ?? this.score,
+      rewarded: rewarded ?? this.rewarded,
     );
   }
 
@@ -105,6 +109,10 @@ class QuizSessionNotifier extends Notifier<QuizSessionState?> {
     final currentQuestion = state!.currentQuestion;
     if (currentQuestion == null) return;
 
+    // 現在の問題に既に解答が記録されている場合は、二重タップによる
+    // スコアの二重加算や不正な進行を防ぐため何もしない。
+    if (state!.userAnswers[state!.currentQuestionIndex] != null) return;
+
     final isCorrect = answerIndex == currentQuestion.correctAnswerIndex;
     final newScore = state!.score + (isCorrect ? 10 : 0);
     final newAnswers = List<int?>.from(state!.userAnswers);
@@ -125,6 +133,14 @@ class QuizSessionNotifier extends Notifier<QuizSessionState?> {
 
   void endQuiz() {
     reset();
+  }
+
+  /// 結果画面での XP 付与・連続記録更新・アナリティクス送信が
+  /// 完了したことを記録する。リビルドのたびに副作用が再実行される
+  /// のを防ぐためのフラグ。
+  void markRewarded() {
+    if (state == null) return;
+    state = state!.copyWith(rewarded: true);
   }
 
   /// セッション状態を完全にクリアする。結果画面に到達する前にユーザーが
