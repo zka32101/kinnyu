@@ -131,6 +131,12 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
             'Excel出力',
             'シミュレーション結果を.xlsxでいつでも書き出し',
           ),
+          const SizedBox(height: 16),
+          _buildFeatureRow(
+            Icons.account_balance,
+            '制度・補助金を無制限に閲覧',
+            '児童手当からNISA・医療費控除まで、全22制度の詳細を確認できる',
+          ),
           const SizedBox(height: 32),
           if (_loadingOfferings)
             const Center(child: CircularProgressIndicator())

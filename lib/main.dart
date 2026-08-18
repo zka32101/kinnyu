@@ -11,6 +11,7 @@ import 'core/services/notification_service.dart';
 import 'core/firebase/firebase_init.dart';
 import 'core/subscription/subscription_service.dart';
 import 'core/subscription/subscription_provider.dart';
+import 'features/procedures/presentation/providers/procedures_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -79,6 +80,18 @@ class _OkaneKoreAppState extends ConsumerState<OkaneKoreApp> {
         } finally {
           _initializedPremium = true;
         }
+      }
+    });
+
+    // 保存済みのライフステージがあれば、制度リマインダーを起動のたびに
+    // 再スケジュールする（通知プラグインが年次繰り返しをサポートしないため）。
+    Future.microtask(() async {
+      try {
+        await ref
+            .read(lifeStageProvider.notifier)
+            .rescheduleRemindersForSavedLifeStage();
+      } catch (e) {
+        debugPrint('[OkaneKoreApp] rescheduleRemindersForSavedLifeStage() failed: $e');
       }
     });
   }

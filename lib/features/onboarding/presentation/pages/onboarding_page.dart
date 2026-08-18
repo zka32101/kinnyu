@@ -212,6 +212,20 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
             ),
             const SizedBox(height: 24),
             const Text(
+              '📌 制度・補助金情報について',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primaryOrange,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'アプリ内で紹介する公的制度・補助金・控除の情報は一般的な参考情報です。金額・対象要件・申請方法は法改正等で変更される場合があるため、実際に利用する際は必ず記載の窓口（市区町村・税務署・年金事務所等）で最新情報をご確認ください。個別の税務・法律・投資判断については専門家にご相談ください。',
+              style: TextStyle(fontSize: 12, height: 1.6),
+            ),
+            const SizedBox(height: 24),
+            const Text(
               '📌 個人情報について',
               style: TextStyle(
                 fontSize: 14,

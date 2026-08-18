@@ -1,4 +1,20 @@
+import '../../../procedures/domain/models/procedure_info.dart';
+
 enum RoleplayScenarioType { youngFamily, singleProfessional, preRetirement }
+
+extension RoleplayScenarioTypeX on RoleplayScenarioType {
+  /// procedures フィーチャーの LifeStage に対応させるためのマッピング。
+  LifeStage get lifeStage {
+    switch (this) {
+      case RoleplayScenarioType.youngFamily:
+        return LifeStage.youngFamily;
+      case RoleplayScenarioType.singleProfessional:
+        return LifeStage.singleProfessional;
+      case RoleplayScenarioType.preRetirement:
+        return LifeStage.preRetirement;
+    }
+  }
+}
 
 class RoleplayDecision {
   final String question;
