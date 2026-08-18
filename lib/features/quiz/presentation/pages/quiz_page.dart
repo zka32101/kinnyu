@@ -81,6 +81,8 @@ class QuizPage extends ConsumerWidget {
 
     final alreadyAnswered =
         session.userAnswers[session.currentQuestionIndex] != null;
+    final selectedAnswerIndex =
+        session.userAnswers[session.currentQuestionIndex];
 
     return Scaffold(
       appBar: AppBar(
@@ -106,35 +108,52 @@ class QuizPage extends ConsumerWidget {
             const SizedBox(height: 24),
             ...List.generate(
               question.options.length,
-              (index) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: ElevatedButton(
-                  onPressed: alreadyAnswered
-                      ? null
-                      : () {
-                          ref.read(quizSessionProvider.notifier)
-                              .answerQuestion(index);
-                          if (session.currentQuestionIndex <
-                              session.questions.length - 1) {
-                            Future.delayed(
-                                const Duration(milliseconds: 500), () {
-                              if (!context.mounted) return;
-                              ref
-                                  .read(quizSessionProvider.notifier)
-                                  .nextQuestion();
-                            });
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Colors.blue.shade200,
+              (index) {
+                Color buttonColor;
+                if (alreadyAnswered) {
+                  if (index == question.correctAnswerIndex) {
+                    buttonColor = Colors.green.shade400;
+                  } else if (index == selectedAnswerIndex) {
+                    buttonColor = Colors.red.shade400;
+                  } else {
+                    buttonColor = Colors.grey.shade300;
+                  }
+                } else {
+                  buttonColor = Colors.blue.shade200;
+                }
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: ElevatedButton(
+                    onPressed: alreadyAnswered
+                        ? null
+                        : () {
+                            ref.read(quizSessionProvider.notifier)
+                                .answerQuestion(index);
+                            if (session.currentQuestionIndex <
+                                session.questions.length - 1) {
+                              Future.delayed(
+                                  const Duration(milliseconds: 500), () {
+                                if (!context.mounted) return;
+                                ref
+                                    .read(quizSessionProvider.notifier)
+                                    .nextQuestion();
+                              });
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: buttonColor,
+                      disabledBackgroundColor: buttonColor,
+                    ),
+                    child: Text(
+                      question.options[index],
+                      style: const TextStyle(
+                          fontSize: 16, color: Colors.black87),
+                    ),
                   ),
-                  child: Text(
-                    question.options[index],
-                    style: const TextStyle(fontSize: 16, color: Colors.black87),
-                  ),
-                ),
-              ),
+                );
+              },
             ),
             const SizedBox(height: 24),
             Text(
@@ -182,7 +201,16 @@ class QuizPage extends ConsumerWidget {
     });
 
     final maxScore = session.questions.length * 10;
-    final isGoodScore = maxScore > 0 && session.score / maxScore >= 0.6;
+    final scoreRatio = maxScore > 0 ? session.score / maxScore : 0.0;
+    final isGoodScore = scoreRatio >= 0.6;
+    final Color scoreColor;
+    if (scoreRatio >= 0.7) {
+      scoreColor = Colors.green;
+    } else if (scoreRatio >= 0.4) {
+      scoreColor = Colors.orange;
+    } else {
+      scoreColor = Colors.grey.shade600;
+    }
 
     return Scaffold(
       appBar: AppBar(title: const Text('クイズ終了')),
@@ -214,7 +242,7 @@ class QuizPage extends ConsumerWidget {
                   Text(
                     '${session.score} XP',
                     style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                          color: Colors.green,
+                          color: scoreColor,
                           fontWeight: FontWeight.bold,
                         ),
                   ),
