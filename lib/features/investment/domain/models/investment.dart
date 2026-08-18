@@ -86,7 +86,7 @@ class InvestmentTypeInfo {
     InvestmentType.sp500: '米国を代表する約500社で構成される指数。世界的に人気の高い投資対象。',
     InvestmentType.bond: '国や企業への貸付。株式より値動きが穏やかでローリスク・ローリターン傾向。',
     InvestmentType.gold: 'インフレや金融不安に強いとされる実物資産。価格変動はあるが分散効果が期待できる。',
-    InvestmentType.allCountry: '日本を含む世界中の株式に分散投資する指数。1本で国際分散が完結する。',
+    InvestmentType.allCountry: '日本を含む世界中の株式に分散投資する指数。1本で幅広い国際分散が期待できるとされる。',
   };
 
   static const Map<InvestmentType, double> baseIndexValues = {

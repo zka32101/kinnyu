@@ -114,14 +114,14 @@ class RoleplayScenarios {
         RoleplayDecision(
           question: 'ボーナス20万円が入りました。どう使いますか？',
           options: ['全額貯蓄する', '半分貯蓄・半分レジャーに使う', '全額レジャーに使う'],
-          scoreDeltas: [10, 5, 0],
+          scoreDeltas: [7, 10, 0],
           explanation: '教育費・老後資金のためにも、ボーナスの一部は貯蓄に回すことが推奨されます。',
         ),
         RoleplayDecision(
           question: '子どもの教育資金、どう準備しますか？',
           options: ['学資保険で計画的に積立', '銀行預金でコツコツ貯める', '特に準備していない'],
-          scoreDeltas: [10, 7, 0],
-          explanation: '学資保険や積立NISAなど、計画的な準備が教育資金の負担を軽減します。',
+          scoreDeltas: [9, 8, 0],
+          explanation: '計画的な準備が教育資金の負担を軽減します。ただし学資保険は途中解約すると元本割れするリスクがあるため、返戻率や加入条件をよく確認しましょう。',
           relatedProcedureIds: ['koukou_shugaku', 'jido_teate', 'kodomo_iryohi_jyosei'],
         ),
         RoleplayDecision(
@@ -133,7 +133,7 @@ class RoleplayScenarios {
         RoleplayDecision(
           question: '住宅ローンの金利タイプ、どちらを選びますか？',
           options: ['固定金利で返済額を安定させる', '変動金利で当初の負担を抑える', 'よく分からず勧められるまま契約'],
-          scoreDeltas: [8, 6, -3],
+          scoreDeltas: [8, 8, -3],
           explanation: '金利タイプは家計の安定性に直結します。仕組みを理解して選ぶことが最も重要です。',
           relatedProcedureIds: ['juutaku_loan_koujo', 'juutaku_shikin_zouyo'],
         ),
@@ -166,8 +166,8 @@ class RoleplayScenarios {
         RoleplayDecision(
           question: '会社にiDeCoの案内が。どうしますか？',
           options: ['節税メリットを理解して加入', '内容を調べてから検討', '面倒なので無視'],
-          scoreDeltas: [10, 6, 0],
-          explanation: 'iDeCoは掛金が全額所得控除。若いうちから始めるほど複利と節税の効果が大きくなります。',
+          scoreDeltas: [9, 7, 0],
+          explanation: 'iDeCoは掛金が全額所得控除。若いうちから始めるほど複利と節税の効果が大きくなります。ただし原則60歳まで引き出せないため、加入前に資金の流動性についても理解しておきましょう。',
           relatedProcedureIds: ['ideco'],
         ),
         RoleplayDecision(
@@ -180,7 +180,7 @@ class RoleplayScenarios {
         RoleplayDecision(
           question: 'ボーナスでほしかった高級時計（30万円）。どうしますか？',
           options: ['予算内なら計画的に購入', 'リボ払いで今すぐ買う', 'カードローンを組んで買う'],
-          scoreDeltas: [7, 0, -8],
+          scoreDeltas: [7, -4, -8],
           explanation: '欲しいものを買うのは悪くありませんが、借金や高金利のリボ払いに頼るのは避けましょう。',
         ),
         RoleplayDecision(
