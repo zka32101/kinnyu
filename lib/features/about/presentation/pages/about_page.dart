@@ -67,9 +67,13 @@ class AboutPage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               padding: const EdgeInsets.all(12),
-              child: const Text(
+              child: Text(
                 '本アプリの情報だけで投資・保険・税務等の最終判断を行わず、必ず公式窓口・専門家にご確認ください。',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.orange.shade900,
+                ),
               ),
             ),
           ],

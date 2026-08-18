@@ -246,9 +246,13 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                 borderRadius: BorderRadius.circular(8),
               ),
               padding: const EdgeInsets.all(12),
-              child: const Text(
+              child: Text(
                 '上記の内容に同意します。',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.orange.shade900,
+                ),
               ),
             ),
             const SizedBox(height: 24),
