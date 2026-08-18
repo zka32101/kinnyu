@@ -162,15 +162,15 @@ List<Question> taxQuestions() => [
         id: 'q_tax_015',
         category: QuizCategory.tax,
         difficulty: QuizDifficulty.medium,
-        question: 'iDeCoの受け取り時にも税制優遇がありますが、拠出時の最大のメリットは？',
+        question: 'iDeCo（個人型確定拠出年金）の大きな注意点として正しいものは？',
         options: [
-          '掛金が全額所得控除になる',
-          '掛金が2倍になる',
-          '手数料が無料',
-          '元本保証される'
+          '原則60歳まで引き出せない',
+          'いつでも自由に引き出せる',
+          '毎月自動で利益が確定する',
+          '加入後は解約できない'
         ],
         correctAnswerIndex: 0,
-        explanation: 'iDeCoは拠出時（全額所得控除）・運用時（非課税）・受取時（控除）の3段階で税制優遇があります。',
+        explanation: 'iDeCoは老後資金づくりのための制度のため、原則として60歳になるまで資産を引き出すことができません。加入前にこの流動性の低さを理解しておくことが重要です。',
       ),
       Question(
         id: 'q_tax_016',
@@ -222,7 +222,7 @@ List<Question> taxQuestions() => [
         id: 'q_tax_020',
         category: QuizCategory.tax,
         difficulty: QuizDifficulty.medium,
-        question: '「扶養内で働く」ときによく聞く「103万円の壁」は主に何に関係する？',
+        question: '「扶養内で働く」ときによく聞く「123万円の壁」は主に何に関係する？',
         options: [
           '所得税がかかり始める目安',
           '住民票の登録',
@@ -230,6 +230,6 @@ List<Question> taxQuestions() => [
           '健康診断の要否'
         ],
         correctAnswerIndex: 0,
-        explanation: '給与収入103万円を超えると本人に所得税がかかり始めます。近年は制度変更の議論も進んでいます。',
+        explanation: '給与収入123万円を超えると本人に所得税がかかり始めます。2024年の税制改正により、従来の103万円から123万円に引き上げられました。',
       ),
     ];

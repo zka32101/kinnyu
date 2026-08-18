@@ -79,6 +79,9 @@ class QuizPage extends ConsumerWidget {
     final question = session.currentQuestion;
     if (question == null) return const SizedBox.shrink();
 
+    final alreadyAnswered =
+        session.userAnswers[session.currentQuestionIndex] != null;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -106,17 +109,22 @@ class QuizPage extends ConsumerWidget {
               (index) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: ElevatedButton(
-                  onPressed: () {
-                    ref.read(quizSessionProvider.notifier)
-                        .answerQuestion(index);
-                    if (session.currentQuestionIndex <
-                        session.questions.length - 1) {
-                      Future.delayed(const Duration(milliseconds: 500), () {
-                        if (!context.mounted) return;
-                        ref.read(quizSessionProvider.notifier).nextQuestion();
-                      });
-                    }
-                  },
+                  onPressed: alreadyAnswered
+                      ? null
+                      : () {
+                          ref.read(quizSessionProvider.notifier)
+                              .answerQuestion(index);
+                          if (session.currentQuestionIndex <
+                              session.questions.length - 1) {
+                            Future.delayed(
+                                const Duration(milliseconds: 500), () {
+                              if (!context.mounted) return;
+                              ref
+                                  .read(quizSessionProvider.notifier)
+                                  .nextQuestion();
+                            });
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     backgroundColor: Colors.blue.shade200,
@@ -143,6 +151,10 @@ class QuizPage extends ConsumerWidget {
   Widget _buildResultsScreen(
       BuildContext context, WidgetRef ref, QuizSessionState session) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) return;
+      // 端末回転やテキストサイズ変更などによる再ビルドで、この結果画面の
+      // XP付与・連続記録更新・アナリティクスが重複して実行されるのを防ぐ。
+      if (session.rewarded) return;
       try {
         final user = ref.read(userProvider);
         final analytics = ref.read(analyticsServiceProvider);
@@ -161,6 +173,8 @@ class QuizPage extends ConsumerWidget {
                 user.uid, '${session.category.index}');
             ref.read(userProvider.notifier).setAhaAchieved();
           }
+
+          ref.read(quizSessionProvider.notifier).markRewarded();
         }
       } catch (e, stack) {
         debugPrint('Failed to record quiz completion: $e\n$stack');

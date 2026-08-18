@@ -151,100 +151,157 @@ class HouseholdPage extends ConsumerWidget {
 
   void _showCreateGroupDialog(BuildContext context, WidgetRef ref, String uid) {
     final nameController = TextEditingController();
+    bool isSubmitting = false;
 
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('世帯グループを作成'),
-        content: TextField(
-          controller: nameController,
-          decoration: const InputDecoration(
-            labelText: '世帯名',
-            hintText: '例: 田中家',
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (_, setDialogState) => AlertDialog(
+          title: const Text('世帯グループを作成'),
+          content: TextField(
+            controller: nameController,
+            decoration: const InputDecoration(
+              labelText: '世帯名',
+              hintText: '例: 田中家',
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed:
+                  isSubmitting ? null : () => Navigator.pop(dialogContext),
+              child: const Text('キャンセル'),
+            ),
+            ElevatedButton(
+              onPressed: isSubmitting
+                  ? null
+                  : () async {
+                      if (nameController.text.trim().isEmpty) return;
+
+                      setDialogState(() => isSubmitting = true);
+
+                      final service = ref.read(householdServiceProvider);
+                      final analytics = ref.read(analyticsServiceProvider);
+
+                      try {
+                        final createdGroup = await service.createGroup(
+                            uid: uid, name: nameController.text.trim());
+                        await analytics.logEvent('household_joined',
+                            parameters: {
+                              'user_id': uid,
+                            });
+
+                        ref.invalidate(userGroupProvider(uid));
+                        ref.invalidate(groupStreamProvider(createdGroup.id));
+
+                        if (dialogContext.mounted) {
+                          Navigator.pop(dialogContext);
+                        }
+                      } catch (e) {
+                        debugPrint('createGroup error: $e');
+                        if (dialogContext.mounted) {
+                          ScaffoldMessenger.of(dialogContext).showSnackBar(
+                            SnackBar(content: Text('作成に失敗しました: $e')),
+                          );
+                        }
+                      } finally {
+                        if (dialogContext.mounted) {
+                          setDialogState(() => isSubmitting = false);
+                        }
+                      }
+                    },
+              child: isSubmitting
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('作成'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('キャンセル'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (nameController.text.trim().isEmpty) return;
-
-              final service = ref.read(householdServiceProvider);
-              final analytics = ref.read(analyticsServiceProvider);
-
-              final createdGroup =
-                  await service.createGroup(uid: uid, name: nameController.text.trim());
-              await analytics.logEvent('household_joined', parameters: {
-                'user_id': uid,
-              });
-
-              ref.invalidate(userGroupProvider(uid));
-              ref.invalidate(groupStreamProvider(createdGroup.id));
-
-              if (dialogContext.mounted) {
-                Navigator.pop(dialogContext);
-              }
-            },
-            child: const Text('作成'),
-          ),
-        ],
       ),
     );
   }
 
   void _showJoinGroupDialog(BuildContext context, WidgetRef ref, String uid) {
     final codeController = TextEditingController();
+    bool isSubmitting = false;
 
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('招待コードで参加'),
-        content: TextField(
-          controller: codeController,
-          textCapitalization: TextCapitalization.characters,
-          decoration: const InputDecoration(
-            labelText: '招待コード',
-            hintText: '例: AB12CD',
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (_, setDialogState) => AlertDialog(
+          title: const Text('招待コードで参加'),
+          content: TextField(
+            controller: codeController,
+            textCapitalization: TextCapitalization.characters,
+            decoration: const InputDecoration(
+              labelText: '招待コード',
+              hintText: '例: AB12CD',
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed:
+                  isSubmitting ? null : () => Navigator.pop(dialogContext),
+              child: const Text('キャンセル'),
+            ),
+            ElevatedButton(
+              onPressed: isSubmitting
+                  ? null
+                  : () async {
+                      final code = codeController.text.trim();
+                      if (code.isEmpty) return;
+
+                      setDialogState(() => isSubmitting = true);
+
+                      final service = ref.read(householdServiceProvider);
+                      final analytics = ref.read(analyticsServiceProvider);
+
+                      try {
+                        final group = await service.joinGroup(
+                            uid: uid, inviteCode: code);
+
+                        if (group != null) {
+                          await analytics.logEvent('household_joined',
+                              parameters: {
+                                'user_id': uid,
+                              });
+                          ref.invalidate(userGroupProvider(uid));
+                          ref.invalidate(groupStreamProvider(group.id));
+                        }
+
+                        if (dialogContext.mounted) {
+                          Navigator.pop(dialogContext);
+                          if (group == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('招待コードが見つかりません')),
+                            );
+                          }
+                        }
+                      } catch (e) {
+                        debugPrint('joinGroup error: $e');
+                        if (dialogContext.mounted) {
+                          ScaffoldMessenger.of(dialogContext).showSnackBar(
+                            SnackBar(content: Text('参加に失敗しました: $e')),
+                          );
+                        }
+                      } finally {
+                        if (dialogContext.mounted) {
+                          setDialogState(() => isSubmitting = false);
+                        }
+                      }
+                    },
+              child: isSubmitting
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('参加'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('キャンセル'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final code = codeController.text.trim();
-              if (code.isEmpty) return;
-
-              final service = ref.read(householdServiceProvider);
-              final analytics = ref.read(analyticsServiceProvider);
-
-              final group = await service.joinGroup(uid: uid, inviteCode: code);
-
-              if (group != null) {
-                await analytics.logEvent('household_joined', parameters: {
-                  'user_id': uid,
-                });
-                ref.invalidate(userGroupProvider(uid));
-                ref.invalidate(groupStreamProvider(group.id));
-              }
-
-              if (dialogContext.mounted) {
-                Navigator.pop(dialogContext);
-                if (group == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('招待コードが見つかりません')),
-                  );
-                }
-              }
-            },
-            child: const Text('参加'),
-          ),
-        ],
       ),
     );
   }

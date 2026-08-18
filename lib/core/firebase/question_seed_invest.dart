@@ -121,10 +121,10 @@ List<Question> investQuestions() => [
         id: 'q_invest_011',
         category: QuizCategory.invest,
         difficulty: QuizDifficulty.medium,
-        question: '「分散投資」で分散する対象として適切でないものは？',
+        question: '次のうち、分散投資の考え方と矛盾するものはどれ？',
         options: ['資産の種類（株・債券など）', '地域（国内・海外）', '購入する時期', '同じ会社の株を1銘柄に集中'],
         correctAnswerIndex: 3,
-        explanation: '分散は資産・地域・時間などに分けること。1銘柄集中は分散の逆でリスクが高まります。',
+        explanation: '分散投資は資産・地域・時間などを分けてリスクを抑える考え方。1銘柄集中はその逆で、リスクが高まります。',
       ),
       Question(
         id: 'q_invest_012',

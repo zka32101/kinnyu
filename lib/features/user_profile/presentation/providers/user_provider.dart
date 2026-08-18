@@ -59,9 +59,10 @@ class UserNotifier extends Notifier<UserProfile?> {
   void addXP(int xp) {
     if (state != null) {
       final newTotalXP = state!.totalXP + xp;
-      final newLevel = (newTotalXP ~/ 100) + 1;
+      final clampedTotalXP = newTotalXP < 0 ? 0 : newTotalXP;
+      final newLevel = (clampedTotalXP ~/ 100) + 1;
       state = state!.copyWith(
-        totalXP: newTotalXP,
+        totalXP: clampedTotalXP,
         level: newLevel,
       );
     }

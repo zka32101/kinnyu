@@ -20,6 +20,7 @@ class _RoleplayPageState extends ConsumerState<RoleplayPage> {
   final List<int> selectedAnswers = [];
   int totalScore = 0;
   bool started = false;
+  bool _resultSaved = false;
 
   @override
   Widget build(BuildContext context) {
@@ -291,20 +292,26 @@ class _RoleplayPageState extends ConsumerState<RoleplayPage> {
   }
 
   Widget _buildResult(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (_resultSaved) return;
       final user = ref.read(userProvider);
       if (user != null) {
         final service = ref.read(roleplayServiceProvider);
-        service.saveResult(
-          user.uid,
-          RoleplayResult(
-            scenario: scenario!.type,
-            selectedAnswers: selectedAnswers,
-            score: totalScore,
-            createdAt: DateTime.now(),
-          ),
-        );
-        ref.read(userProvider.notifier).addXP(totalScore);
+        try {
+          await service.saveResult(
+            user.uid,
+            RoleplayResult(
+              scenario: scenario!.type,
+              selectedAnswers: selectedAnswers,
+              score: totalScore,
+              createdAt: DateTime.now(),
+            ),
+          );
+          ref.read(userProvider.notifier).addXP(totalScore);
+          _resultSaved = true;
+        } catch (e) {
+          debugPrint('Failed to save roleplay result: $e');
+        }
       }
     });
 

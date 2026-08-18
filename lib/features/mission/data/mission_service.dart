@@ -74,7 +74,15 @@ class MissionService {
         .where('status', isEqualTo: MissionStatus.pending.index)
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => Mission.fromJson({...doc.data(), 'id': doc.id}))
+            .map((doc) {
+              try {
+                return Mission.fromJson({...doc.data(), 'id': doc.id});
+              } catch (e) {
+                debugPrint('Failed to parse mission doc ${doc.id}: $e');
+                return null;
+              }
+            })
+            .whereType<Mission>()
             .toList())
         .transform(
           StreamTransformer.fromHandlers(
