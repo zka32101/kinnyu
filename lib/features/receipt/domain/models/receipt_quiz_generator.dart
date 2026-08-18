@@ -27,7 +27,12 @@ class ReceiptQuizGenerator {
     final wrongAnswer2 = (receipt.amount * _compound(annualRate, 5)).round();
     final wrongAnswer3 = receipt.amount * 2;
 
-    final options = [tenYearValue, wrongAnswer1, wrongAnswer2, wrongAnswer3]
+    final distinctWrongAnswers = _ensureDistinctWrongAnswers(
+      tenYearValue,
+      [wrongAnswer1, wrongAnswer2, wrongAnswer3],
+    );
+
+    final options = [tenYearValue, ...distinctWrongAnswers]
         .map((v) => '¥$v')
         .toList()
       ..shuffle();
@@ -114,6 +119,31 @@ class ReceiptQuizGenerator {
     for (var i = 0; i < years; i++) {
       result *= (1 + rate);
     }
+    return result;
+  }
+
+  /// [correct]（正解値、固定・変更しない）と衝突しないよう、[wrongCandidates]の
+  /// 各不正解候補を必要に応じて調整し、4値すべてが重複しないようにする。
+  /// 小さいレシート額での丸め誤差により複数の候補が同じ整数値になる
+  /// （例: amount=1のときの重複）ケースに対応するためのヘルパー。
+  static List<int> _ensureDistinctWrongAnswers(
+    int correct,
+    List<int> wrongCandidates,
+  ) {
+    final used = <int>{correct};
+    final result = <int>[];
+
+    for (final candidate in wrongCandidates) {
+      var value = candidate;
+      var attempts = 0;
+      while (used.contains(value) && attempts < 20) {
+        value += 1;
+        attempts++;
+      }
+      used.add(value);
+      result.add(value);
+    }
+
     return result;
   }
 }

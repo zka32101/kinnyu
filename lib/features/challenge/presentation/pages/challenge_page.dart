@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -66,12 +68,16 @@ class ChallengePage extends ConsumerWidget {
                 children: [
                   const Icon(Icons.emoji_events, color: Colors.white),
                   const SizedBox(width: 8),
-                  Text(
-                    challenge.title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Text(
+                      challenge.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
                     ),
                   ),
                 ],
@@ -140,7 +146,9 @@ class ChallengePage extends ConsumerWidget {
                   backgroundColor: rank <= 3 ? Colors.amber : Colors.grey.shade300,
                   child: Text('$rank'),
                 ),
-                title: Text(isMe ? 'あなた' : 'ユーザー${participant.uid.substring(0, 6)}'),
+                title: Text(isMe
+                    ? 'あなた'
+                    : 'ユーザー${participant.uid.substring(0, math.min(6, participant.uid.length))}'),
                 trailing: Text(
                   '¥${participant.reductionAmount}',
                   style: const TextStyle(fontWeight: FontWeight.bold),
