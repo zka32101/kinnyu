@@ -109,7 +109,31 @@ class _MissionListPageState extends ConsumerState<MissionListPage> {
                     ElevatedButton(
                       onPressed: (isCompleting || mission.isExpired)
                           ? null
-                          : () => _completeMission(context, uid, mission),
+                          : () async {
+                              final confirmed = await showDialog<bool>(
+                                context: context,
+                                builder: (dialogContext) => AlertDialog(
+                                  title: const Text('ミッションを完了しますか？'),
+                                  content: Text(
+                                      '「${mission.title}」を完了として報告し、${mission.rewardXP}XPを獲得します。'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(dialogContext, false),
+                                      child: const Text('キャンセル'),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () =>
+                                          Navigator.pop(dialogContext, true),
+                                      child: const Text('完了する'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirmed == true && context.mounted) {
+                                _completeMission(context, uid, mission);
+                              }
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green.shade600,
                       ),
