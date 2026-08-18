@@ -397,46 +397,46 @@ class HomePage extends ConsumerWidget {
   }
 
   Widget _buildDiagnosisPrompt(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.purple.shade50,
-        border: Border.all(color: Colors.purple.shade300),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Icon(Icons.lightbulb, color: Colors.purple.shade600, size: 28),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '家計診断クイズ',
-                  style: TextStyle(
-                    color: Colors.purple.shade600,
-                    fontWeight: FontWeight.w600,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          PageRouteAnimations.slideTransition(const InitialDiagnosisPage()),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.purple.shade50,
+          border: Border.all(color: Colors.purple.shade300),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(Icons.lightbulb, color: Colors.purple.shade600, size: 28),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '家計診断クイズ',
+                    style: TextStyle(
+                      color: Colors.purple.shade600,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'あなたの節約TOP3を発見しましょう',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  const Text(
+                    'あなたの節約TOP3を発見しましょう',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
             ),
-          ),
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                PageRouteAnimations.slideTransition(const InitialDiagnosisPage()),
-              );
-            },
-            child: Icon(Icons.arrow_forward, color: Colors.purple.shade600),
-          ),
-        ],
+            Icon(Icons.arrow_forward, color: Colors.purple.shade600),
+          ],
+        ),
       ),
     );
   }
@@ -576,25 +576,25 @@ class HomePage extends ConsumerWidget {
       {
         'title': '貯蓄',
         'icon': Icons.savings,
-        'color': Colors.blue,
+        'color': AppColors.categoryColors['savings'] ?? Colors.blue,
         'category': QuizCategory.savings
       },
       {
         'title': '税金',
         'icon': Icons.receipt,
-        'color': Colors.orange,
+        'color': AppColors.categoryColors['tax'] ?? Colors.orange,
         'category': QuizCategory.tax
       },
       {
         'title': '投資',
         'icon': Icons.trending_up,
-        'color': Colors.green,
+        'color': AppColors.categoryColors['invest'] ?? Colors.green,
         'category': QuizCategory.invest
       },
       {
         'title': '保険',
         'icon': Icons.shield,
-        'color': Colors.red,
+        'color': AppColors.categoryColors['insurance'] ?? Colors.red,
         'category': QuizCategory.insurance
       },
     ];
