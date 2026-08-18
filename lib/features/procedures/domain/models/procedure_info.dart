@@ -1,5 +1,22 @@
 import 'package:flutter/material.dart';
-import 'roleplay_scenario.dart';
+
+/// ライフステージ（制度・補助金の関連度をひもづけるための軽量な分類）。
+/// ロールプレイのシナリオ種別と1:1で対応するが、procedures フィーチャーを
+/// roleplay フィーチャーから独立させるためにあえて別の enum として定義する。
+enum LifeStage { youngFamily, singleProfessional, preRetirement }
+
+extension LifeStageX on LifeStage {
+  String get label {
+    switch (this) {
+      case LifeStage.youngFamily:
+        return '若い家族';
+      case LifeStage.singleProfessional:
+        return '独身社会人';
+      case LifeStage.preRetirement:
+        return '退職前世代';
+    }
+  }
+}
 
 /// 制度・手続きのカテゴリ
 enum ProcedureCategory {
@@ -89,7 +106,11 @@ class ProcedureInfo {
   final String howToApply; // 申請方法
   final String applyWindow; // 申請時期・タイミングの目安
   final String sourceNote; // 相談・申請先（正式名称のみ。URLは変わりやすいため記載しない）
-  final List<RoleplayScenarioType> relevantScenarios;
+  final List<LifeStage> relevantScenarios;
+
+  /// この制度の申請・確認を促すリマインダー通知を送るべき月（1〜12）。
+  /// 恒常的に利用可能で締切のない制度は空リストのままにする。
+  final List<int> reminderMonths;
 
   const ProcedureInfo({
     required this.id,
@@ -102,6 +123,7 @@ class ProcedureInfo {
     required this.applyWindow,
     required this.sourceNote,
     required this.relevantScenarios,
+    this.reminderMonths = const [],
   });
 }
 
@@ -121,7 +143,7 @@ class ProcedureLibrary {
       howToApply: '出生・転入から15日以内を目安に、市区町村窓口またはオンラインで申請',
       applyWindow: '出産後・転入後はできるだけ早めに',
       sourceNote: 'お住まいの市区町村窓口／こども家庭庁',
-      relevantScenarios: [RoleplayScenarioType.youngFamily],
+      relevantScenarios: [LifeStage.youngFamily],
     ),
     ProcedureInfo(
       id: 'shussan_ikuji',
@@ -133,7 +155,7 @@ class ProcedureLibrary {
       howToApply: '医療機関の直接支払制度を利用すれば窓口負担を軽減可能。加入健康保険に要確認。',
       applyWindow: '出産予定が決まったら早めに医療機関・保険者へ確認',
       sourceNote: '加入している健康保険組合・協会けんぽ',
-      relevantScenarios: [RoleplayScenarioType.youngFamily],
+      relevantScenarios: [LifeStage.youngFamily],
     ),
     ProcedureInfo(
       id: 'koukou_shugaku',
@@ -145,7 +167,8 @@ class ProcedureLibrary {
       howToApply: '入学時に学校を通じて申請書・マイナンバー等の必要書類を提出',
       applyWindow: '入学時・新年度に学校から案内',
       sourceNote: '在学する高等学校／文部科学省',
-      relevantScenarios: [RoleplayScenarioType.youngFamily],
+      relevantScenarios: [LifeStage.youngFamily],
+      reminderMonths: [3, 4],
     ),
     ProcedureInfo(
       id: 'juutaku_loan_koujo',
@@ -157,7 +180,8 @@ class ProcedureLibrary {
       howToApply: '入居初年度は確定申告が必要。会社員は2年目以降は年末調整で対応可能。',
       applyWindow: '入居した年の翌年2〜3月の確定申告時期',
       sourceNote: '税務署／国税庁',
-      relevantScenarios: [RoleplayScenarioType.youngFamily],
+      relevantScenarios: [LifeStage.youngFamily],
+      reminderMonths: [2, 3],
     ),
     ProcedureInfo(
       id: 'nisa',
@@ -170,10 +194,11 @@ class ProcedureLibrary {
       applyWindow: '口座開設後いつでも利用可能（年間投資枠は年単位でリセット）',
       sourceNote: '利用する金融機関／金融庁',
       relevantScenarios: [
-        RoleplayScenarioType.youngFamily,
-        RoleplayScenarioType.singleProfessional,
-        RoleplayScenarioType.preRetirement,
+        LifeStage.youngFamily,
+        LifeStage.singleProfessional,
+        LifeStage.preRetirement,
       ],
+      reminderMonths: [1],
     ),
     ProcedureInfo(
       id: 'ideco',
@@ -186,8 +211,8 @@ class ProcedureLibrary {
       applyWindow: 'いつでも申込可能（会社員は事業主証明が必要な場合あり）',
       sourceNote: '国民年金基金連合会／利用する金融機関',
       relevantScenarios: [
-        RoleplayScenarioType.youngFamily,
-        RoleplayScenarioType.singleProfessional,
+        LifeStage.youngFamily,
+        LifeStage.singleProfessional,
       ],
     ),
     ProcedureInfo(
@@ -201,10 +226,11 @@ class ProcedureLibrary {
       applyWindow: '寄付した翌年1月10日必着でワンストップ特例申請書を提出',
       sourceNote: '寄付先自治体／総務省',
       relevantScenarios: [
-        RoleplayScenarioType.youngFamily,
-        RoleplayScenarioType.singleProfessional,
-        RoleplayScenarioType.preRetirement,
+        LifeStage.youngFamily,
+        LifeStage.singleProfessional,
+        LifeStage.preRetirement,
       ],
+      reminderMonths: [12, 1],
     ),
     ProcedureInfo(
       id: 'shohisha_hotline',
@@ -217,8 +243,8 @@ class ProcedureLibrary {
       applyWindow: '被害に遭う前・遭った後どちらでも、迷ったらすぐ相談',
       sourceNote: '消費者庁／国民生活センター',
       relevantScenarios: [
-        RoleplayScenarioType.singleProfessional,
-        RoleplayScenarioType.preRetirement,
+        LifeStage.singleProfessional,
+        LifeStage.preRetirement,
       ],
     ),
     ProcedureInfo(
@@ -231,7 +257,7 @@ class ProcedureLibrary {
       howToApply: '受給開始時に年金事務所または年金相談センターで請求手続き',
       applyWindow: '65歳の受給権発生後、繰下げ待機し希望時期に請求',
       sourceNote: '年金事務所／日本年金機構',
-      relevantScenarios: [RoleplayScenarioType.preRetirement],
+      relevantScenarios: [LifeStage.preRetirement],
     ),
     ProcedureInfo(
       id: 'nenkin_teikibin',
@@ -244,8 +270,8 @@ class ProcedureLibrary {
       applyWindow: 'いつでも確認可能（誕生月に定期便が届く）',
       sourceNote: '日本年金機構',
       relevantScenarios: [
-        RoleplayScenarioType.preRetirement,
-        RoleplayScenarioType.singleProfessional,
+        LifeStage.preRetirement,
+        LifeStage.singleProfessional,
       ],
     ),
     ProcedureInfo(
@@ -259,9 +285,10 @@ class ProcedureLibrary {
       applyWindow: '年末調整時期（10〜12月）または確定申告時期（2〜3月）',
       sourceNote: '加入している保険会社／税務署',
       relevantScenarios: [
-        RoleplayScenarioType.preRetirement,
-        RoleplayScenarioType.youngFamily,
+        LifeStage.preRetirement,
+        LifeStage.youngFamily,
       ],
+      reminderMonths: [10, 11],
     ),
     ProcedureInfo(
       id: 'iryohi_koujo',
@@ -274,9 +301,10 @@ class ProcedureLibrary {
       applyWindow: '確定申告時期（2月中旬〜3月中旬）。還付申告は5年間さかのぼって申告可能',
       sourceNote: '税務署／国税庁',
       relevantScenarios: [
-        RoleplayScenarioType.preRetirement,
-        RoleplayScenarioType.youngFamily,
+        LifeStage.preRetirement,
+        LifeStage.youngFamily,
       ],
+      reminderMonths: [2, 3],
     ),
     ProcedureInfo(
       id: 'zaikei_chochiku',
@@ -288,7 +316,7 @@ class ProcedureLibrary {
       howToApply: '勤務先の人事・総務部門に申込書を提出',
       applyWindow: '入社時または制度導入時にいつでも申込可能',
       sourceNote: '勤務先の人事部門',
-      relevantScenarios: [RoleplayScenarioType.singleProfessional],
+      relevantScenarios: [LifeStage.singleProfessional],
     ),
     ProcedureInfo(
       id: 'koukyoiryohi',
@@ -301,9 +329,9 @@ class ProcedureLibrary {
       applyWindow: '診療を受けた月の翌月以降いつでも申請可能（2年で時効）',
       sourceNote: '加入している健康保険組合・協会けんぽ・市区町村国保',
       relevantScenarios: [
-        RoleplayScenarioType.youngFamily,
-        RoleplayScenarioType.singleProfessional,
-        RoleplayScenarioType.preRetirement,
+        LifeStage.youngFamily,
+        LifeStage.singleProfessional,
+        LifeStage.preRetirement,
       ],
     ),
     ProcedureInfo(
@@ -317,8 +345,8 @@ class ProcedureLibrary {
       applyWindow: '休業4日目以降、随時申請可能',
       sourceNote: '加入している健康保険組合・協会けんぽ',
       relevantScenarios: [
-        RoleplayScenarioType.youngFamily,
-        RoleplayScenarioType.singleProfessional,
+        LifeStage.youngFamily,
+        LifeStage.singleProfessional,
       ],
     ),
     ProcedureInfo(
@@ -331,7 +359,7 @@ class ProcedureLibrary {
       howToApply: '勤務先を通じてハローワークに申請（原則2ヶ月ごとの支給申請）',
       applyWindow: '育休開始後、勤務先の案内に沿って申請',
       sourceNote: 'ハローワーク（公共職業安定所）／勤務先',
-      relevantScenarios: [RoleplayScenarioType.youngFamily],
+      relevantScenarios: [LifeStage.youngFamily],
     ),
     ProcedureInfo(
       id: 'shussan_teate',
@@ -343,7 +371,7 @@ class ProcedureLibrary {
       howToApply: '勤務先経由で加入健康保険に出産手当金支給申請書を提出',
       applyWindow: '産休開始後、出産後にまとめて申請するのが一般的',
       sourceNote: '加入している健康保険組合・協会けんぽ',
-      relevantScenarios: [RoleplayScenarioType.youngFamily],
+      relevantScenarios: [LifeStage.youngFamily],
     ),
     ProcedureInfo(
       id: 'kodomo_iryohi_jyosei',
@@ -355,7 +383,7 @@ class ProcedureLibrary {
       howToApply: '市区町村窓口で「こども医療証」の交付を受け、医療機関で提示',
       applyWindow: '出生後・転入後、早めに市区町村窓口へ申請',
       sourceNote: 'お住まいの市区町村窓口',
-      relevantScenarios: [RoleplayScenarioType.youngFamily],
+      relevantScenarios: [LifeStage.youngFamily],
     ),
     ProcedureInfo(
       id: 'koureisha_koyou_keizoku',
@@ -367,7 +395,7 @@ class ProcedureLibrary {
       howToApply: '勤務先を通じてハローワークに支給申請',
       applyWindow: '60歳到達後、賃金低下が確認され次第申請',
       sourceNote: 'ハローワーク（公共職業安定所）／勤務先',
-      relevantScenarios: [RoleplayScenarioType.preRetirement],
+      relevantScenarios: [LifeStage.preRetirement],
     ),
     ProcedureInfo(
       id: 'kyouiku_kunren_kyufu',
@@ -379,7 +407,7 @@ class ProcedureLibrary {
       howToApply: '受講前にハローワークで受給資格を確認し、受講修了後に必要書類を提出',
       applyWindow: '受講開始前に要件確認、修了後1ヶ月以内に支給申請',
       sourceNote: 'ハローワーク（公共職業安定所）',
-      relevantScenarios: [RoleplayScenarioType.singleProfessional],
+      relevantScenarios: [LifeStage.singleProfessional],
     ),
     ProcedureInfo(
       id: 'juutaku_shikin_zouyo',
@@ -391,7 +419,8 @@ class ProcedureLibrary {
       howToApply: '贈与を受けた翌年に確定申告（贈与税の申告）で非課税の特例を適用',
       applyWindow: '贈与を受けた年の翌年2月1日〜3月15日の贈与税申告期間',
       sourceNote: '税務署／国税庁',
-      relevantScenarios: [RoleplayScenarioType.youngFamily],
+      relevantScenarios: [LifeStage.youngFamily],
+      reminderMonths: [2, 3],
     ),
     ProcedureInfo(
       id: 'jishin_hoken_koujo',
@@ -404,9 +433,10 @@ class ProcedureLibrary {
       applyWindow: '年末調整時期（10〜12月）または確定申告時期（2〜3月）',
       sourceNote: '加入している保険会社／税務署',
       relevantScenarios: [
-        RoleplayScenarioType.youngFamily,
-        RoleplayScenarioType.preRetirement,
+        LifeStage.youngFamily,
+        LifeStage.preRetirement,
       ],
+      reminderMonths: [10, 11],
     ),
   ];
 
@@ -422,10 +452,15 @@ class ProcedureLibrary {
         .toList(growable: false);
   }
 
-  /// シナリオに関連する制度を一覧取得（シーンで個別に紐付いていないものも含む）
-  static List<ProcedureInfo> byScenario(RoleplayScenarioType type) {
+  /// ライフステージに関連する制度を一覧取得（シーンで個別に紐付いていないものも含む）
+  static List<ProcedureInfo> byLifeStage(LifeStage stage) {
     return all
-        .where((p) => p.relevantScenarios.contains(type))
+        .where((p) => p.relevantScenarios.contains(stage))
         .toList(growable: false);
+  }
+
+  /// 申請期限のリマインダーが設定されている全制度
+  static List<ProcedureInfo> withReminders() {
+    return all.where((p) => p.reminderMonths.isNotEmpty).toList(growable: false);
   }
 }
