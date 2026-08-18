@@ -261,6 +261,7 @@ class _InvestmentPortfolioPageState
       BuildContext context, WidgetRef ref, String uid) {
     final amountController = TextEditingController(text: '10000');
     InvestmentType selectedType = InvestmentType.topix;
+    bool isSubmitting = false;
 
     showDialog(
       context: context,
@@ -304,40 +305,57 @@ class _InvestmentPortfolioPageState
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
+                  onPressed:
+                      isSubmitting ? null : () => Navigator.pop(dialogContext),
                   child: const Text('キャンセル'),
                 ),
                 ElevatedButton(
-                  onPressed: () async {
-                    final amount = int.tryParse(amountController.text) ?? 0;
-                    if (amount <= 0) return;
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          final amount =
+                              int.tryParse(amountController.text) ?? 0;
+                          if (amount <= 0) return;
 
-                    final service = ref.read(investmentServiceProvider);
-                    try {
-                      await service.createInvestment(
-                        uid: uid,
-                        savingsAmount: amount,
-                        type: selectedType,
-                      );
+                          setState(() => isSubmitting = true);
 
-                      if (dialogContext.mounted) {
-                        Navigator.pop(dialogContext);
-                      }
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('投資を開始しました')),
-                        );
-                      }
-                    } catch (e) {
-                      debugPrint('createInvestment error: $e');
-                      if (dialogContext.mounted) {
-                        ScaffoldMessenger.of(dialogContext).showSnackBar(
-                          SnackBar(content: Text('投資の作成に失敗しました: $e')),
-                        );
-                      }
-                    }
-                  },
-                  child: const Text('投資する'),
+                          final service = ref.read(investmentServiceProvider);
+                          try {
+                            await service.createInvestment(
+                              uid: uid,
+                              savingsAmount: amount,
+                              type: selectedType,
+                            );
+
+                            if (dialogContext.mounted) {
+                              Navigator.pop(dialogContext);
+                            }
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('投資を開始しました')),
+                              );
+                            }
+                          } catch (e) {
+                            debugPrint('createInvestment error: $e');
+                            if (dialogContext.mounted) {
+                              ScaffoldMessenger.of(dialogContext)
+                                  .showSnackBar(
+                                SnackBar(content: Text('投資の作成に失敗しました: $e')),
+                              );
+                            }
+                          } finally {
+                            if (dialogContext.mounted) {
+                              setState(() => isSubmitting = false);
+                            }
+                          }
+                        },
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('投資する'),
                 ),
               ],
             );

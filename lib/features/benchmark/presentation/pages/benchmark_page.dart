@@ -54,6 +54,10 @@ class BenchmarkPage extends ConsumerWidget {
 
   Widget _buildBenchmarkCard(BuildContext context, Benchmark benchmark) {
     final isGood = benchmark.isBelowAverage;
+    final progressValue = benchmark.ageGroupAverage > 0
+        ? (benchmark.userAmount / (benchmark.ageGroupAverage * 1.5))
+            .clamp(0.0, 1.0)
+        : 0.0;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -97,8 +101,7 @@ class BenchmarkPage extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             LinearProgressIndicator(
-              value: (benchmark.userAmount / (benchmark.ageGroupAverage * 1.5))
-                  .clamp(0.0, 1.0),
+              value: progressValue,
               backgroundColor: Colors.grey.shade200,
               color: isGood ? Colors.green : Colors.orange,
             ),
