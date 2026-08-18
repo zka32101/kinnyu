@@ -15,6 +15,10 @@ import '../../../glossary/presentation/pages/glossary_page.dart';
 import '../../../simulation/presentation/pages/simulation_hub_page.dart';
 import '../../../user_profile/presentation/providers/user_provider.dart';
 import '../../../user_profile/presentation/providers/streak_provider.dart';
+import '../../../procedures/presentation/pages/procedure_finder_page.dart';
+import '../../../procedures/presentation/providers/procedures_provider.dart';
+import '../../../dashboard/presentation/pages/savings_dashboard_page.dart';
+import '../../../about/presentation/pages/about_page.dart';
 import '../../../../core/widgets/lottie_animations.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -83,6 +87,16 @@ class HomePage extends ConsumerWidget {
               );
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            tooltip: 'このアプリについて',
+            onPressed: () {
+              Navigator.push(
+                context,
+                PageRouteAnimations.slideTransition(const AboutPage()),
+              );
+            },
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -92,6 +106,8 @@ class HomePage extends ConsumerWidget {
           children: [
             _buildStreakCard(streakDays),
             const SizedBox(height: 24),
+            _buildProcedureFinderPromptCard(context, ref),
+            const SizedBox(height: 24),
             _buildDiagnosisPrompt(context),
             const SizedBox(height: 24),
             _buildInvestmentPromptCard(context),
@@ -99,6 +115,8 @@ class HomePage extends ConsumerWidget {
             _buildSimulationPromptCard(context),
             const SizedBox(height: 24),
             _buildRoleplayPromptCard(context),
+            const SizedBox(height: 24),
+            _buildDashboardPromptCard(context),
             const SizedBox(height: 24),
             _buildCategoryGrid(context),
           ],
@@ -113,6 +131,100 @@ class HomePage extends ConsumerWidget {
         },
         icon: const Icon(Icons.receipt_long),
         label: const Text('レシート記録'),
+      ),
+    );
+  }
+
+  Widget _buildProcedureFinderPromptCard(BuildContext context, WidgetRef ref) {
+    final lifeStage = ref.watch(lifeStageProvider);
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          PageRouteAnimations.slideTransition(const ProcedureFinderPage()),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.blue.shade50,
+          border: Border.all(color: Colors.blue.shade200),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(Icons.account_balance, color: Colors.blue.shade700, size: 28),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '制度・補助金を探す',
+                    style: TextStyle(
+                      color: Colors.blue.shade700,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    lifeStage == null
+                        ? 'ライフステージを選ぶと、あなたに合った制度をお知らせします'
+                        : '${lifeStage.label}向けの制度・補助金をチェックしよう',
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward, color: Colors.blue.shade700),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDashboardPromptCard(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          PageRouteAnimations.slideTransition(const SavingsDashboardPage()),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.green.shade50,
+          border: Border.all(color: Colors.green.shade200),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(Icons.dashboard, color: Colors.green.shade700, size: 28),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '家計改善ダッシュボード',
+                    style: TextStyle(
+                      color: Colors.green.shade700,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'あなたの成長・貯まる様子をまとめて確認しよう',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward, color: Colors.green.shade700),
+          ],
+        ),
       ),
     );
   }
