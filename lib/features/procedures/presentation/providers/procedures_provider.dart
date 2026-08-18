@@ -16,9 +16,11 @@ final lifeStageProvider = NotifierProvider<LifeStageNotifier, LifeStage?>(() {
 });
 
 class LifeStageNotifier extends Notifier<LifeStage?> {
+  Future<void>? _loadFuture;
+
   @override
   LifeStage? build() {
-    Future.microtask(_load);
+    _loadFuture = Future.microtask(_load);
     return null;
   }
 
@@ -41,15 +43,31 @@ class LifeStageNotifier extends Notifier<LifeStage?> {
   /// ライフステージを設定・変更する。関連する制度のリマインダー通知も
   /// あわせてスケジュールする（＝ライフイベントに応じた通知トリガー）。
   Future<void> setLifeStage(LifeStage? stage) async {
+    if (_loadFuture != null) {
+      await _loadFuture;
+    }
     state = stage;
     try {
       final prefs = await ref.read(sharedPreferencesProvider.future);
+      final previousStageName = prefs.getString(_lifeStagePrefsKey);
+
+      if (previousStageName != null && previousStageName != stage?.name) {
+        for (final previousStage in LifeStage.values) {
+          if (previousStage.name == previousStageName) {
+            await _cancelRemindersFor(previousStage);
+            break;
+          }
+        }
+      }
+
       if (stage == null) {
         await prefs.remove(_lifeStagePrefsKey);
         return;
       }
       await prefs.setString(_lifeStagePrefsKey, stage.name);
-      await _scheduleRemindersFor(stage);
+      if (previousStageName != stage.name) {
+        await _scheduleRemindersFor(stage);
+      }
     } catch (e) {
       debugPrint('LifeStageNotifier: failed to save/schedule: $e');
     }
@@ -88,6 +106,24 @@ class LifeStageNotifier extends Notifier<LifeStage?> {
       await NotificationService().scheduleProcedureReminders(relevant);
     }
   }
+
+  /// 指定したライフステージに関連する制度のリマインダー通知をすべてキャンセルする。
+  /// ライフステージが変更・解除された際、以前のライフステージ向けに予約されていた
+  /// リマインダーが残留（孤立）しないようにするために呼び出す。
+  Future<void> _cancelRemindersFor(LifeStage stage) async {
+    final relevant = ProcedureLibrary.byLifeStage(stage)
+        .where((p) => p.reminderMonths.isNotEmpty)
+        .map((p) => (
+              id: p.id,
+              title: p.title,
+              applyWindow: p.applyWindow,
+              reminderMonths: p.reminderMonths,
+            ))
+        .toList();
+    for (final procedure in relevant) {
+      await NotificationService().cancelProcedureReminders(procedure);
+    }
+  }
 }
 
 /// ユーザーが詳細を開いて確認した制度の ID 集合。閲覧進捗の可視化に使う。
@@ -97,9 +133,11 @@ final viewedProcedureIdsProvider =
 });
 
 class ViewedProcedureIdsNotifier extends Notifier<Set<String>> {
+  Future<void>? _loadFuture;
+
   @override
   Set<String> build() {
-    Future.microtask(_load);
+    _loadFuture = Future.microtask(_load);
     return const {};
   }
 
@@ -116,6 +154,9 @@ class ViewedProcedureIdsNotifier extends Notifier<Set<String>> {
   }
 
   Future<void> markViewed(String procedureId) async {
+    if (_loadFuture != null) {
+      await _loadFuture;
+    }
     if (state.contains(procedureId)) return;
     state = {...state, procedureId};
     try {

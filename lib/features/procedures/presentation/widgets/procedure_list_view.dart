@@ -35,6 +35,18 @@ class _ProcedureListViewState extends State<ProcedureListView> {
   ProcedureCategory? _selectedCategory;
 
   @override
+  void didUpdateWidget(covariant ProcedureListView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // widget.procedures が新しいリストに差し替わった際、選択中のカテゴリが
+    // 新リストに存在しないカテゴリのまま残ると、絞り込み結果が無言で
+    // 空リストになってしまうため、その場合はリセットする。
+    if (_selectedCategory != null &&
+        !widget.procedures.any((p) => p.category == _selectedCategory)) {
+      _selectedCategory = null;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final categories = widget.procedures.map((p) => p.category).toSet().toList()
       ..sort((a, b) => a.label.compareTo(b.label));

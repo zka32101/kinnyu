@@ -223,17 +223,23 @@ class NotificationService {
 
       for (final procedure in procedures) {
         for (final month in procedure.reminderMonths) {
-          final id = _procedureReminderNotificationId(procedure.id, month);
-          final scheduledDate = _nextOccurrenceOfMonth(month);
+          try {
+            final id = _procedureReminderNotificationId(procedure.id, month);
+            final scheduledDate = _nextOccurrenceOfMonth(month);
 
-          await flutterLocalNotificationsPlugin.zonedSchedule(
-            id,
-            '📋 ${procedure.title} の申請時期です',
-            procedure.applyWindow,
-            scheduledDate,
-            platformChannelSpecifics,
-            androidScheduleMode: AndroidScheduleMode.exact,
-          );
+            await flutterLocalNotificationsPlugin.zonedSchedule(
+              id,
+              '📋 ${procedure.title} の申請時期です',
+              procedure.applyWindow,
+              scheduledDate,
+              platformChannelSpecifics,
+              androidScheduleMode: AndroidScheduleMode.exact,
+            );
+          } catch (e) {
+            debugPrint(
+                '制度リマインダーのスケジュール失敗 (procedure=${procedure.id}, month=$month): $e');
+            continue;
+          }
         }
       }
     } catch (e) {
@@ -254,9 +260,22 @@ class NotificationService {
   }
 
   int _procedureReminderNotificationId(String procedureId, int month) {
-    // procedureId のハッシュを予約範囲内に折りたたみ、月ごとに枝分かれさせる
-    final hashPart = procedureId.hashCode.abs() % 1000;
+    // procedureId のハッシュを予約範囲内に折りたたみ、月ごとに枝分かれさせる。
+    // String.hashCode はアプリの再起動間で安定性が保証されないため
+    // （VM/isolate のハッシュシード次第で値が変わりうる）、
+    // 自前の決定論的なハッシュ関数を使う。
+    final hashPart = _stableStringHash(procedureId) % 1000;
     return _procedureReminderIdBase + hashPart * 12 + month;
+  }
+
+  /// `String.hashCode` の代わりに使う、アプリの再起動を跨いでも常に同じ値を
+  /// 返す決定論的な文字列ハッシュ（多項式ハッシュ）。
+  int _stableStringHash(String s) {
+    int hash = 0;
+    for (final unit in s.codeUnits) {
+      hash = (hash * 31 + unit) & 0x7fffffff;
+    }
+    return hash;
   }
 
   tz.TZDateTime _nextOccurrenceOfMonth(int month, {int day = 1, int hour = 9}) {
