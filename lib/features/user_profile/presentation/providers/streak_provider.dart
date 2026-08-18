@@ -1,5 +1,5 @@
 import 'package:riverpod/riverpod.dart';
-import '../data/streak_service.dart';
+import '../../data/streak_service.dart';
 
 final streakServiceProvider = Provider((ref) {
   return StreakService();
