@@ -89,57 +89,76 @@ class _ProcedureListViewState extends State<ProcedureListView> {
             ),
           ),
         const SizedBox(height: 8),
-        ListView.builder(
-          controller: widget.controller,
-          shrinkWrap: widget.controller == null,
-          physics: widget.controller == null
-              ? const NeverScrollableScrollPhysics()
-              : null,
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-          itemCount: visible.length + (lockedCount > 0 ? 1 : 0),
-          itemBuilder: (context, index) {
-            if (index >= visible.length) {
-              return _buildLockedTeaser(context, lockedCount);
-            }
-            final p = visible[index];
-            return Card(
-              margin: const EdgeInsets.only(bottom: 10),
-              child: ExpansionTile(
-                onExpansionChanged: (expanded) {
-                  if (expanded) widget.onExpand?.call(p);
-                },
-                leading: CircleAvatar(
-                  backgroundColor: p.category.color.withAlpha(30),
-                  child: Icon(p.category.icon, color: p.category.color, size: 20),
-                ),
-                title: Text(
-                  p.title,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                ),
-                subtitle: Text(
-                  p.category.label,
-                  style: TextStyle(fontSize: 11, color: p.category.color),
-                ),
+        if (visible.isEmpty && lockedCount == 0)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 32),
+            child: Center(
+              child: Column(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _detailRow('概要', p.summary),
-                        _detailRow('対象者', p.eligibility),
-                        _detailRow('金額の目安', p.benefitAmount),
-                        _detailRow('申請方法', p.howToApply),
-                        _detailRow('タイミング', p.applyWindow),
-                        _detailRow('相談・申請先', p.sourceNote),
-                      ],
-                    ),
+                  Icon(Icons.search_off, size: 40, color: Colors.grey.shade400),
+                  const SizedBox(height: 12),
+                  Text(
+                    '該当する制度が見つかりませんでした',
+                    style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                   ),
                 ],
               ),
-            );
-          },
-        ),
+            ),
+          )
+        else
+          ListView.builder(
+            controller: widget.controller,
+            shrinkWrap: widget.controller == null,
+            physics: widget.controller == null
+                ? const NeverScrollableScrollPhysics()
+                : null,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            itemCount: visible.length + (lockedCount > 0 ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index >= visible.length) {
+                return _buildLockedTeaser(context, lockedCount);
+              }
+              final p = visible[index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 10),
+                child: ExpansionTile(
+                  onExpansionChanged: (expanded) {
+                    if (expanded) widget.onExpand?.call(p);
+                  },
+                  leading: CircleAvatar(
+                    backgroundColor: p.category.color.withAlpha(30),
+                    child: Icon(p.category.icon, color: p.category.color, size: 20),
+                  ),
+                  title: Text(
+                    p.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  subtitle: Text(
+                    p.category.label,
+                    style: TextStyle(fontSize: 11, color: p.category.color),
+                  ),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _detailRow('概要', p.summary),
+                          _detailRow('対象者', p.eligibility),
+                          _detailRow('金額の目安', p.benefitAmount),
+                          _detailRow('申請方法', p.howToApply),
+                          _detailRow('タイミング', p.applyWindow),
+                          _detailRow('相談・申請先', p.sourceNote),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
       ],
     );
   }

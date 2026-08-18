@@ -90,7 +90,7 @@ extension ProcedureCategoryX on ProcedureCategory {
       case ProcedureCategory.investment:
         return Colors.green;
       case ProcedureCategory.consumerProtection:
-        return Colors.amber;
+        return Colors.cyan;
     }
   }
 }
