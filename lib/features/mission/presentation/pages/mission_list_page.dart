@@ -86,10 +86,14 @@ class _MissionListPageState extends ConsumerState<MissionListPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  daysLeft > 0 ? '残り$daysLeft日' : '本日締切',
+                  mission.isExpired
+                      ? '期限切れ'
+                      : (daysLeft > 0 ? '残り$daysLeft日' : '本日締切'),
                   style: TextStyle(
                     fontSize: 12,
-                    color: daysLeft <= 1 ? Colors.red : Colors.grey,
+                    color: mission.isExpired
+                        ? Colors.grey
+                        : (daysLeft <= 1 ? Colors.red : Colors.grey),
                   ),
                 ),
                 Row(
@@ -103,7 +107,7 @@ class _MissionListPageState extends ConsumerState<MissionListPage> {
                     ),
                     const SizedBox(width: 12),
                     ElevatedButton(
-                      onPressed: isCompleting
+                      onPressed: (isCompleting || mission.isExpired)
                           ? null
                           : () => _completeMission(context, uid, mission),
                       style: ElevatedButton.styleFrom(
@@ -134,6 +138,16 @@ class _MissionListPageState extends ConsumerState<MissionListPage> {
       BuildContext context, String uid, Mission mission) async {
     // 既に処理中であれば何もしない（多重タップ防止）
     if (_completingMissionId != null) {
+      return;
+    }
+
+    // 期限切れのミッションは完了できない
+    if (mission.isExpired) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('このミッションは期限切れのため完了できません')),
+        );
+      }
       return;
     }
 
