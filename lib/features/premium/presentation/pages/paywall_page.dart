@@ -40,8 +40,17 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
     try {
       await service.purchasePackage(package);
       await ref.read(isPremiumProvider.notifier).refresh();
-      if (mounted && ref.read(isPremiumProvider)) {
-        Navigator.pop(context, true);
+      if (mounted) {
+        if (ref.read(isPremiumProvider)) {
+          Navigator.pop(context, true);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('購入処理が完了しました。反映まで少し時間がかかる場合があります。'),
+            ),
+          );
+          Navigator.pop(context, true);
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -58,6 +67,8 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
     if (_restoring) return;
     setState(() => _restoring = true);
     try {
+      final service = ref.read(subscriptionServiceProvider);
+      await service.restorePurchases();
       await ref.read(isPremiumProvider.notifier).refresh();
       final restored = ref.read(isPremiumProvider);
       if (mounted) {

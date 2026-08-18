@@ -29,8 +29,14 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Firebase 一時削除中 — APK テスト版用（ダミーデータ）
-    const streakDays = 5;
+    final uid = ref.watch(userProvider)?.uid;
+    final streakDays = uid == null
+        ? 0
+        : ref.watch(streakStreamProvider(uid)).when(
+              data: (streak) => streak.currentStreak,
+              loading: () => 0,
+              error: (_, __) => 0,
+            );
 
     // ホーム表示時に通知をスケジュール
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -77,25 +83,47 @@ class HomePage extends ConsumerWidget {
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.menu_book),
-            tooltip: '用語辞典',
-            onPressed: () {
-              Navigator.push(
-                context,
-                PageRouteAnimations.slideTransition(const GlossaryPage()),
-              );
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            tooltip: 'その他',
+            onSelected: (value) {
+              switch (value) {
+                case 'glossary':
+                  Navigator.push(
+                    context,
+                    PageRouteAnimations.slideTransition(const GlossaryPage()),
+                  );
+                  break;
+                case 'about':
+                  Navigator.push(
+                    context,
+                    PageRouteAnimations.slideTransition(const AboutPage()),
+                  );
+                  break;
+              }
             },
-          ),
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            tooltip: 'このアプリについて',
-            onPressed: () {
-              Navigator.push(
-                context,
-                PageRouteAnimations.slideTransition(const AboutPage()),
-              );
-            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: 'glossary',
+                child: Row(
+                  children: [
+                    Icon(Icons.menu_book),
+                    SizedBox(width: 12),
+                    Text('用語辞典'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'about',
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline),
+                    SizedBox(width: 12),
+                    Text('このアプリについて'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -105,6 +133,10 @@ class HomePage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildStreakCard(streakDays),
+            const SizedBox(height: 24),
+            uid != null
+                ? _buildTodayMissionCard(context, ref, uid)
+                : const SizedBox.shrink(),
             const SizedBox(height: 24),
             _buildProcedureFinderPromptCard(context, ref),
             const SizedBox(height: 24),
