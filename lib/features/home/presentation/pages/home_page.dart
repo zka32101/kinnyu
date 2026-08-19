@@ -72,12 +72,16 @@ class HomePage extends ConsumerWidget {
       } catch (e) {
         debugPrint('Failed to schedule notifications: $e');
       }
-      if (user != null) {
-        await HomeWidgetService.updateWidgetData(
-          streak: streakDays,
-          totalXP: user.totalXP,
-          level: user.level,
-        );
+      try {
+        if (user != null) {
+          await HomeWidgetService.updateWidgetData(
+            streak: streakDays,
+            totalXP: user.totalXP,
+            level: user.level,
+          );
+        }
+      } catch (e) {
+        debugPrint('Failed to update home widget: $e');
       }
     });
 
