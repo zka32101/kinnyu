@@ -5,6 +5,8 @@ class HouseholdGroup {
   final int totalSavings;
   final int monthlyGoal;
   final DateTime createdAt;
+  final Map<String, String> memberNicknames;
+  final Map<String, int> memberContributions;
 
   HouseholdGroup({
     required this.id,
@@ -13,6 +15,8 @@ class HouseholdGroup {
     required this.totalSavings,
     required this.monthlyGoal,
     required this.createdAt,
+    this.memberNicknames = const {},
+    this.memberContributions = const {},
   });
 
   factory HouseholdGroup.fromJson(Map<String, dynamic> json) {
@@ -23,6 +27,16 @@ class HouseholdGroup {
       totalSavings: json['totalSavings'] as int? ?? 0,
       monthlyGoal: json['monthlyGoal'] as int? ?? 0,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      memberNicknames: Map<String, String>.from(
+        (json['memberNicknames'] as Map<String, dynamic>? ?? {}).map(
+          (key, value) => MapEntry(key, value as String),
+        ),
+      ),
+      memberContributions: Map<String, int>.from(
+        (json['memberContributions'] as Map<String, dynamic>? ?? {}).map(
+          (key, value) => MapEntry(key, value as int? ?? 0),
+        ),
+      ),
     );
   }
 
@@ -34,6 +48,8 @@ class HouseholdGroup {
       'totalSavings': totalSavings,
       'monthlyGoal': monthlyGoal,
       'createdAt': createdAt.toIso8601String(),
+      'memberNicknames': memberNicknames,
+      'memberContributions': memberContributions,
     };
   }
 

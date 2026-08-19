@@ -69,6 +69,22 @@ class MissionService {
     }
   }
 
+  /// 完了済みミッション数を取得する（実績・バッジ機能の集計用）。
+  /// Firestore の Aggregation Query（count）を使い、ドキュメント本体を
+  /// 取得せずに件数のみをカウントする。失敗した場合は 0 を返す。
+  Future<int> getCompletedMissionsCount(String uid) async {
+    try {
+      final snapshot = await _userMissionsRef(uid)
+          .where('status', isEqualTo: MissionStatus.completed.index)
+          .count()
+          .get();
+      return snapshot.count ?? 0;
+    } catch (e) {
+      debugPrint('Failed to get completed missions count: $e');
+      return 0;
+    }
+  }
+
   Stream<List<Mission>> watchActiveMissions(String uid) {
     return _userMissionsRef(uid)
         .where('status', isEqualTo: MissionStatus.pending.index)

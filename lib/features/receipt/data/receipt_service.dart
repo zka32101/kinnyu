@@ -53,4 +53,28 @@ class ReceiptService {
       throw Exception('Failed to fetch receipts: $e');
     }
   }
+
+  /// 過去[days]日間のレシート記録から、月換算の平均支出額を返す。
+  /// 記録が無い場合はnullを返す。
+  Future<int?> getAverageMonthlyExpense(String uid, {int days = 30}) async {
+    try {
+      final cutoff = DateTime.now().subtract(Duration(days: days));
+      final snapshot = await _receiptsRef(uid)
+          .where('createdAt', isGreaterThanOrEqualTo: cutoff.toIso8601String())
+          .get();
+
+      if (snapshot.docs.isEmpty) return null;
+
+      final total = snapshot.docs.fold<int>(
+        0,
+        (sum, doc) => sum + (doc.data()['amount'] as int? ?? 0),
+      );
+
+      // days日間の合計を30日換算の月額に正規化
+      return (total / days * 30).round();
+    } catch (e) {
+      debugPrint('ReceiptService.getAverageMonthlyExpense failed for uid=$uid: $e');
+      return null;
+    }
+  }
 }

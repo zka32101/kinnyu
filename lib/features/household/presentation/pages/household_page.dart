@@ -25,7 +25,7 @@ class HouseholdPage extends ConsumerWidget {
           if (group == null) {
             return _buildNoGroupState(context, ref, user.uid);
           }
-          return _buildGroupDetail(context, ref, group);
+          return _buildGroupDetail(context, ref, group, user.uid);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('エラー: $error')),
@@ -65,7 +65,7 @@ class HouseholdPage extends ConsumerWidget {
   }
 
   Widget _buildGroupDetail(
-      BuildContext context, WidgetRef ref, HouseholdGroup group) {
+      BuildContext context, WidgetRef ref, HouseholdGroup group, String uid) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -145,12 +145,73 @@ class HouseholdPage extends ConsumerWidget {
             ),
           ),
         ),
+        const SizedBox(height: 16),
+        _buildContributionRanking(context, group),
+        const SizedBox(height: 16),
+        OutlinedButton.icon(
+          onPressed: () => _showLeaveGroupDialog(context, ref, uid),
+          icon: const Icon(Icons.logout, color: Colors.red),
+          label: const Text('グループを退会する', style: TextStyle(color: Colors.red)),
+          style: OutlinedButton.styleFrom(
+            side: const BorderSide(color: Colors.red),
+          ),
+        ),
       ],
+    );
+  }
+
+  Widget _buildContributionRanking(BuildContext context, HouseholdGroup group) {
+    final entries = group.members.map((uid) {
+      final amount = group.memberContributions[uid] ?? 0;
+      final nickname = group.memberNicknames[uid] ?? 'メンバー';
+      return MapEntry(nickname, amount);
+    }).toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '貢献額ランキング',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            for (var i = 0; i < entries.length; i++)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  children: [
+                    Text(
+                      i == 0 ? '🏆' : '${i + 1}位',
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        entries[i].key,
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                    Text(
+                      '¥${entries[i].value}',
+                      style: const TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 
   void _showCreateGroupDialog(BuildContext context, WidgetRef ref, String uid) {
     final nameController = TextEditingController();
+    final nicknameController = TextEditingController();
     bool isSubmitting = false;
 
     showDialog(
@@ -158,12 +219,25 @@ class HouseholdPage extends ConsumerWidget {
       builder: (dialogContext) => StatefulBuilder(
         builder: (_, setDialogState) => AlertDialog(
           title: const Text('世帯グループを作成'),
-          content: TextField(
-            controller: nameController,
-            decoration: const InputDecoration(
-              labelText: '世帯名',
-              hintText: '例: 田中家',
-            ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: '世帯名',
+                  hintText: '例: 田中家',
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: nicknameController,
+                decoration: const InputDecoration(
+                  labelText: 'ニックネーム',
+                  hintText: '例: パパ',
+                ),
+              ),
+            ],
           ),
           actions: [
             TextButton(
@@ -183,8 +257,11 @@ class HouseholdPage extends ConsumerWidget {
                       final analytics = ref.read(analyticsServiceProvider);
 
                       try {
+                        final nickname = nicknameController.text.trim();
                         final createdGroup = await service.createGroup(
-                            uid: uid, name: nameController.text.trim());
+                            uid: uid,
+                            name: nameController.text.trim(),
+                            nickname: nickname.isEmpty ? 'メンバー' : nickname);
                         await analytics.logEvent('household_joined',
                             parameters: {
                               'user_id': uid,
@@ -225,6 +302,7 @@ class HouseholdPage extends ConsumerWidget {
 
   void _showJoinGroupDialog(BuildContext context, WidgetRef ref, String uid) {
     final codeController = TextEditingController();
+    final nicknameController = TextEditingController();
     bool isSubmitting = false;
 
     showDialog(
@@ -232,13 +310,26 @@ class HouseholdPage extends ConsumerWidget {
       builder: (dialogContext) => StatefulBuilder(
         builder: (_, setDialogState) => AlertDialog(
           title: const Text('招待コードで参加'),
-          content: TextField(
-            controller: codeController,
-            textCapitalization: TextCapitalization.characters,
-            decoration: const InputDecoration(
-              labelText: '招待コード',
-              hintText: '例: AB12CD',
-            ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: codeController,
+                textCapitalization: TextCapitalization.characters,
+                decoration: const InputDecoration(
+                  labelText: '招待コード',
+                  hintText: '例: AB12CD',
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: nicknameController,
+                decoration: const InputDecoration(
+                  labelText: 'ニックネーム',
+                  hintText: '例: ママ',
+                ),
+              ),
+            ],
           ),
           actions: [
             TextButton(
@@ -259,8 +350,11 @@ class HouseholdPage extends ConsumerWidget {
                       final analytics = ref.read(analyticsServiceProvider);
 
                       try {
+                        final nickname = nicknameController.text.trim();
                         final group = await service.joinGroup(
-                            uid: uid, inviteCode: code);
+                            uid: uid,
+                            inviteCode: code,
+                            nickname: nickname.isEmpty ? 'メンバー' : nickname);
 
                         if (group != null) {
                           await analytics.logEvent('household_joined',
@@ -302,6 +396,54 @@ class HouseholdPage extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showLeaveGroupDialog(BuildContext context, WidgetRef ref, String uid) {
+    final groupAsync = ref.read(userGroupProvider(uid));
+    final currentGroupId = groupAsync.valueOrNull?.id;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('グループを退会しますか？'),
+        content: const Text('退会すると、これまでの貢献額の記録はグループから削除されます。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('キャンセル'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () async {
+              if (currentGroupId == null) {
+                Navigator.pop(dialogContext);
+                return;
+              }
+
+              final service = ref.read(householdServiceProvider);
+
+              try {
+                await service.leaveGroup(uid: uid, groupId: currentGroupId);
+                ref.invalidate(userGroupProvider(uid));
+                ref.invalidate(groupStreamProvider(currentGroupId));
+
+                if (dialogContext.mounted) {
+                  Navigator.pop(dialogContext);
+                }
+              } catch (e) {
+                debugPrint('leaveGroup error: $e');
+                if (dialogContext.mounted) {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    SnackBar(content: Text('退会に失敗しました: $e')),
+                  );
+                }
+              }
+            },
+            child: const Text('退会する'),
+          ),
+        ],
       ),
     );
   }

@@ -7,6 +7,8 @@ class UserProfile {
   final int totalXP;
   final int level;
   final bool ahaAchieved;
+  // 初回家計診断クイズの結果パターンID（"q1_q2_q3"形式）。未診断ならnull。
+  final String? diagnosisPatternId;
 
   UserProfile({
     required this.uid,
@@ -15,6 +17,7 @@ class UserProfile {
     required this.totalXP,
     required this.level,
     required this.ahaAchieved,
+    this.diagnosisPatternId,
   });
 
   UserProfile copyWith({
@@ -24,6 +27,7 @@ class UserProfile {
     int? totalXP,
     int? level,
     bool? ahaAchieved,
+    String? diagnosisPatternId,
   }) {
     return UserProfile(
       uid: uid ?? this.uid,
@@ -32,6 +36,7 @@ class UserProfile {
       totalXP: totalXP ?? this.totalXP,
       level: level ?? this.level,
       ahaAchieved: ahaAchieved ?? this.ahaAchieved,
+      diagnosisPatternId: diagnosisPatternId ?? this.diagnosisPatternId,
     );
   }
 }
@@ -71,6 +76,12 @@ class UserNotifier extends Notifier<UserProfile?> {
   void setAhaAchieved() {
     if (state != null) {
       state = state!.copyWith(ahaAchieved: true);
+    }
+  }
+
+  void setDiagnosisPattern(String patternId) {
+    if (state != null) {
+      state = state!.copyWith(diagnosisPatternId: patternId);
     }
   }
 }

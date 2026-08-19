@@ -6,6 +6,7 @@ import '../../../../core/analytics/analytics_provider.dart';
 import '../../../../core/widgets/lottie_animations.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/firebase/auth_provider.dart';
 
 class DiagnosisResultPage extends ConsumerStatefulWidget {
   final PatternDiagnosis diagnosis;
@@ -34,6 +35,16 @@ class _DiagnosisResultPageState extends ConsumerState<DiagnosisResultPage> {
         if (user != null) {
           analytics.logAhaMomentReached(user.uid, widget.diagnosis.patternId);
           await NotificationService().showDiagnosisResultNotification();
+          // 診断結果を永続化し、ホーム画面での「あなたへのおすすめ」表示に使う。
+          ref.read(userProvider.notifier).setDiagnosisPattern(widget.diagnosis.patternId);
+          try {
+            await ref.read(authServiceProvider).updateUserProfile(
+                  uid: user.uid,
+                  diagnosisPatternId: widget.diagnosis.patternId,
+                );
+          } catch (e) {
+            debugPrint('Failed to persist diagnosisPatternId: $e');
+          }
           _notifiedOnce = true;
         }
       } catch (e, stack) {

@@ -5,6 +5,8 @@ import '../../domain/models/household_simulator.dart';
 import '../../domain/services/excel_exporter.dart';
 import '../../../../core/subscription/subscription_provider.dart';
 import '../../../premium/presentation/pages/paywall_page.dart';
+import '../../../user_profile/presentation/providers/user_provider.dart';
+import '../../../receipt/presentation/providers/receipt_stats_provider.dart';
 
 enum _Mode { simple, detailed }
 
@@ -34,6 +36,7 @@ class _HouseholdSimulatorPageState
   final List<TextEditingController> _yearExpenseControllers = [];
 
   bool _isExporting = false;
+  bool _isApplyingReceiptAverage = false;
 
   @override
   void initState() {
@@ -167,6 +170,44 @@ class _HouseholdSimulatorPageState
     }
   }
 
+  /// レシート機能の直近の記録から月換算の平均支出額を取得し、
+  /// 簡易モードの月間支出フィールドへ反映する。
+  Future<void> _applyReceiptAverageExpense() async {
+    final user = ref.read(userProvider);
+    if (user == null) return;
+
+    setState(() => _isApplyingReceiptAverage = true);
+    try {
+      final average = await ref.read(
+        averageMonthlyExpenseProvider(user.uid).future,
+      );
+
+      if (!mounted) return;
+
+      if (average == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('まだレシート記録がありません。レシート機能で支出を記録してみましょう'),
+          ),
+        );
+        return;
+      }
+
+      setState(() {
+        _expenseController.text = '$average';
+      });
+    } catch (e) {
+      debugPrint('HouseholdSimulatorPage: failed to apply receipt average: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('レシート記録の取得に失敗しました')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isApplyingReceiptAverage = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isPremium = ref.watch(isPremiumProvider);
@@ -261,6 +302,21 @@ class _HouseholdSimulatorPageState
           border: OutlineInputBorder(),
         ),
         onChanged: (_) => setState(() {}),
+      ),
+      const SizedBox(height: 8),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: OutlinedButton.icon(
+          onPressed: _isApplyingReceiptAverage ? null : _applyReceiptAverageExpense,
+          icon: _isApplyingReceiptAverage
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.receipt_long, size: 18),
+          label: const Text('直近のレシート記録から自動入力'),
+        ),
       ),
       const SizedBox(height: 20),
       ..._buildSharedControls(),

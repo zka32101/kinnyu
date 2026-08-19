@@ -19,6 +19,7 @@ class HouseholdService {
   Future<HouseholdGroup> createGroup({
     required String uid,
     required String name,
+    required String nickname,
     int monthlyGoal = 30000,
   }) async {
     final inviteCode = _generateInviteCode();
@@ -31,6 +32,8 @@ class HouseholdService {
       totalSavings: 0,
       monthlyGoal: monthlyGoal,
       createdAt: now,
+      memberNicknames: {uid: nickname},
+      memberContributions: {},
     );
 
     try {
@@ -51,6 +54,7 @@ class HouseholdService {
   Future<HouseholdGroup?> joinGroup({
     required String uid,
     required String inviteCode,
+    required String nickname,
   }) async {
     final code = inviteCode.toUpperCase();
     final groupDocRef = _groupsRef.doc(code);
@@ -66,6 +70,7 @@ class HouseholdService {
         if (!group.members.contains(uid)) {
           transaction.update(groupDocRef, {
             'members': FieldValue.arrayUnion([uid]),
+            'memberNicknames.$uid': nickname,
           });
           transaction.update(userDocRef, {
             'householdGroupId': code,
@@ -78,6 +83,8 @@ class HouseholdService {
             totalSavings: group.totalSavings,
             monthlyGoal: group.monthlyGoal,
             createdAt: group.createdAt,
+            memberNicknames: {...group.memberNicknames, uid: nickname},
+            memberContributions: group.memberContributions,
           );
         }
 
@@ -118,13 +125,38 @@ class HouseholdService {
     );
   }
 
-  Future<void> addSavings(String groupId, int amount) async {
+  Future<void> addSavings(String groupId, String uid, int amount) async {
     try {
       await _groupsRef.doc(groupId).update({
         'totalSavings': FieldValue.increment(amount),
+        'memberContributions.$uid': FieldValue.increment(amount),
       });
     } catch (e) {
       debugPrint('addSavings failed: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> leaveGroup({
+    required String uid,
+    required String groupId,
+  }) async {
+    final groupDocRef = _groupsRef.doc(groupId);
+    final userDocRef = _firestore.collection('users').doc(uid);
+
+    try {
+      await _firestore.runTransaction((transaction) async {
+        transaction.update(groupDocRef, {
+          'members': FieldValue.arrayRemove([uid]),
+          'memberNicknames.$uid': FieldValue.delete(),
+          'memberContributions.$uid': FieldValue.delete(),
+        });
+        transaction.update(userDocRef, {
+          'householdGroupId': FieldValue.delete(),
+        });
+      });
+    } catch (e) {
+      debugPrint('leaveGroup failed: $e');
       rethrow;
     }
   }
