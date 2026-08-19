@@ -65,12 +65,16 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+          # Gradleの依存関係(~/.gradle/caches, ~/.gradle/wrapper)をキャッシュし、
+          # 毎回ゼロからダウンロードすることによるビルド時間の増大・タイムアウトを防ぐ。
+          cache: 'gradle'
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.x'
           channel: stable
+          cache: true
 
       - name: Get dependencies
         run: flutter pub get
