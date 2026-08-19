@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import '../../../../core/subscription/subscription_provider.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class PaywallPage extends ConsumerStatefulWidget {
   const PaywallPage({Key? key}) : super(key: key);
@@ -102,17 +103,17 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('金融オンライン大学 プレミアム')),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: AppSpacing.paddingLg,
         children: [
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: AppSpacing.paddingLg,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [Colors.amber.shade300, Colors.amber.shade600],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: AppSpacing.radiusLarge,
             ),
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,10 +154,10 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
             const Center(child: CircularProgressIndicator())
           else if (packages.isEmpty)
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: AppSpacing.paddingMd,
               decoration: BoxDecoration(
                 color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: AppSpacing.radiusMedium,
               ),
               child: const Text(
                 '現在プランを準備中です。しばらくしてから再度お試しください。',
@@ -233,13 +234,13 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
       margin: const EdgeInsets.only(bottom: 4),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.green,
+        color: Colors.amber.shade100,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         text,
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: Colors.amber.shade900,
           fontSize: 11,
           fontWeight: FontWeight.bold,
         ),

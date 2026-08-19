@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../../domain/models/household_group.dart';
 import '../providers/household_provider.dart';
 import '../../../user_profile/presentation/providers/user_provider.dart';
 import '../../../../core/analytics/analytics_provider.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class HouseholdPage extends ConsumerWidget {
   const HouseholdPage({Key? key}) : super(key: key);
@@ -36,7 +38,7 @@ class HouseholdPage extends ConsumerWidget {
   Widget _buildNoGroupState(BuildContext context, WidgetRef ref, String uid) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: AppSpacing.paddingLg,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -66,8 +68,9 @@ class HouseholdPage extends ConsumerWidget {
 
   Widget _buildGroupDetail(
       BuildContext context, WidgetRef ref, HouseholdGroup group, String uid) {
+    final amountFormat = NumberFormat('#,###');
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: AppSpacing.paddingMd,
       children: [
         Container(
           decoration: BoxDecoration(
@@ -76,9 +79,9 @@ class HouseholdPage extends ConsumerWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppSpacing.radiusMedium,
           ),
-          padding: const EdgeInsets.all(20),
+          padding: AppSpacing.paddingLg,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -97,7 +100,7 @@ class HouseholdPage extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                '¥${group.totalSavings} / ¥${group.monthlyGoal}',
+                '¥${amountFormat.format(group.totalSavings)} / ¥${amountFormat.format(group.monthlyGoal)}',
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 24,
@@ -120,7 +123,7 @@ class HouseholdPage extends ConsumerWidget {
         const SizedBox(height: 16),
         Card(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: AppSpacing.paddingMd,
             child: Row(
               children: [
                 const Icon(Icons.vpn_key, color: Colors.grey),
@@ -146,31 +149,33 @@ class HouseholdPage extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 16),
-        _buildContributionRanking(context, group),
+        _buildContributionRanking(context, group, uid),
         const SizedBox(height: 16),
         OutlinedButton.icon(
           onPressed: () => _showLeaveGroupDialog(context, ref, uid),
-          icon: const Icon(Icons.logout, color: Colors.red),
-          label: const Text('グループを退会する', style: TextStyle(color: Colors.red)),
+          icon: const Icon(Icons.logout, color: AppColors.error),
+          label: const Text('グループを退会する', style: TextStyle(color: AppColors.error)),
           style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: Colors.red),
+            side: const BorderSide(color: AppColors.error),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildContributionRanking(BuildContext context, HouseholdGroup group) {
-    final entries = group.members.map((uid) {
-      final amount = group.memberContributions[uid] ?? 0;
-      final nickname = group.memberNicknames[uid] ?? 'メンバー';
-      return MapEntry(nickname, amount);
+  Widget _buildContributionRanking(
+      BuildContext context, HouseholdGroup group, String uid) {
+    final amountFormat = NumberFormat('#,###');
+    final entries = group.members.map((memberUid) {
+      final amount = group.memberContributions[memberUid] ?? 0;
+      final nickname = group.memberNicknames[memberUid] ?? 'メンバー';
+      return (uid: memberUid, nickname: nickname, amount: amount);
     }).toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+      ..sort((a, b) => b.amount.compareTo(a.amount));
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.paddingMd,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -180,23 +185,40 @@ class HouseholdPage extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             for (var i = 0; i < entries.length; i++)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
+              Container(
+                decoration: entries[i].uid == uid
+                    ? BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primaryContainer
+                            .withAlpha(60),
+                        borderRadius: AppSpacing.radiusSmall,
+                      )
+                    : null,
+                padding: const EdgeInsets.symmetric(
+                    vertical: 6, horizontal: 8),
+                margin: const EdgeInsets.symmetric(vertical: 2),
                 child: Row(
                   children: [
                     Text(
-                      i == 0 ? '🏆' : '${i + 1}位',
+                      i == 0
+                          ? '🏆'
+                          : i == 1
+                              ? '🥈'
+                              : i == 2
+                                  ? '🥉'
+                                  : '${i + 1}位',
                       style: const TextStyle(fontSize: 14),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        entries[i].key,
+                        entries[i].nickname,
                         style: const TextStyle(fontSize: 14),
                       ),
                     ),
                     Text(
-                      '¥${entries[i].value}',
+                      '¥${amountFormat.format(entries[i].amount)}',
                       style: const TextStyle(
                           fontSize: 14, fontWeight: FontWeight.bold),
                     ),
@@ -415,7 +437,9 @@ class HouseholdPage extends ConsumerWidget {
             child: const Text('キャンセル'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.error,
+                foregroundColor: Colors.white),
             onPressed: () async {
               if (currentGroupId == null) {
                 Navigator.pop(dialogContext);

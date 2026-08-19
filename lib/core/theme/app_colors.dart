@@ -15,6 +15,9 @@ class AppColors {
   static const Color error = primaryRed;
   static const Color info = primaryBlue;
 
+  // Premium/trial accent（プレミアム関連UIで統一して使う）
+  static const Color premiumAccent = primaryAmber;
+
   // Neutral colors
   static const Color textPrimary = Color(0xFF212121);
   static const Color textSecondary = Color(0xFF757575);
@@ -56,6 +59,12 @@ class AppSpacing {
   static const double xl = 32.0;
   static const double xxl = 48.0;
 
+  // 追加スペーシング（既存画面での使用実態に基づく中間値）
+  static const double xxs = 2.0;
+
+  static const EdgeInsets paddingXs = EdgeInsets.all(xs);
+  static const EdgeInsets paddingXl = EdgeInsets.all(xl);
+
   // Common padding
   static const EdgeInsets paddingSm = EdgeInsets.all(sm);
   static const EdgeInsets paddingMd = EdgeInsets.all(md);
@@ -76,6 +85,10 @@ class AppSpacing {
   static const double borderRadiusMedium = 12.0;
   static const double borderRadiusLarge = 16.0;
   static const double borderRadiusXL = 24.0;
+
+  static const double borderRadiusXs = 4.0;
+
+  static final BorderRadius radiusXs = BorderRadius.circular(borderRadiusXs);
 
   static final BorderRadius radiusSmall =
       BorderRadius.circular(borderRadiusSmall);

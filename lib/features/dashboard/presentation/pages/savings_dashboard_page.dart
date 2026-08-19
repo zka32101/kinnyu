@@ -9,6 +9,7 @@ import '../../../mission/presentation/providers/mission_provider.dart';
 import '../../../procedures/domain/models/procedure_info.dart';
 import '../../../procedures/presentation/providers/procedures_provider.dart';
 import '../../../../core/subscription/subscription_provider.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../premium/presentation/pages/paywall_page.dart';
 
 /// 家計改善ダッシュボード。XP・ストリーク・投資・ミッション・制度確認状況を
@@ -33,7 +34,7 @@ class SavingsDashboardPage extends ConsumerWidget {
               ),
             )
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: AppSpacing.paddingMd,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -57,14 +58,14 @@ class SavingsDashboardPage extends ConsumerWidget {
     final progress = xpIntoLevel / 100;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: AppSpacing.paddingLg,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [Colors.indigo.shade400, Colors.indigo.shade700],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppSpacing.radiusMedium,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -205,7 +206,7 @@ class _StatTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withAlpha(15),
         border: Border.all(color: color.withAlpha(60)),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppSpacing.radiusMedium,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,7 +245,7 @@ class _StatTileLoading extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppSpacing.radiusMedium,
       ),
       child: const Center(
         child: SizedBox(
@@ -268,7 +269,7 @@ class _StatTileError extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppSpacing.radiusMedium,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -351,15 +352,15 @@ class _TrialPromoBannerState extends ConsumerState<_TrialPromoBanner> {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.indigo.shade50,
-          border: Border.all(color: Colors.indigo.shade100),
-          borderRadius: BorderRadius.circular(12),
+          color: Colors.amber.shade50,
+          border: Border.all(color: Colors.amber.shade200),
+          borderRadius: AppSpacing.radiusMedium,
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(Icons.workspace_premium,
-                color: Colors.indigo.shade400, size: 22),
+                color: Colors.amber.shade700, size: 22),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
@@ -370,7 +371,7 @@ class _TrialPromoBannerState extends ConsumerState<_TrialPromoBanner> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: Colors.indigo.shade900,
+                      color: Colors.amber.shade900,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -386,8 +387,8 @@ class _TrialPromoBannerState extends ConsumerState<_TrialPromoBanner> {
                         );
                       },
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.indigo.shade700,
-                        side: BorderSide(color: Colors.indigo.shade300),
+                        foregroundColor: Colors.amber.shade900,
+                        side: BorderSide(color: Colors.amber.shade700),
                       ),
                       child: const Text('トライアルを試す'),
                     ),
@@ -397,10 +398,10 @@ class _TrialPromoBannerState extends ConsumerState<_TrialPromoBanner> {
             ),
             IconButton(
               icon: const Icon(Icons.close, size: 18),
-              color: Colors.indigo.shade300,
+              color: Colors.amber.shade700,
               onPressed: _dismiss,
+              constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
               padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
             ),
           ],
         ),

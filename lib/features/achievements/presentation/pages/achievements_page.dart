@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/achievement.dart';
 import '../providers/achievements_provider.dart';
 import '../../../user_profile/presentation/providers/user_provider.dart';
+import '../../../../core/theme/app_colors.dart';
 
 /// 実績・バッジ一覧画面。既存プロバイダーの値から計算した進捗を
 /// カテゴリごとにセクション分けして表示する。
@@ -57,7 +58,7 @@ class _AchievementsBody extends ConsumerWidget {
             await ref.read(achievementProgressListProvider(uid).future);
           },
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: AppSpacing.paddingMd,
             children: [
               _buildSummaryCard(unlockedCount, totalCount),
               const SizedBox(height: 20),
@@ -82,14 +83,14 @@ class _AchievementsBody extends ConsumerWidget {
     final progress = totalCount == 0 ? 0.0 : unlockedCount / totalCount;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: AppSpacing.paddingLg,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [Colors.amber.shade400, Colors.deepOrange.shade400],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppSpacing.radiusMedium,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,7 +161,7 @@ class _AchievementsBody extends ConsumerWidget {
         crossAxisCount: 2,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: 1.05,
+        childAspectRatio: 0.95,
       ),
       itemCount: items.length,
       itemBuilder: (context, index) => _AchievementCard(progress: items[index]),
@@ -226,9 +227,11 @@ class _AchievementCard extends StatelessWidget {
 
     return Card(
       elevation: unlocked ? 2 : 0,
-      color: unlocked ? null : Colors.grey.shade50,
+      color: unlocked
+          ? null
+          : Theme.of(context).colorScheme.surfaceContainerHighest,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppSpacing.radiusMedium,
         side: BorderSide(
           color: unlocked ? color.withAlpha(80) : Colors.grey.shade300,
         ),
@@ -263,7 +266,9 @@ class _AchievementCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
-                color: unlocked ? Colors.black87 : Colors.grey.shade500,
+                color: unlocked
+                    ? Theme.of(context).colorScheme.onSurface
+                    : Theme.of(context).colorScheme.onSurface.withAlpha(150),
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -274,7 +279,9 @@ class _AchievementCard extends StatelessWidget {
                 achievement.description,
                 style: TextStyle(
                   fontSize: 11,
-                  color: unlocked ? Colors.grey.shade700 : Colors.grey.shade400,
+                  color: unlocked
+                      ? Theme.of(context).colorScheme.onSurfaceVariant
+                      : Theme.of(context).colorScheme.onSurface.withAlpha(100),
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -287,7 +294,8 @@ class _AchievementCard extends StatelessWidget {
                 child: LinearProgressIndicator(
                   value: progress.progress,
                   minHeight: 5,
-                  backgroundColor: Colors.grey.shade200,
+                  backgroundColor:
+                      Theme.of(context).colorScheme.surfaceContainerHighest,
                   valueColor: AlwaysStoppedAnimation(color.withAlpha(180)),
                 ),
               ),

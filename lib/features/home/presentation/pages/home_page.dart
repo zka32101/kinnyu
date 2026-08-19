@@ -117,21 +117,17 @@ class HomePage extends ConsumerWidget {
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.military_tech),
-            tooltip: '実績・バッジ',
-            onPressed: () {
-              Navigator.push(
-                context,
-                PageRouteAnimations.slideTransition(const AchievementsPage()),
-              );
-            },
-          ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             tooltip: 'その他',
             onSelected: (value) {
               switch (value) {
+                case 'achievements':
+                  Navigator.push(
+                    context,
+                    PageRouteAnimations.slideTransition(const AchievementsPage()),
+                  );
+                  break;
                 case 'glossary':
                   Navigator.push(
                     context,
@@ -147,6 +143,16 @@ class HomePage extends ConsumerWidget {
               }
             },
             itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: 'achievements',
+                child: Row(
+                  children: [
+                    Icon(Icons.military_tech),
+                    SizedBox(width: 12),
+                    Text('実績・バッジ'),
+                  ],
+                ),
+              ),
               PopupMenuItem(
                 value: 'glossary',
                 child: Row(
@@ -182,23 +188,29 @@ class HomePage extends ConsumerWidget {
                 ? _buildTodayMissionCard(context, ref, uid)
                 : const SizedBox.shrink(),
             const SizedBox(height: 24),
-            if (user?.diagnosisPatternId != null) ...[
-              _buildPersonalizedTipCard(context, user!.diagnosisPatternId!),
-              const SizedBox(height: 24),
-            ],
-            _buildProcedureFinderPromptCard(context, ref),
-            const SizedBox(height: 24),
+            _buildSectionHeader('学ぶ・診断する'),
+            const SizedBox(height: 12),
             _buildDiagnosisPrompt(context),
+            if (user?.diagnosisPatternId != null) ...[
+              const SizedBox(height: 24),
+              _buildPersonalizedTipCard(context, user!.diagnosisPatternId!),
+            ],
+            const SizedBox(height: 24),
+            _buildCategoryGrid(context),
+            const SizedBox(height: 24),
+            _buildSectionHeader('シミュレーション・投資'),
+            const SizedBox(height: 12),
+            _buildSimulationPromptCard(context),
             const SizedBox(height: 24),
             _buildInvestmentPromptCard(context),
             const SizedBox(height: 24),
-            _buildSimulationPromptCard(context),
+            _buildSectionHeader('サポート'),
+            const SizedBox(height: 12),
+            _buildProcedureFinderPromptCard(context, ref),
             const SizedBox(height: 24),
             _buildRoleplayPromptCard(context),
             const SizedBox(height: 24),
             _buildDashboardPromptCard(context),
-            const SizedBox(height: 24),
-            _buildCategoryGrid(context),
           ],
         ),
       ),
@@ -211,6 +223,17 @@ class HomePage extends ConsumerWidget {
         },
         icon: const Icon(Icons.receipt_long),
         label: const Text('レシート記録'),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.bold,
+        color: Colors.grey.shade600,
       ),
     );
   }
@@ -416,7 +439,7 @@ class HomePage extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(Icons.trending_up, color: Colors.amber.shade800, size: 28),
+            Icon(Icons.savings, color: Colors.amber.shade800, size: 28),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -504,14 +527,14 @@ class HomePage extends ConsumerWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.pink.shade50,
-          border: Border.all(color: Colors.pink.shade200),
+          color: Colors.purple.shade50,
+          border: Border.all(color: Colors.purple.shade200),
           borderRadius: BorderRadius.circular(12),
         ),
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(Icons.auto_awesome, color: Colors.pink.shade400, size: 28),
+            Icon(Icons.auto_awesome, color: Colors.purple.shade400, size: 28),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -520,7 +543,7 @@ class HomePage extends ConsumerWidget {
                   Text(
                     'あなたへのおすすめ（${diagnosis.typeName}）',
                     style: TextStyle(
-                      color: Colors.pink.shade400,
+                      color: Colors.purple.shade400,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -534,7 +557,7 @@ class HomePage extends ConsumerWidget {
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward, color: Colors.pink.shade400),
+            Icon(Icons.arrow_forward, color: Colors.purple.shade400),
           ],
         ),
       ),
