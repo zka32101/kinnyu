@@ -402,7 +402,7 @@ class HouseholdPage extends ConsumerWidget {
 
   void _showLeaveGroupDialog(BuildContext context, WidgetRef ref, String uid) {
     final groupAsync = ref.read(userGroupProvider(uid));
-    final currentGroupId = groupAsync.valueOrNull?.id;
+    final currentGroupId = groupAsync.asData?.value?.id;
 
     showDialog(
       context: context,
