@@ -19,7 +19,7 @@ class _InvestmentPortfolioPageState
   String? _realizingInvestmentId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
 
     if (user == null) {

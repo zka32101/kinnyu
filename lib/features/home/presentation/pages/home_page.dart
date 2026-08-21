@@ -17,6 +17,7 @@ import '../../../user_profile/presentation/providers/user_provider.dart';
 import '../../../user_profile/presentation/providers/streak_provider.dart';
 import '../../../procedures/presentation/pages/procedure_finder_page.dart';
 import '../../../procedures/presentation/providers/procedures_provider.dart';
+import '../../../procedures/domain/models/procedure_info.dart';
 import '../../../dashboard/presentation/pages/savings_dashboard_page.dart';
 import '../../../about/presentation/pages/about_page.dart';
 import '../../../../core/widgets/lottie_animations.dart';
