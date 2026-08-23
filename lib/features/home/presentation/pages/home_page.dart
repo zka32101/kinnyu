@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../quiz/domain/models/question.dart';
 import '../../../quiz/presentation/pages/quiz_page.dart';
 import '../../../quiz/presentation/pages/initial_diagnosis_page.dart';
+import '../../../quiz/presentation/pages/diagnosis_result_page.dart';
+import '../../../quiz/domain/models/pattern_diagnosis.dart';
 import '../../../mission/presentation/pages/mission_list_page.dart';
 import '../../../mission/presentation/providers/mission_provider.dart';
 import '../../../investment/presentation/pages/investment_portfolio_page.dart';
@@ -20,17 +22,21 @@ import '../../../procedures/presentation/providers/procedures_provider.dart';
 import '../../../procedures/domain/models/procedure_info.dart';
 import '../../../dashboard/presentation/pages/savings_dashboard_page.dart';
 import '../../../about/presentation/pages/about_page.dart';
+import '../../../achievements/presentation/pages/achievements_page.dart';
 import '../../../../core/widgets/lottie_animations.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/services/engagement_tracker.dart';
+import '../../../../core/services/home_widget_service.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final uid = ref.watch(userProvider)?.uid;
+    final user = ref.watch(userProvider);
+    final uid = user?.uid;
     final streakDays = uid == null
         ? 0
         : ref.watch(streakStreamProvider(uid)).when(
@@ -38,13 +44,44 @@ class HomePage extends ConsumerWidget {
               loading: () => 0,
               error: (_, __) => 0,
             );
+    final pendingMissionCount = uid == null
+        ? 0
+        : ref.watch(missionsStreamProvider(uid)).when(
+              data: (missions) => missions.length,
+              loading: () => 0,
+              error: (_, __) => 0,
+            );
+    final unviewedProcedureCount = (ProcedureLibrary.all.length -
+            ref.watch(viewedProcedureIdsProvider).length)
+        .clamp(0, ProcedureLibrary.all.length)
+        .toInt();
 
-    // ホーム表示時に通知をスケジュール
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // ホーム表示時に通知をスケジュール・エンゲージメント記録・ウィジェット同期を行う
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
-        NotificationService().scheduleStreakReminder();
+        await EngagementTracker.recordAppOpen();
+        final preferredHour = await EngagementTracker.getPreferredHour();
+        await NotificationService().scheduleStreakReminder(
+          hour: preferredHour ?? 20,
+          currentStreak: streakDays,
+        );
+        await NotificationService().scheduleWeeklyRecommendation(
+          pendingMissionCount: pendingMissionCount,
+          unviewedProcedureCount: unviewedProcedureCount,
+        );
       } catch (e) {
-        debugPrint('Failed to schedule streak reminder: $e');
+        debugPrint('Failed to schedule notifications: $e');
+      }
+      try {
+        if (user != null) {
+          await HomeWidgetService.updateWidgetData(
+            streak: streakDays,
+            totalXP: user.totalXP,
+            level: user.level,
+          );
+        }
+      } catch (e) {
+        debugPrint('Failed to update home widget: $e');
       }
     });
 
@@ -89,6 +126,12 @@ class HomePage extends ConsumerWidget {
             tooltip: 'その他',
             onSelected: (value) {
               switch (value) {
+                case 'achievements':
+                  Navigator.push(
+                    context,
+                    PageRouteAnimations.slideTransition(const AchievementsPage()),
+                  );
+                  break;
                 case 'glossary':
                   Navigator.push(
                     context,
@@ -104,6 +147,16 @@ class HomePage extends ConsumerWidget {
               }
             },
             itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: 'achievements',
+                child: Row(
+                  children: [
+                    Icon(Icons.military_tech),
+                    SizedBox(width: 12),
+                    Text('実績・バッジ'),
+                  ],
+                ),
+              ),
               PopupMenuItem(
                 value: 'glossary',
                 child: Row(
@@ -139,19 +192,29 @@ class HomePage extends ConsumerWidget {
                 ? _buildTodayMissionCard(context, ref, uid)
                 : const SizedBox.shrink(),
             const SizedBox(height: 24),
-            _buildProcedureFinderPromptCard(context, ref),
-            const SizedBox(height: 24),
+            _buildSectionHeader('学ぶ・診断する'),
+            const SizedBox(height: 12),
             _buildDiagnosisPrompt(context),
+            if (user?.diagnosisPatternId != null) ...[
+              const SizedBox(height: 24),
+              _buildPersonalizedTipCard(context, user!.diagnosisPatternId!),
+            ],
+            const SizedBox(height: 24),
+            _buildCategoryGrid(context),
+            const SizedBox(height: 24),
+            _buildSectionHeader('シミュレーション・投資'),
+            const SizedBox(height: 12),
+            _buildSimulationPromptCard(context),
             const SizedBox(height: 24),
             _buildInvestmentPromptCard(context),
             const SizedBox(height: 24),
-            _buildSimulationPromptCard(context),
+            _buildSectionHeader('サポート'),
+            const SizedBox(height: 12),
+            _buildProcedureFinderPromptCard(context, ref),
             const SizedBox(height: 24),
             _buildRoleplayPromptCard(context),
             const SizedBox(height: 24),
             _buildDashboardPromptCard(context),
-            const SizedBox(height: 24),
-            _buildCategoryGrid(context),
           ],
         ),
       ),
@@ -164,6 +227,17 @@ class HomePage extends ConsumerWidget {
         },
         icon: const Icon(Icons.receipt_long),
         label: const Text('レシート記録'),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.bold,
+        color: Colors.grey.shade600,
       ),
     );
   }
@@ -369,7 +443,7 @@ class HomePage extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(Icons.trending_up, color: Colors.amber.shade800, size: 28),
+            Icon(Icons.savings, color: Colors.amber.shade800, size: 28),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -436,6 +510,58 @@ class HomePage extends ConsumerWidget {
               ),
             ),
             Icon(Icons.arrow_forward, color: Colors.purple.shade600),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 初回家計診断の結果パターンに基づいた「あなたへのおすすめ」カード。
+  /// 診断未実施のユーザーには表示しない（呼び出し元でnullチェック済み）。
+  Widget _buildPersonalizedTipCard(BuildContext context, String patternId) {
+    final diagnosis = PatternDiagnosisGenerator.getDiagnosis(patternId);
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          PageRouteAnimations.slideTransition(
+            DiagnosisResultPage(diagnosis: diagnosis),
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.purple.shade50,
+          border: Border.all(color: Colors.purple.shade200),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(Icons.auto_awesome, color: Colors.purple.shade400, size: 28),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'あなたへのおすすめ（${diagnosis.typeName}）',
+                    style: TextStyle(
+                      color: Colors.purple.shade400,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    diagnosis.savingsTip1,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward, color: Colors.purple.shade400),
           ],
         ),
       ),

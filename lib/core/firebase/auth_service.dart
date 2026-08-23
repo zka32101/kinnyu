@@ -60,6 +60,7 @@ class AuthService {
         totalXP: data['totalXP'] ?? 0,
         level: data['level'] ?? 1,
         ahaAchieved: data['ahaAchieved'] ?? false,
+        diagnosisPatternId: data['diagnosisPatternId'],
       );
     } catch (e) {
       debugPrint('Failed to get user profile: $e');
@@ -73,12 +74,16 @@ class AuthService {
     int? totalXP,
     int? level,
     bool? ahaAchieved,
+    String? diagnosisPatternId,
   }) async {
     final updates = <String, dynamic>{};
     if (streak != null) updates['streak'] = streak;
     if (totalXP != null) updates['totalXP'] = totalXP;
     if (level != null) updates['level'] = level;
     if (ahaAchieved != null) updates['ahaAchieved'] = ahaAchieved;
+    if (diagnosisPatternId != null) {
+      updates['diagnosisPatternId'] = diagnosisPatternId;
+    }
     updates['lastUpdatedAt'] = FieldValue.serverTimestamp();
 
     try {
@@ -128,6 +133,7 @@ class AuthService {
         totalXP: data['totalXP'] ?? 0,
         level: data['level'] ?? 1,
         ahaAchieved: data['ahaAchieved'] ?? false,
+        diagnosisPatternId: data['diagnosisPatternId'],
       );
     });
   }

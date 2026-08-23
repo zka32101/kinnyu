@@ -162,6 +162,7 @@ class _InvestmentPortfolioPageState
     final currentValue = inv.currentValue(currentIndex);
     final profitLoss = inv.profitLoss(currentIndex);
     final isProfit = profitLoss >= 0;
+    final history = MarketSimulator.getHistorySeries(inv.investmentType, days: 30);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -201,6 +202,12 @@ class _InvestmentPortfolioPageState
                 ),
               ],
             ),
+            const SizedBox(height: 8),
+            Text('直近30日の値動き（教育目的の疑似データ）',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+            const SizedBox(height: 4),
+            _buildSparkline(history, isProfit),
+            const SizedBox(height: 4),
             const SizedBox(height: 12),
             Align(
               alignment: Alignment.centerRight,
@@ -218,6 +225,20 @@ class _InvestmentPortfolioPageState
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSparkline(List<double> series, bool isProfit) {
+    if (series.length < 2) return const SizedBox.shrink();
+    return SizedBox(
+      height: 36,
+      width: double.infinity,
+      child: CustomPaint(
+        painter: _SparklinePainter(
+          series: series,
+          color: isProfit ? Colors.green : Colors.red,
         ),
       ),
     );
@@ -363,5 +384,51 @@ class _InvestmentPortfolioPageState
         );
       },
     );
+  }
+}
+
+class _SparklinePainter extends CustomPainter {
+  final List<double> series;
+  final Color color;
+
+  _SparklinePainter({required this.series, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final minValue = series.reduce((a, b) => a < b ? a : b);
+    final maxValue = series.reduce((a, b) => a > b ? a : b);
+    final range = (maxValue - minValue).abs() < 1e-9 ? 1.0 : maxValue - minValue;
+
+    final path = Path();
+    for (var i = 0; i < series.length; i++) {
+      final x = size.width * i / (series.length - 1);
+      final normalized = (series[i] - minValue) / range;
+      final y = size.height * (1 - normalized);
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.8
+      ..style = PaintingStyle.stroke
+      ..strokeJoin = StrokeJoin.round
+      ..strokeCap = StrokeCap.round;
+    canvas.drawPath(path, paint);
+
+    // 塗りつぶし（グラデーション風の淡い下地）
+    final fillPath = Path.from(path)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+    canvas.drawPath(fillPath, Paint()..color = color.withAlpha(25));
+  }
+
+  @override
+  bool shouldRepaint(covariant _SparklinePainter oldDelegate) {
+    return oldDelegate.series != series || oldDelegate.color != color;
   }
 }

@@ -5,6 +5,8 @@ import '../../domain/models/household_simulator.dart';
 import '../../domain/services/excel_exporter.dart';
 import '../../../../core/subscription/subscription_provider.dart';
 import '../../../premium/presentation/pages/paywall_page.dart';
+import '../../../user_profile/presentation/providers/user_provider.dart';
+import '../../../receipt/presentation/providers/receipt_stats_provider.dart';
 
 enum _Mode { simple, detailed }
 
@@ -26,6 +28,7 @@ class _HouseholdSimulatorPageState
 
   // 共通
   double _returnRate = 0; // 0 = 貯金のみ
+  double _inflationRate = 2.0;
   double _years = 10;
 
   // 詳細モード用：年度ごとの入力コントローラー
@@ -33,6 +36,7 @@ class _HouseholdSimulatorPageState
   final List<TextEditingController> _yearExpenseControllers = [];
 
   bool _isExporting = false;
+  bool _isApplyingReceiptAverage = false;
 
   @override
   void initState() {
@@ -82,6 +86,7 @@ class _HouseholdSimulatorPageState
         monthlyExpense: expense,
         investmentReturnPercent: _returnRate,
         years: _years.round(),
+        inflationRatePercent: _inflationRate,
       ),
     );
   }
@@ -102,6 +107,7 @@ class _HouseholdSimulatorPageState
     return HouseholdSimulator.simulateDetailed(
       plans: _detailedPlans,
       investmentReturnPercent: _returnRate,
+      inflationRatePercent: _inflationRate,
     );
   }
 
@@ -125,11 +131,13 @@ class _HouseholdSimulatorPageState
             monthlyIncome: income,
             monthlyExpense: expense,
             years: _years.round(),
+            inflationRatePercent: _inflationRate,
           ),
         );
         results = HouseholdSimulator.simulateDetailed(
           plans: plans,
           investmentReturnPercent: _returnRate,
+          inflationRatePercent: _inflationRate,
         );
       } else {
         results = _detailedResults;
@@ -159,6 +167,44 @@ class _HouseholdSimulatorPageState
       // Runs on every path above — normal completion, dismissal, and
       // errors/early returns via catch — so _isExporting never gets stuck.
       if (mounted) setState(() => _isExporting = false);
+    }
+  }
+
+  /// レシート機能の直近の記録から月換算の平均支出額を取得し、
+  /// 簡易モードの月間支出フィールドへ反映する。
+  Future<void> _applyReceiptAverageExpense() async {
+    final user = ref.read(userProvider);
+    if (user == null) return;
+
+    setState(() => _isApplyingReceiptAverage = true);
+    try {
+      final average = await ref.read(
+        averageMonthlyExpenseProvider(user.uid).future,
+      );
+
+      if (!mounted) return;
+
+      if (average == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('まだレシート記録がありません。レシート機能で支出を記録してみましょう'),
+          ),
+        );
+        return;
+      }
+
+      setState(() {
+        _expenseController.text = '$average';
+      });
+    } catch (e) {
+      debugPrint('HouseholdSimulatorPage: failed to apply receipt average: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('レシート記録の取得に失敗しました')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isApplyingReceiptAverage = false);
     }
   }
 
@@ -257,6 +303,21 @@ class _HouseholdSimulatorPageState
         ),
         onChanged: (_) => setState(() {}),
       ),
+      const SizedBox(height: 8),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: OutlinedButton.icon(
+          onPressed: _isApplyingReceiptAverage ? null : _applyReceiptAverageExpense,
+          icon: _isApplyingReceiptAverage
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.receipt_long, size: 18),
+          label: const Text('直近のレシート記録から自動入力'),
+        ),
+      ),
       const SizedBox(height: 20),
       ..._buildSharedControls(),
       const SizedBox(height: 16),
@@ -271,6 +332,7 @@ class _HouseholdSimulatorPageState
           principal: last.principal,
           balance: last.balance,
           profit: last.profit,
+          realBalance: last.realBalance,
         ),
       ],
     ];
@@ -352,6 +414,7 @@ class _HouseholdSimulatorPageState
           principal: last.principal,
           balance: last.balance,
           profit: last.profit,
+          realBalance: last.realBalance,
         ),
       if (results.length > 1) ...[
         const SizedBox(height: 16),
@@ -374,6 +437,21 @@ class _HouseholdSimulatorPageState
       ),
       const Text(
         '0%は「貯金のみ」を意味します。投資に回す場合の利回りを想定して調整できます。',
+        style: TextStyle(fontSize: 12, color: Colors.grey),
+      ),
+      const SizedBox(height: 16),
+      Text('想定インフレ率: ${_inflationRate.toStringAsFixed(1)}%',
+          style: Theme.of(context).textTheme.titleMedium),
+      Slider(
+        value: _inflationRate,
+        min: 0,
+        max: 5,
+        divisions: 10,
+        label: '${_inflationRate.toStringAsFixed(1)}%',
+        onChanged: (v) => setState(() => _inflationRate = v),
+      ),
+      const Text(
+        '物価上昇を考慮した「実質的な価値」を試算に反映します（日銀の物価目標は2%）。',
         style: TextStyle(fontSize: 12, color: Colors.grey),
       ),
       const SizedBox(height: 16),
@@ -469,6 +547,7 @@ class _HouseholdSimulatorPageState
     required int principal,
     required double balance,
     required double profit,
+    required double realBalance,
   }) {
     return Container(
       width: double.infinity,
@@ -502,6 +581,11 @@ class _HouseholdSimulatorPageState
               _statColumn('積立元本', '¥$principal'),
               _statColumn('運用益', '¥${profit.round()}'),
             ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '実質価値（現在のお金で換算）: ¥${realBalance.round()}',
+            style: const TextStyle(color: Colors.white70, fontSize: 12),
           ),
         ],
       ),

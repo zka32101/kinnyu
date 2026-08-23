@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'app_colors.dart';
+
 class AppTheme {
   static const Duration pageTransitionDuration = Duration(milliseconds: 300);
   static const Duration cardHoverDuration = Duration(milliseconds: 200);
@@ -25,14 +27,14 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           elevation: 2,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppSpacing.radiusMedium,
           ),
         ),
       ),
       cardTheme: CardThemeData(
         elevation: 1,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppSpacing.radiusMedium,
         ),
       ),
     );
@@ -58,14 +60,14 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           elevation: 2,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppSpacing.radiusMedium,
           ),
         ),
       ),
       cardTheme: CardThemeData(
         elevation: 1,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppSpacing.radiusMedium,
         ),
       ),
     );

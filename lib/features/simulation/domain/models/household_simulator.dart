@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'compound_simulator.dart';
 
 class HouseholdSimulationInput {
@@ -5,12 +7,14 @@ class HouseholdSimulationInput {
   final int monthlyExpense;
   final double investmentReturnPercent; // 0 = 貯金のみ（運用しない）
   final int years;
+  final double inflationRatePercent; // 日銀の物価目標(2%)をデフォルトとする
 
   const HouseholdSimulationInput({
     required this.monthlyIncome,
     required this.monthlyExpense,
     this.investmentReturnPercent = 0,
     required this.years,
+    this.inflationRatePercent = 2.0,
   });
 }
 
@@ -61,7 +65,9 @@ class DetailedYearResult {
   final bool isDeficit;
   final int principal; // 累計元本
   final double balance; // 評価額
+  final double realBalance; // 物価上昇分を割り引いた、現在の購買力での評価額
   double get profit => balance - principal;
+  double get realProfit => realBalance - principal;
 
   DetailedYearResult({
     required this.year,
@@ -71,6 +77,7 @@ class DetailedYearResult {
     required this.isDeficit,
     required this.principal,
     required this.balance,
+    required this.realBalance,
   });
 }
 
@@ -88,6 +95,7 @@ class HouseholdSimulator {
       monthlyContribution: isDeficit ? 0 : monthlySavings,
       annualRatePercent: input.investmentReturnPercent,
       years: input.years,
+      inflationRatePercent: input.inflationRatePercent,
     );
 
     return HouseholdSimulationResult(
@@ -103,6 +111,7 @@ class HouseholdSimulator {
   static List<DetailedYearResult> simulateDetailed({
     required List<YearlyPlan> plans,
     double investmentReturnPercent = 0,
+    double inflationRatePercent = 2.0,
   }) {
     assert(plans.isNotEmpty, 'plans must not be empty');
     final monthlyRate = investmentReturnPercent / 100 / 12;
@@ -121,6 +130,9 @@ class HouseholdSimulator {
         balance *= (1 + monthlyRate);
       }
 
+      final inflationFactor = pow(1 + inflationRatePercent / 100, plan.year);
+      final realBalance = balance / inflationFactor;
+
       results.add(DetailedYearResult(
         year: plan.year,
         monthlyIncome: plan.monthlyIncome,
@@ -129,6 +141,7 @@ class HouseholdSimulator {
         isDeficit: plan.isDeficit,
         principal: principal,
         balance: balance,
+        realBalance: realBalance,
       ));
     }
     return results;

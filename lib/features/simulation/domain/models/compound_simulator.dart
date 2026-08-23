@@ -5,12 +5,15 @@ class CompoundYearResult {
   final int year;
   final int principal; // 累計元本（初期投資額＋積立額の合計）
   final double balance; // その年末時点の評価額
+  final double realBalance; // 物価上昇分を割り引いた、現在の購買力での評価額
   double get profit => balance - principal;
+  double get realProfit => realBalance - principal;
 
   CompoundYearResult({
     required this.year,
     required this.principal,
     required this.balance,
+    required this.realBalance,
   });
 }
 
@@ -20,13 +23,16 @@ class RandomYearResult {
   final int year;
   final int principal;
   final double balance;
+  final double realBalance; // 物価上昇分を割り引いた、現在の購買力での評価額
   final double annualReturnPercent; // その年に実際に適用された利回り
   double get profit => balance - principal;
+  double get realProfit => realBalance - principal;
 
   RandomYearResult({
     required this.year,
     required this.principal,
     required this.balance,
+    required this.realBalance,
     required this.annualReturnPercent,
   });
 }
@@ -39,6 +45,7 @@ class CompoundSimulator {
     required int monthlyContribution,
     required double annualRatePercent,
     required int years,
+    double inflationRatePercent = 0.0,
   }) {
     assert(years > 0, 'years must be positive');
     final monthlyRate = annualRatePercent / 100 / 12;
@@ -53,10 +60,13 @@ class CompoundSimulator {
         principal += monthlyContribution;
         balance *= (1 + monthlyRate);
       }
+      final inflationFactor = pow(1 + inflationRatePercent / 100, year);
+      final realBalance = balance / inflationFactor;
       results.add(CompoundYearResult(
         year: year,
         principal: principal,
         balance: balance,
+        realBalance: realBalance,
       ));
     }
     return results;
@@ -73,6 +83,7 @@ class CompoundSimulator {
     required double volatilityPercent,
     required int years,
     int? seed,
+    double inflationRatePercent = 0.0,
   }) {
     assert(years > 0, 'years must be positive');
     final random = Random(seed);
@@ -96,10 +107,14 @@ class CompoundSimulator {
       }
       if (balance < 0) balance = 0; // 理論上ほぼ発生しないが下限ガード
 
+      final inflationFactor = pow(1 + inflationRatePercent / 100, year);
+      final realBalance = balance / inflationFactor;
+
       results.add(RandomYearResult(
         year: year,
         principal: principal,
         balance: balance,
+        realBalance: realBalance,
         annualReturnPercent: annualReturn,
       ));
     }

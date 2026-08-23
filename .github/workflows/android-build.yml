@@ -71,9 +71,48 @@ jobs:
         with:
           flutter-version: '3.x'
           channel: stable
+          cache: true
 
       - name: Get dependencies
         run: flutter pub get
+
+      # このCI環境ではジョブが開始から約15分で強制的に打ち切られることが繰り返し
+      # 発生しており（analyze-and-test完了後のPost-stepすら実行されないため、猶予
+      # 付きのcancel APIではなくランナー自体が強制終了されていると見られる）、
+      # actions/setup-java の `cache: gradle` オプション（ジョブ末尾のpost-stepで
+      # のみ保存される）だとキャッシュが一切保存されず毎回コールドスタートになる。
+      # そのため、まず「gradlew(ラッパー生成含む)・依存関係のダウンロードを進める
+      # だけの、8分でタイムアウトする事前ビルド」を実行し、本ビルドに入る前に一度
+      # キャッシュを保存する。これにより仮に本ビルドが強制終了されても、次回以降の
+      # CI実行はキャッシュ済みの状態から始められる。
+      # ※ android/gradlew は .gitignore 対象でチェックアウト時点では存在せず、
+      # `flutter build apk` が初回実行時に生成するため、gradlewを直接呼ぶのではなく
+      # 実際のビルドコマンドをtimeoutでラップして使う（コマンド自体は本ビルドと
+      # 同一なので、gradlew生成タイミングに依存した失敗が起きない）。
+      - name: Restore Gradle cache
+        id: gradle-cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('pubspec.lock', 'android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Warm up build (cache miss only, capped at 8 min, best-effort)
+        if: steps.gradle-cache-restore.outputs.cache-hit != 'true'
+        run: timeout 480 flutter build apk --release || true
+
+      - name: Save Gradle cache (checkpoint before the uncapped build)
+        if: always() && steps.gradle-cache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        continue-on-error: true
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('pubspec.lock', 'android/gradle/wrapper/gradle-wrapper.properties') }}
 
       # 署名鍵が未設定のため、現時点ではdebug署名のリリースAPK（動作確認用）をビルドする。
       # ストア配布には android/app/build.gradle.kts の signingConfigs 設定と

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../user_profile/presentation/providers/user_provider.dart';
 import '../../../user_profile/presentation/providers/streak_provider.dart';
 import '../../../investment/presentation/providers/investment_provider.dart';
@@ -7,6 +8,9 @@ import '../../../investment/domain/services/market_simulator.dart';
 import '../../../mission/presentation/providers/mission_provider.dart';
 import '../../../procedures/domain/models/procedure_info.dart';
 import '../../../procedures/presentation/providers/procedures_provider.dart';
+import '../../../../core/subscription/subscription_provider.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../premium/presentation/pages/paywall_page.dart';
 
 /// 家計改善ダッシュボード。XP・ストリーク・投資・ミッション・制度確認状況を
 /// 1画面にまとめ、これまでの取り組みの成果を可視化する。
@@ -30,11 +34,12 @@ class SavingsDashboardPage extends ConsumerWidget {
               ),
             )
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: AppSpacing.paddingMd,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildLevelCard(user.totalXP, user.level),
+                  _TrialPromoBanner(streak: user.streak, level: user.level),
                   const SizedBox(height: 20),
                   const Text(
                     'これまでの取り組み',
@@ -53,14 +58,14 @@ class SavingsDashboardPage extends ConsumerWidget {
     final progress = xpIntoLevel / 100;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: AppSpacing.paddingLg,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [Colors.indigo.shade400, Colors.indigo.shade700],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppSpacing.radiusMedium,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -201,7 +206,7 @@ class _StatTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withAlpha(15),
         border: Border.all(color: color.withAlpha(60)),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppSpacing.radiusMedium,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -240,7 +245,7 @@ class _StatTileLoading extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppSpacing.radiusMedium,
       ),
       child: const Center(
         child: SizedBox(
@@ -264,7 +269,7 @@ class _StatTileError extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppSpacing.radiusMedium,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -273,6 +278,133 @@ class _StatTileError extends StatelessWidget {
           const Spacer(),
           const Text('取得できませんでした', style: TextStyle(fontSize: 12, color: Colors.grey)),
         ],
+      ),
+    );
+  }
+}
+
+/// 無料ユーザーのうちエンゲージメントが高い（ストリーク・レベルが一定以上の）
+/// 利用者にだけ表示するプレミアム誘導バナー。
+///
+/// 閉じるボタンが押されたら SharedPreferences に閉じた日時を保存し、
+/// 7日間は再表示しない。
+class _TrialPromoBanner extends ConsumerStatefulWidget {
+  final int streak;
+  final int level;
+
+  const _TrialPromoBanner({required this.streak, required this.level});
+
+  @override
+  ConsumerState<_TrialPromoBanner> createState() => _TrialPromoBannerState();
+}
+
+class _TrialPromoBannerState extends ConsumerState<_TrialPromoBanner> {
+  static const _dismissedAtKey = 'dashboard_trial_banner_dismissed_at';
+  static const _dismissDuration = Duration(days: 7);
+
+  bool _loadingPrefs = true;
+  bool _recentlyDismissed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDismissedState();
+  }
+
+  Future<void> _loadDismissedState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final dismissedAtStr = prefs.getString(_dismissedAtKey);
+    var recentlyDismissed = false;
+    if (dismissedAtStr != null) {
+      final dismissedAt = DateTime.tryParse(dismissedAtStr);
+      if (dismissedAt != null &&
+          DateTime.now().difference(dismissedAt) < _dismissDuration) {
+        recentlyDismissed = true;
+      }
+    }
+    if (mounted) {
+      setState(() {
+        _recentlyDismissed = recentlyDismissed;
+        _loadingPrefs = false;
+      });
+    }
+  }
+
+  Future<void> _dismiss() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_dismissedAtKey, DateTime.now().toIso8601String());
+    if (mounted) {
+      setState(() => _recentlyDismissed = true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isPremium = ref.watch(isPremiumProvider);
+    final isEngaged = widget.streak >= 3 && widget.level >= 2;
+
+    if (isPremium || !isEngaged || _loadingPrefs || _recentlyDismissed) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.amber.shade50,
+          border: Border.all(color: Colors.amber.shade200),
+          borderRadius: AppSpacing.radiusMedium,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.workspace_premium,
+                color: Colors.amber.shade700, size: 22),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'プレミアムでもっと学べます',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.amber.shade900,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const PaywallPage(),
+                          ),
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.amber.shade900,
+                        side: BorderSide(color: Colors.amber.shade700),
+                      ),
+                      child: const Text('トライアルを試す'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.close, size: 18),
+              color: Colors.amber.shade700,
+              onPressed: _dismiss,
+              constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+              padding: EdgeInsets.zero,
+            ),
+          ],
+        ),
       ),
     );
   }

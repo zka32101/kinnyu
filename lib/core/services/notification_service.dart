@@ -19,8 +19,13 @@ class NotificationService {
   static const String streakChannelName = 'ストリークリマインダー';
   static const String procedureChannelId = 'procedure_reminder';
   static const String procedureChannelName = '制度・手続きリマインダー';
+  static const String recommendationChannelId = 'weekly_recommendation';
+  static const String recommendationChannelName = 'おすすめ通知';
   // 制度リマインダーの通知IDは他機能(0, timestampベース)と衝突しない範囲を予約する
   static const int _procedureReminderIdBase = 20000;
+  // 週次おすすめ通知の固定通知ID（streakReminderの0番、mission/diagnosisの
+  // timestampベースID、制度リマインダーの20000番台と衝突しない値を使う）
+  static const int _weeklyRecommendationId = 1;
 
   late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
@@ -74,6 +79,15 @@ class NotificationService {
           enableVibration: true,
         );
         await androidImpl.createNotificationChannel(procedureChannel);
+
+        const AndroidNotificationChannel recommendationChannel = AndroidNotificationChannel(
+          recommendationChannelId,
+          recommendationChannelName,
+          description: '未達成のミッションや未確認の制度・補助金をお知らせするおすすめ通知',
+          importance: Importance.defaultImportance,
+          enableVibration: true,
+        );
+        await androidImpl.createNotificationChannel(recommendationChannel);
       }
 
       // ここまで例外なく到達した場合のみ初期化完了とみなす
@@ -84,7 +98,7 @@ class NotificationService {
     }
   }
 
-  Future<void> scheduleStreakReminder() async {
+  Future<void> scheduleStreakReminder({int hour = 20, int currentStreak = 0}) async {
     if (!_initialized) {
       debugPrint('NotificationService: not initialized, skipping scheduleStreakReminder');
       return;
@@ -96,7 +110,7 @@ class NotificationService {
         now.year,
         now.month,
         now.day,
-        20,
+        hour,
         0,
       );
 
@@ -121,10 +135,14 @@ class NotificationService {
         android: androidPlatformChannelSpecifics,
       );
 
+      final body = currentStreak > 0
+          ? '🔥${currentStreak}日連続中！今日も続けて記録を伸ばそう'
+          : '今日の学習を完了してストリークを続けよう🔥';
+
       await flutterLocalNotificationsPlugin.zonedSchedule(
         0,
         'ストリーク継続のお時間です！',
-        '今日の学習を完了してストリークを続けよう🔥',
+        body,
         scheduledDate,
         platformChannelSpecifics,
         androidScheduleMode: AndroidScheduleMode.exact,
@@ -133,6 +151,81 @@ class NotificationService {
     } catch (e) {
       debugPrint('通知スケジュール失敗: $e');
     }
+  }
+
+  /// 週次おすすめ通知をスケジュールする。
+  ///
+  /// 未達成のミッションや未確認の制度・補助金がある場合のみ、次の月曜10:00に
+  /// 固定通知ID(_weeklyRecommendationId)で通知をスケジュールする。両方0件の
+  /// 場合は既存の予約をキャンセルするのみで、新規スケジュールは行わない。
+  Future<void> scheduleWeeklyRecommendation({
+    required int pendingMissionCount,
+    required int unviewedProcedureCount,
+  }) async {
+    if (!_initialized) {
+      debugPrint('NotificationService: not initialized, skipping scheduleWeeklyRecommendation');
+      return;
+    }
+    try {
+      if (pendingMissionCount == 0 && unviewedProcedureCount == 0) {
+        await flutterLocalNotificationsPlugin.cancel(_weeklyRecommendationId);
+        return;
+      }
+
+      final messages = <String>[];
+      if (pendingMissionCount > 0) {
+        messages.add('今週の未達成ミッションが${pendingMissionCount}件あります');
+      }
+      if (unviewedProcedureCount > 0) {
+        messages.add('まだチェックしていない制度・補助金が${unviewedProcedureCount}件あります');
+      }
+      final body = messages.join('。');
+
+      final scheduledDate = _nextMonday9AM();
+
+      const AndroidNotificationDetails androidPlatformChannelSpecifics =
+          AndroidNotificationDetails(
+        recommendationChannelId,
+        recommendationChannelName,
+        channelDescription: '未達成のミッションや未確認の制度・補助金をお知らせするおすすめ通知',
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+        enableVibration: true,
+        playSound: true,
+      );
+      const NotificationDetails platformChannelSpecifics =
+          NotificationDetails(android: androidPlatformChannelSpecifics);
+
+      await flutterLocalNotificationsPlugin.zonedSchedule(
+        _weeklyRecommendationId,
+        '今週のおすすめ',
+        body,
+        scheduledDate,
+        platformChannelSpecifics,
+        androidScheduleMode: AndroidScheduleMode.exact,
+      );
+    } catch (e) {
+      debugPrint('週次おすすめ通知のスケジュール失敗: $e');
+    }
+  }
+
+  /// 次の月曜日の指定時刻(デフォルト10:00)を返す。
+  /// 今日が月曜日かつ指定時刻より前であれば今日を、それ以外は翌週以降の
+  /// 直近の月曜日を返す。
+  tz.TZDateTime _nextMonday9AM({int hour = 10}) {
+    final now = tz.TZDateTime.now(tz.local);
+    var candidate = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour);
+
+    // DateTime.weekday: 月曜=1 ... 日曜=7
+    var daysUntilMonday = (DateTime.monday - candidate.weekday) % 7;
+    if (daysUntilMonday < 0) {
+      daysUntilMonday += 7;
+    }
+    if (daysUntilMonday == 0 && candidate.isBefore(now)) {
+      daysUntilMonday = 7;
+    }
+
+    return candidate.add(Duration(days: daysUntilMonday));
   }
 
   Future<void> showMissionCompletedNotification(String missionTitle) async {

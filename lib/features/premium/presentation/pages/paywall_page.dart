@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import '../../../../core/subscription/subscription_provider.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class PaywallPage extends ConsumerStatefulWidget {
   const PaywallPage({Key? key}) : super(key: key);
@@ -102,17 +103,17 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('金融オンライン大学 プレミアム')),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: AppSpacing.paddingLg,
         children: [
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: AppSpacing.paddingLg,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [Colors.amber.shade300, Colors.amber.shade600],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: AppSpacing.radiusLarge,
             ),
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,10 +154,10 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
             const Center(child: CircularProgressIndicator())
           else if (packages.isEmpty)
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: AppSpacing.paddingMd,
               decoration: BoxDecoration(
                 color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: AppSpacing.radiusMedium,
               ),
               child: const Text(
                 '現在プランを準備中です。しばらくしてから再度お試しください。',
@@ -164,24 +165,33 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
               ),
             )
           else
-            ...packages.map((p) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: ElevatedButton(
-                    onPressed: _purchasing ? null : () => _purchase(p),
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(52),
+            ...packages.map((p) {
+              final intro = p.storeProduct.introductoryPrice;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (intro != null) _buildTrialBadge(intro),
+                    ElevatedButton(
+                      onPressed: _purchasing ? null : () => _purchase(p),
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(52),
+                      ),
+                      child: _purchasing
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(
+                              '${p.storeProduct.title} — ${p.storeProduct.priceString}',
+                            ),
                     ),
-                    child: _purchasing
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(
-                            '${p.storeProduct.title} — ${p.storeProduct.priceString}',
-                          ),
-                  ),
-                )),
+                  ],
+                ),
+              );
+            }),
           const SizedBox(height: 8),
           TextButton(
             onPressed: _restoring ? null : _restore,
@@ -194,6 +204,46 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
                 : const Text('購入履歴を復元'),
           ),
         ],
+      ),
+    );
+  }
+
+  /// イントロダクトリー価格（トライアル/初回割引）の期間を
+  /// 人が読める形式（例: 7日間、1ヶ月）に変換する。
+  String _formatIntroPeriod(IntroductoryPrice intro) {
+    final n = intro.periodNumberOfUnits;
+    switch (intro.periodUnit) {
+      case PeriodUnit.day:
+        return '$n日間';
+      case PeriodUnit.week:
+        return '$n週間';
+      case PeriodUnit.month:
+        return '$nヶ月';
+      case PeriodUnit.year:
+        return '$n年間';
+      default:
+        return '';
+    }
+  }
+
+  /// パッケージのボタン直前に表示するトライアル訴求バッジ。
+  Widget _buildTrialBadge(IntroductoryPrice intro) {
+    final period = _formatIntroPeriod(intro);
+    final text = intro.price == 0 ? '$periodお試し無料' : '初回お得な価格';
+    return Container(
+      margin: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.amber.shade100,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: Colors.amber.shade900,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
