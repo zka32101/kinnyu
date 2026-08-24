@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/timezone.dart' as tz;
-import 'package:timezone/data/latest.dart' as tzdata;
+// import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+// import 'package:timezone/timezone.dart' as tz;
+// import 'package:timezone/data/latest.dart' as tzdata;
 
 /// 制度・手続きの期限リマインダーをスケジュールするための入力データ。
 /// core/services は features 層に依存しないよう、ProcedureInfo モデルそのものではなく

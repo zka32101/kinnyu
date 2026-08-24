@@ -1,4 +1,4 @@
-package com.example.okane_kore
+package com.petitworksapps.okanekore
 
 import io.flutter.embedding.android.FlutterActivity
 
