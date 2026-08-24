@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'features/home/presentation/pages/home_page.dart';
 import 'features/onboarding/presentation/pages/onboarding_page.dart';
@@ -13,6 +14,7 @@ import 'features/user_profile/presentation/providers/user_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'core/services/notification_service.dart';
 import 'core/firebase/firebase_init.dart';
+import 'core/firebase/auth_service.dart';
 import 'core/subscription/subscription_service.dart';
 import 'core/subscription/subscription_provider.dart';
 import 'features/procedures/presentation/providers/procedures_provider.dart';
@@ -41,6 +43,18 @@ void main() {
       firebaseInitialized = true;
     } catch (e, stack) {
       debugPrint('[main] Firebase initialization failed: $e\n$stack');
+    }
+
+    // 匿名サインイン（Firestore セキュリティルールが認証済みユーザーのみ
+    // 読み書きを許可しているため、クイズ問題等を取得する前に必ず必要）
+    if (firebaseInitialized) {
+      try {
+        if (FirebaseAuth.instance.currentUser == null) {
+          await AuthService().signInAnonymously();
+        }
+      } catch (e, stack) {
+        debugPrint('[main] Anonymous sign-in failed: $e\n$stack');
+      }
     }
 
     // Crashlyticsが使えるようになった時点で、以後のFlutter側の未捕捉例外を
