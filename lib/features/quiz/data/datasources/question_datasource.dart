@@ -17,10 +17,14 @@ class QuestionDataSource {
     int count = 5,
   }) async {
     try {
+      // Firestore の権限エラー時、内部の listen ストリームが再試行を続け
+      // Future が永遠に解決しないことがあるため、明示的にタイムアウトを
+      // 設けて必ずエラー状態に落とす（無限ローディングスピナー対策）。
       final query = await firestore
           .collection('questions')
           .where('category', isEqualTo: category.index)
-          .get();
+          .get()
+          .timeout(const Duration(seconds: 10));
 
       final all = query.docs
           .map((doc) => Question.fromJson({...doc.data(), 'id': doc.id}))
@@ -38,7 +42,8 @@ class QuestionDataSource {
       final query = await firestore
           .collection('questions')
           .where('category', isEqualTo: category.index)
-          .get();
+          .get()
+          .timeout(const Duration(seconds: 10));
 
       if (query.docs.isEmpty) return null;
       final docs = query.docs..shuffle(Random());
