@@ -235,7 +235,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
             ),
             const SizedBox(height: 8),
             const Text(
-              '入力された家計情報は暗号化され、あなたのデバイスに安全に保存されます。外部サーバーには個人を特定する情報は送信されません。',
+              '入力された家計情報は、匿名のアカウントID（氏名・メールアドレス等は取得しません）に紐づけて安全なクラウドサーバーに保存され、複数端末間の同期や「世帯」機能での共有に利用されます。氏名・住所・電話番号など、個人を直接特定できる情報の取得・送信は行いません。',
               style: TextStyle(fontSize: 12, height: 1.6),
             ),
             const SizedBox(height: 32),
