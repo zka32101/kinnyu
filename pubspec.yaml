@@ -48,20 +48,20 @@ dependencies:
   lottie: ^3.1.2
 
   # Image & File handling
-  image_picker: ^1.0.0
-  image_cropper: ^7.0.0
-  cached_network_image: ^3.3.0
+  image_picker: ^1.1.2
+  image_cropper: ^7.2.0
+  cached_network_image: ^3.4.1
 
   # Data export
-  excel: ^4.0.0
-  path_provider: ^2.1.0
-  share_plus: ^7.0.0
+  excel: ^5.0.0
+  path_provider: ^2.1.6
+  share_plus: ^9.2.0
 
   # Utilities (最小構成)
   intl: ^0.20.0
   shared_preferences: ^2.2.0
-  uuid: ^4.0.0
-  flutter_secure_storage: ^9.0.0
+  uuid: ^4.3.1
+  flutter_secure_storage: ^9.2.2
   home_widget: ^0.5.0
 
   # In-app purchases
