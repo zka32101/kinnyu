@@ -34,9 +34,9 @@ dependencies:
   cupertino_icons: ^1.0.8
 
   # Firebase (最小構成・互換バージョン)
-  firebase_core: 4.11.0
-  cloud_firestore: 6.4.0
-  firebase_auth: 6.5.4
+  firebase_core: ^4.0.0
+  cloud_firestore: ^6.0.0
+  firebase_auth: ^6.0.0
 
   # State management
   riverpod: ^3.3.2
