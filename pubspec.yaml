@@ -55,7 +55,7 @@ dependencies:
   # Data export
   excel: ^5.0.0
   path_provider: ^2.1.6
-  share_plus: ^9.2.0
+  share_plus: ^7.0.0
 
   # Utilities (最小構成)
   intl: ^0.20.0
