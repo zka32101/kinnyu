@@ -333,7 +333,7 @@ class _QuizSheetState extends ConsumerState<_QuizSheet> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: ElevatedButton(
-        onPressed: () {
+        onPressed: () async {
           if (index == quiz.correctIndex) {
             _score++;
           }
@@ -348,10 +348,13 @@ class _QuizSheetState extends ConsumerState<_QuizSheet> {
             });
 
             // ステップを完了にマーク
-            ref
-                .read(firstMonthGuideMutatorProvider.future)
-                .then((mutator) =>
-                    mutator.completeStep(FirstMonthGuideStepType.quiz));
+            try {
+              final mutator = await ref.read(firstMonthGuideMutatorProvider.future);
+              await mutator.completeStep(FirstMonthGuideStepType.quiz);
+            } catch (e) {
+              // エラーハンドリング
+              print('Error completing quiz step: $e');
+            }
           }
         },
         style: ElevatedButton.styleFrom(
