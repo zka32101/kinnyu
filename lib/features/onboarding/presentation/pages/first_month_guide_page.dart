@@ -289,8 +289,8 @@ class _QuizSheetState extends ConsumerState<_QuizSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'クイズ ${_currentQuizIndex + 1}/${_quizzes.length}',
@@ -299,13 +299,17 @@ class _QuizSheetState extends ConsumerState<_QuizSheet> {
                   color: Colors.grey[600],
                 ),
               ),
-              LinearProgressIndicator(
-                value: (_currentQuizIndex + 1) / _quizzes.length,
-                minHeight: 6,
-                backgroundColor: Colors.grey[300],
-                valueColor:
-                    AlwaysStoppedAnimation<Color>(Colors.blue[700]!),
-              ).widen(),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(3),
+                child: LinearProgressIndicator(
+                  value: (_currentQuizIndex + 1) / _quizzes.length,
+                  minHeight: 6,
+                  backgroundColor: Colors.grey[300],
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(Colors.blue[700]!),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 20),
@@ -430,10 +434,4 @@ class QuizQuestion {
     required this.correctIndex,
     required this.explanation,
   });
-}
-
-extension on LinearProgressIndicator {
-  Widget widen() {
-    return Expanded(child: this);
-  }
 }
