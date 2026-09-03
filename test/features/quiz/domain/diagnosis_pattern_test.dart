@@ -61,7 +61,7 @@ void main() {
       for (var a = 0; a < 3; a++) {
         for (var b = 0; b < 3; b++) {
           for (var c = 0; c < 3; c++) {
-            final d = PatternDiagnosisGenerator.getDiagnosis('${a}_${b}_${c}');
+            final d = PatternDiagnosisGenerator.getDiagnosis('$a_$b_$c');
             expect(d.imageAsset, isNotEmpty);
             expect(d.imageAsset, startsWith('assets/images/diagnosis/'));
           }
