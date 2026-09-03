@@ -21,6 +21,9 @@ class FirstMonthGuideStep {
   final String emoji;
   final String actionLabel;
   final bool isCompleted;
+  final String? tutorialVideoUrl; // チュートリアル動画URL
+  final String? tutorialTitle; // 動画のタイトル
+  final int? tutorialDurationSeconds; // 動画の長さ（秒）
 
   const FirstMonthGuideStep({
     required this.type,
@@ -30,6 +33,9 @@ class FirstMonthGuideStep {
     required this.emoji,
     required this.actionLabel,
     required this.isCompleted,
+    this.tutorialVideoUrl,
+    this.tutorialTitle,
+    this.tutorialDurationSeconds,
   });
 
   /// ステップを完了にマークする
@@ -42,6 +48,9 @@ class FirstMonthGuideStep {
       emoji: emoji,
       actionLabel: actionLabel,
       isCompleted: completed,
+      tutorialVideoUrl: tutorialVideoUrl,
+      tutorialTitle: tutorialTitle,
+      tutorialDurationSeconds: tutorialDurationSeconds,
     );
   }
 
@@ -58,6 +67,9 @@ class FirstMonthGuideStep {
         emoji: '🧠',
         actionLabel: 'クイズを開く',
         isCompleted: completedStatus?[FirstMonthGuideStepType.quiz] ?? false,
+        tutorialVideoUrl: 'https://videos.okane-kore.app/tutorials/financial-basics.mp4',
+        tutorialTitle: '家計管理の基本を学ぶ',
+        tutorialDurationSeconds: 180,
       ),
       FirstMonthGuideStep(
         type: FirstMonthGuideStepType.householdMembers,
@@ -68,6 +80,9 @@ class FirstMonthGuideStep {
         actionLabel: 'メンバーを追加',
         isCompleted:
             completedStatus?[FirstMonthGuideStepType.householdMembers] ?? false,
+        tutorialVideoUrl: 'https://videos.okane-kore.app/tutorials/household-setup.mp4',
+        tutorialTitle: '世帯メンバー登録ガイド',
+        tutorialDurationSeconds: 120,
       ),
       FirstMonthGuideStep(
         type: FirstMonthGuideStepType.budgetSetup,
@@ -79,6 +94,9 @@ class FirstMonthGuideStep {
         actionLabel: '予算を設定',
         isCompleted: completedStatus?[FirstMonthGuideStepType.budgetSetup] ??
             false,
+        tutorialVideoUrl: 'https://videos.okane-kore.app/tutorials/budget-planning.mp4',
+        tutorialTitle: '予算設定のコツ',
+        tutorialDurationSeconds: 150,
       ),
       FirstMonthGuideStep(
         type: FirstMonthGuideStepType.receiptCapture,
@@ -89,6 +107,9 @@ class FirstMonthGuideStep {
         actionLabel: 'レシートをスキャン',
         isCompleted:
             completedStatus?[FirstMonthGuideStepType.receiptCapture] ?? false,
+        tutorialVideoUrl: 'https://videos.okane-kore.app/tutorials/receipt-scanning.mp4',
+        tutorialTitle: 'レシート撮影のコツ',
+        tutorialDurationSeconds: 140,
       ),
       FirstMonthGuideStep(
         type: FirstMonthGuideStepType.challengeStart,
@@ -99,6 +120,9 @@ class FirstMonthGuideStep {
         actionLabel: 'チャレンジ開始',
         isCompleted:
             completedStatus?[FirstMonthGuideStepType.challengeStart] ?? false,
+        tutorialVideoUrl: 'https://videos.okane-kore.app/tutorials/savings-challenge.mp4',
+        tutorialTitle: 'チャレンジ機能ガイド',
+        tutorialDurationSeconds: 160,
       ),
     ];
   }
