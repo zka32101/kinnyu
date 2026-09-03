@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/first_month_guide_provider.dart';
+import '../providers/tutorial_provider.dart';
 import '../widgets/first_month_guide_card.dart';
+import '../widgets/tutorial_module.dart';
 import '../../domain/models/first_month_guide.dart';
 
 /// 最初の1ヶ月ガイドページ
@@ -72,6 +74,11 @@ class FirstMonthGuidePage extends ConsumerWidget {
                 loading: () => const SizedBox.shrink(),
                 error: (error, _) => const SizedBox.shrink(),
               ),
+
+              const SizedBox(height: 24),
+
+              // チュートリアル進捗セクション
+              _buildTutorialProgressSection(context, ref),
 
               const SizedBox(height: 32),
 
@@ -166,6 +173,63 @@ class FirstMonthGuidePage extends ConsumerWidget {
     );
   }
 
+  /// チュートリアル進捗セクションを構築
+  Widget _buildTutorialProgressSection(BuildContext context, WidgetRef ref) {
+    final tutorialCompletionRate = ref.watch(tutorialCompletionRateProvider);
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.amber[50],
+        border: Border.all(color: Colors.amber[200]!),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                '🎥 チュートリアル進捗',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.amber[900],
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${(tutorialCompletionRate * 100).toStringAsFixed(0)}%',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.amber[700],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: tutorialCompletionRate,
+              minHeight: 6,
+              backgroundColor: Colors.amber[100],
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.amber[700]!),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'すべてのチュートリアル動画を視聴すると、各ステップをより効果的に完了できます。',
+            style: theme.textTheme.caption?.copyWith(
+              color: Colors.amber[900],
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// ステップのアクションを処理
   void _handleStepAction(
     BuildContext context,
@@ -236,6 +300,7 @@ class _QuizSheetState extends ConsumerState<_QuizSheet> {
   int _currentQuizIndex = 0;
   int _score = 0;
   bool _showResult = false;
+  bool _tutorialWatched = false;
 
   final List<QuizQuestion> _quizzes = [
     QuizQuestion(
@@ -279,6 +344,11 @@ class _QuizSheetState extends ConsumerState<_QuizSheet> {
   Widget build(BuildContext context) {
     if (_showResult) {
       return _buildResultScreen();
+    }
+
+    // チュートリアルが視聴されていない場合は表示
+    if (!_tutorialWatched && widget.step.tutorialVideoUrl != null) {
+      return _buildTutorialSheet();
     }
 
     final currentQuiz = _quizzes[_currentQuizIndex];
@@ -325,6 +395,49 @@ class _QuizSheetState extends ConsumerState<_QuizSheet> {
             (index) => _buildQuizOption(currentQuiz, index),
           ),
         ],
+      ),
+    );
+  }
+
+  /// チュートリアルシートを構築
+  Widget _buildTutorialSheet() {
+    return SingleChildScrollView(
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (widget.step.tutorialVideoUrl != null)
+              TutorialModule(
+                tutorialTitle: widget.step.tutorialTitle ?? 'チュートリアル',
+                videoUrl: widget.step.tutorialVideoUrl!,
+                durationSeconds: widget.step.tutorialDurationSeconds ?? 180,
+                stepDescription: widget.step.description,
+                stepEmoji: widget.step.emoji,
+                onVideoComplete: () {
+                  setState(() => _tutorialWatched = true);
+                  // プロバイダーでチュートリアル視聴状態を記録
+                  ref.read(tutorialStateProvider.notifier)
+                      .markTutorialAsWatched(widget.step.type);
+                },
+              ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  setState(() => _tutorialWatched = true);
+                  ref.read(tutorialStateProvider.notifier)
+                      .markTutorialAsWatched(widget.step.type);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                ),
+                child: const Text('スキップしてクイズに進む'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
