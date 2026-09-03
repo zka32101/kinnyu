@@ -175,7 +175,7 @@ class SocialImpactDashboardCard extends ConsumerWidget {
           const SizedBox(height: 4),
           Text(
             subtitle,
-            style: theme.textTheme.caption?.copyWith(
+            style: theme.textTheme.labelSmall?.copyWith(
               color: Colors.grey[600],
             ),
             maxLines: 2,

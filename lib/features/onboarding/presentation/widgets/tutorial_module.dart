@@ -184,7 +184,7 @@ class _TutorialModuleState extends State<TutorialModule> {
                     const SizedBox(height: 8),
                     Text(
                       '時間: ${(widget.durationSeconds ~/ 60)}分',
-                      style: theme.textTheme.caption?.copyWith(
+                      style: theme.textTheme.labelSmall?.copyWith(
                         color: Colors.grey[600],
                       ),
                     ),
@@ -228,7 +228,7 @@ class _TutorialModuleState extends State<TutorialModule> {
                   Expanded(
                     child: Text(
                       'チュートリアルを視聴しました。次のステップに進む準備ができています！',
-                      style: theme.textTheme.caption?.copyWith(
+                      style: theme.textTheme.labelSmall?.copyWith(
                         color: Colors.green[700],
                         fontWeight: FontWeight.w500,
                       ),

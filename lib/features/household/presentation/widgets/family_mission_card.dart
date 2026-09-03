@@ -288,7 +288,7 @@ class _StatItem extends StatelessWidget {
         ),
         Text(
           label,
-          style: Theme.of(context).textTheme.caption,
+          style: Theme.of(context).textTheme.labelSmall,
         ),
       ],
     );

@@ -80,7 +80,7 @@ class GoalsProgressCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     '¥${goal.currentAmount} / ¥${goal.targetAmount}',
-                    style: theme.textTheme.caption?.copyWith(
+                    style: theme.textTheme.labelSmall?.copyWith(
                       color: Colors.grey[600],
                     ),
                   ),

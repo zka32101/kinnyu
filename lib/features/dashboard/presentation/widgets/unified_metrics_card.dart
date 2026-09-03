@@ -117,7 +117,7 @@ class UnifiedMetricsCard extends ConsumerWidget {
               Expanded(
                 child: Text(
                   label,
-                  style: theme.textTheme.caption?.copyWith(
+                  style: theme.textTheme.labelSmall?.copyWith(
                     fontWeight: FontWeight.w500,
                     color: Colors.grey[700],
                   ),
@@ -137,7 +137,7 @@ class UnifiedMetricsCard extends ConsumerWidget {
               ),
               Text(
                 change,
-                style: theme.textTheme.caption?.copyWith(
+                style: theme.textTheme.labelSmall?.copyWith(
                   color: Colors.grey[600],
                   fontSize: 10,
                 ),

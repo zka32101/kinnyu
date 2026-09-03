@@ -61,7 +61,7 @@ class CharityCard extends StatelessWidget {
                         ),
                         child: Text(
                           charity.category,
-                          style: theme.textTheme.caption?.copyWith(
+                          style: theme.textTheme.labelSmall?.copyWith(
                             color: Colors.blue[700],
                             fontWeight: FontWeight.bold,
                           ),
@@ -100,7 +100,7 @@ class CharityCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       charity.impactDescription,
-                      style: theme.textTheme.caption?.copyWith(
+                      style: theme.textTheme.labelSmall?.copyWith(
                         color: Colors.orange[900],
                         fontWeight: FontWeight.w500,
                       ),

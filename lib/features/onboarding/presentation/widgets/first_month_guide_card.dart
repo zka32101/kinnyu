@@ -107,7 +107,7 @@ class FirstMonthGuideCard extends ConsumerWidget {
                                       const SizedBox(width: 3),
                                       Text(
                                         tutorialWatched ? '視聴済' : '動画',
-                                        style: theme.textTheme.caption?.copyWith(
+                                        style: theme.textTheme.labelSmall?.copyWith(
                                           fontSize: 10,
                                           fontWeight: FontWeight.bold,
                                           color: tutorialWatched

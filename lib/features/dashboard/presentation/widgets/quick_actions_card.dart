@@ -110,7 +110,7 @@ class QuickActionsCard extends StatelessWidget {
               Text(
                 label,
                 textAlign: TextAlign.center,
-                style: theme.textTheme.caption?.copyWith(
+                style: theme.textTheme.labelSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: color,
                 ),

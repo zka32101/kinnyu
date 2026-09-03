@@ -348,7 +348,7 @@ class _DonationDialogState extends ConsumerState<_DonationDialog> {
             ),
             child: Text(
               '💡 ${(_donationAmount * widget.charity.impactPerYen).toStringAsFixed(1)} ${widget.charity.impactDescription.split('\n')[1]}',
-              style: theme.textTheme.caption?.copyWith(
+              style: theme.textTheme.labelSmall?.copyWith(
                 color: Colors.orange[900],
               ),
             ),

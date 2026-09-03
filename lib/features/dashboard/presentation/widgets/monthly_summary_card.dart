@@ -115,7 +115,7 @@ class MonthlySummaryCard extends StatelessWidget {
                   : savingsRate >= 0.10
                       ? '良好な貯蓄ペースです'
                       : '目標貯蓄率: 20%を目指そう',
-              style: theme.textTheme.caption?.copyWith(
+              style: theme.textTheme.labelSmall?.copyWith(
                 color: Colors.grey[600],
               ),
             ),

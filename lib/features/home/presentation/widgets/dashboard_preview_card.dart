@@ -72,7 +72,7 @@ class DashboardPreviewCard extends ConsumerWidget {
             const SizedBox(height: 12),
             Text(
               '家計全体の状況をまとめて確認しよう',
-              style: theme.textTheme.caption?.copyWith(
+              style: theme.textTheme.labelSmall?.copyWith(
                 color: Colors.teal[700],
               ),
             ),
@@ -105,7 +105,7 @@ class DashboardPreviewCard extends ConsumerWidget {
         const SizedBox(height: 2),
         Text(
           label,
-          style: theme.textTheme.caption?.copyWith(
+          style: theme.textTheme.labelSmall?.copyWith(
             fontSize: 10,
             color: Colors.teal[700],
           ),

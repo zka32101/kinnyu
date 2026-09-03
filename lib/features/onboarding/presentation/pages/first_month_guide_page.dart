@@ -220,7 +220,7 @@ class FirstMonthGuidePage extends ConsumerWidget {
           const SizedBox(height: 8),
           Text(
             'すべてのチュートリアル動画を視聴すると、各ステップをより効果的に完了できます。',
-            style: theme.textTheme.caption?.copyWith(
+            style: theme.textTheme.labelSmall?.copyWith(
               color: Colors.amber[900],
               height: 1.4,
             ),
