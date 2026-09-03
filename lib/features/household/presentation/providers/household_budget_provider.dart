@@ -2,10 +2,7 @@ import 'package:riverpod/riverpod.dart';
 import '../../data/household_service.dart';
 import '../../domain/models/household_budget.dart';
 import '../../domain/models/household_expense_summary.dart';
-
-final householdServiceProvider = Provider((ref) {
-  return HouseholdService();
-});
+import 'household_provider.dart';
 
 /// 世帯の予算設定を取得
 final householdBudgetProvider =

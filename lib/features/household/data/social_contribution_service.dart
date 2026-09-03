@@ -56,7 +56,7 @@ class SocialContributionService {
     DateTime? startDate,
     DateTime? endDate,
   }) async {
-    var query = _carbonFootprintCollection(groupId) as Query;
+    Query<Map<String, dynamic>> query = _carbonFootprintCollection(groupId);
 
     if (startDate != null) {
       query = query.where('date', isGreaterThanOrEqualTo: startDate);

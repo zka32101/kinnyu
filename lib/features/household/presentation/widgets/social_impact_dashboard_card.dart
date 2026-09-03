@@ -149,7 +149,7 @@ class SocialImpactDashboardCard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.7),
+        color: Colors.white.withValues(alpha: 0.7),
         border: Border.all(color: Colors.green[200]!),
         borderRadius: BorderRadius.circular(8),
       ),
@@ -175,7 +175,7 @@ class SocialImpactDashboardCard extends ConsumerWidget {
           const SizedBox(height: 4),
           Text(
             subtitle,
-            style: theme.textTheme.caption?.copyWith(
+            style: theme.textTheme.labelSmall?.copyWith(
               color: Colors.grey[600],
             ),
             maxLines: 2,

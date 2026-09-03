@@ -24,7 +24,7 @@ class FamilyMissionCard extends ConsumerWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: isCompleted
-            ? BorderSide(color: Colors.green.withOpacity(0.3), width: 2)
+            ? BorderSide(color: Colors.green.withValues(alpha: 0.3), width: 2)
             : BorderSide.none,
       ),
       child: InkWell(
@@ -74,7 +74,7 @@ class FamilyMissionCard extends ConsumerWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
+                        color: Colors.green.withValues(alpha: 0.1),
                         border: Border.all(color: Colors.green),
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -288,7 +288,7 @@ class _StatItem extends StatelessWidget {
         ),
         Text(
           label,
-          style: Theme.of(context).textTheme.caption,
+          style: Theme.of(context).textTheme.labelSmall,
         ),
       ],
     );

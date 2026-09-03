@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:okane_kore/features/quiz/domain/models/question.dart';
 import 'package:okane_kore/features/quiz/presentation/pages/quiz_page.dart';
-import 'package:okane_kore/features/quiz/presentation/providers/question_provider.dart';
 
 void main() {
   group('QuizPage Widget Tests', () {

@@ -88,7 +88,7 @@ class ESGScoreCard extends StatelessWidget {
                               ),
                               Text(
                                 '/ 100',
-                                style: theme.textTheme.caption?.copyWith(
+                                style: theme.textTheme.labelSmall?.copyWith(
                                   color: Colors.grey[600],
                                 ),
                               ),

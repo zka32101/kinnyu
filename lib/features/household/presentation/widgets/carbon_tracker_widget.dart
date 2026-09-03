@@ -65,7 +65,7 @@ class CarbonTrackerWidget extends ConsumerWidget {
                       const SizedBox(height: 4),
                       Text(
                         '= 樹木${(totalCarbon / 20000).toInt()}本分の吸収量',
-                        style: theme.textTheme.caption?.copyWith(
+                        style: theme.textTheme.labelSmall?.copyWith(
                           color: Colors.grey[600],
                         ),
                       ),

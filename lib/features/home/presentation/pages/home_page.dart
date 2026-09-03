@@ -29,6 +29,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/engagement_tracker.dart';
 import '../../../../core/services/home_widget_service.dart';
+import '../widgets/dashboard_preview_card.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -187,6 +188,15 @@ class HomePage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildStreakCard(streakDays),
+            const SizedBox(height: 24),
+            DashboardPreviewCard(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  PageRouteAnimations.slideTransition(const SavingsDashboardPage()),
+                );
+              },
+            ),
             const SizedBox(height: 24),
             uid != null
                 ? _buildTodayMissionCard(context, ref, uid)

@@ -11,6 +11,11 @@ import '../../../procedures/presentation/providers/procedures_provider.dart';
 import '../../../../core/subscription/subscription_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../premium/presentation/pages/paywall_page.dart';
+import '../widgets/unified_metrics_card.dart';
+import '../widgets/monthly_summary_card.dart';
+import '../widgets/quick_actions_card.dart';
+import '../widgets/category_breakdown_card.dart';
+import '../widgets/goals_progress_card.dart';
 
 /// 家計改善ダッシュボード。XP・ストリーク・投資・ミッション・制度確認状況を
 /// 1画面にまとめ、これまでの取り組みの成果を可視化する。
@@ -41,12 +46,118 @@ class SavingsDashboardPage extends ConsumerWidget {
                   _buildLevelCard(user.totalXP, user.level),
                   _TrialPromoBanner(streak: user.streak, level: user.level),
                   const SizedBox(height: 20),
+
+                  // 統合メトリクスセクション
+                  UnifiedMetricsCard(groupId: user.uid),
+                  const SizedBox(height: 20),
+
+                  // 月間家計セクション
+                  MonthlySummaryCard(
+                    income: 350000,
+                    expenses: 305000,
+                    savings: 45000,
+                    savingsRate: 0.1286,
+                  ),
+                  const SizedBox(height: 20),
+
+                  // クイックアクションセクション
+                  QuickActionsCard(
+                    onReceiptTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('レシート記録へ移動します...')),
+                      );
+                    },
+                    onBudgetTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('予算管理へ移動します...')),
+                      );
+                    },
+                    onGoalTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('目標設定へ移動します...')),
+                      );
+                    },
+                    onDonationTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('寄付へ移動します...')),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // カテゴリ別支出セクション
+                  CategoryBreakdownCard(
+                    totalExpense: 305000,
+                    expenses: {
+                      '食費': CategoryExpense(
+                        emoji: '🍽️',
+                        color: Colors.orange,
+                        amount: 75000,
+                      ),
+                      '交通費': CategoryExpense(
+                        emoji: '🚗',
+                        color: Colors.blue,
+                        amount: 35000,
+                      ),
+                      'エネルギー': CategoryExpense(
+                        emoji: '⚡',
+                        color: Colors.yellow.shade700,
+                        amount: 18000,
+                      ),
+                      '娯楽': CategoryExpense(
+                        emoji: '🎮',
+                        color: Colors.purple,
+                        amount: 42000,
+                      ),
+                      'サービス': CategoryExpense(
+                        emoji: '💳',
+                        color: Colors.red,
+                        amount: 58000,
+                      ),
+                      'その他': CategoryExpense(
+                        emoji: '📦',
+                        color: Colors.grey.shade600,
+                        amount: 77000,
+                      ),
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // 目標進捗セクション
+                  GoalsProgressCard(
+                    goals: [
+                      FinancialGoal(
+                        name: '緊急資金',
+                        targetAmount: 1000000,
+                        currentAmount: 650000,
+                        deadline: DateTime.now().add(const Duration(days: 180)),
+                        category: 'savings',
+                      ),
+                      FinancialGoal(
+                        name: '投資基金',
+                        targetAmount: 500000,
+                        currentAmount: 250000,
+                        deadline: DateTime.now().add(const Duration(days: 365)),
+                        category: 'investment',
+                      ),
+                      FinancialGoal(
+                        name: 'ボーナス貯蓄',
+                        targetAmount: 200000,
+                        currentAmount: 200000,
+                        deadline: DateTime.now().subtract(const Duration(days: 30)),
+                        category: 'bonus',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
                   const Text(
                     'これまでの取り組み',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
                   _buildStatGrid(context, ref, user.uid),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
