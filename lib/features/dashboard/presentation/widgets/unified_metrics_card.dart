@@ -102,8 +102,8 @@ class UnifiedMetricsCard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.7),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: Colors.white.withValues(alpha: 0.7),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(

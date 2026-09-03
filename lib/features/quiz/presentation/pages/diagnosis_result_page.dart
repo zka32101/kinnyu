@@ -183,8 +183,8 @@ class _DiagnosisResultPageState extends ConsumerState<DiagnosisResultPage> {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            Colors.amber.shade200.withOpacity(0.2),
-                            Colors.amber.shade400.withOpacity(0.2),
+                            Colors.amber.shade200.withValues(alpha: 0.2),
+                            Colors.amber.shade400.withValues(alpha: 0.2),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,

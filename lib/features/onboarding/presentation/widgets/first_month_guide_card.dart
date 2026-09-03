@@ -28,7 +28,7 @@ class FirstMonthGuideCard extends ConsumerWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: isCompleted
-            ? BorderSide(color: Colors.green.withOpacity(0.3), width: 2)
+            ? BorderSide(color: Colors.green.withValues(alpha: 0.3), width: 2)
             : BorderSide(color: Colors.grey[300]!, width: 1),
       ),
       color: isCompleted ? Colors.green[50] : Colors.white,
@@ -49,7 +49,7 @@ class FirstMonthGuideCard extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: isCompleted
                           ? Colors.green
-                          : Colors.blue.withOpacity(0.1),
+                          : Colors.blue.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Center(
