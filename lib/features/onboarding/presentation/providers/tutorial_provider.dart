@@ -1,17 +1,20 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod/riverpod.dart';
 import '../../domain/models/first_month_guide.dart';
 
 /// チュートリアル視聴状態を管理するプロバイダー
-final tutorialStateProvider = StateNotifierProvider<
+final tutorialStateProvider = NotifierProvider<
     TutorialStateNotifier,
-    Map<FirstMonthGuideStepType, bool>>((ref) {
+    Map<FirstMonthGuideStepType, bool>>(() {
   return TutorialStateNotifier();
 });
 
 /// チュートリアル視聴状態を管理するクラス
 class TutorialStateNotifier
-    extends StateNotifier<Map<FirstMonthGuideStepType, bool>> {
-  TutorialStateNotifier() : super({});
+    extends Notifier<Map<FirstMonthGuideStepType, bool>> {
+  @override
+  Map<FirstMonthGuideStepType, bool> build() {
+    return {};
+  }
 
   /// チュートリアルを視聴済みにマーク
   void markTutorialAsWatched(FirstMonthGuideStepType stepType) {
