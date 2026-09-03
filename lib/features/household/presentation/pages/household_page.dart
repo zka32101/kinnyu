@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../domain/models/household_group.dart';
 import '../providers/household_provider.dart';
+import '../providers/household_budget_provider.dart';
 import '../../../user_profile/presentation/providers/user_provider.dart';
 import '../../../../core/analytics/analytics_provider.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'household_budget_page.dart';
+import '../widgets/budget_settings_dialog.dart';
 
 class HouseholdPage extends ConsumerWidget {
   const HouseholdPage({Key? key}) : super(key: key);
@@ -151,6 +154,21 @@ class HouseholdPage extends ConsumerWidget {
         const SizedBox(height: 16),
         _buildContributionRanking(context, group, uid),
         const SizedBox(height: 16),
+        ElevatedButton.icon(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => HouseholdBudgetPage(groupId: group.id),
+            ),
+          ),
+          icon: const Icon(Icons.attach_money),
+          label: const Text('世帯予算を表示'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue.shade600,
+            foregroundColor: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 8),
         OutlinedButton.icon(
           onPressed: () => _showLeaveGroupDialog(context, ref, uid),
           icon: const Icon(Icons.logout, color: AppColors.error),
@@ -284,6 +302,10 @@ class HouseholdPage extends ConsumerWidget {
                             uid: uid,
                             name: nameController.text.trim(),
                             nickname: nickname.isEmpty ? 'メンバー' : nickname);
+
+                        // 新規グループの予算を初期化
+                        await service.initializeBudget(createdGroup.id);
+
                         await analytics.logEvent('household_joined',
                             parameters: {
                               'user_id': uid,
@@ -291,6 +313,7 @@ class HouseholdPage extends ConsumerWidget {
 
                         ref.invalidate(userGroupProvider(uid));
                         ref.invalidate(groupStreamProvider(createdGroup.id));
+                        ref.invalidate(householdBudgetProvider(createdGroup.id));
 
                         if (dialogContext.mounted) {
                           Navigator.pop(dialogContext);
