@@ -6,6 +6,7 @@ import '../widgets/carbon_tracker_widget.dart';
 import '../widgets/charity_card.dart';
 import '../widgets/esg_score_card.dart';
 import '../../domain/models/social_contribution.dart';
+import '../../../core/firebase/auth_provider.dart';
 
 /// 社会貢献ページ
 class SocialContributionPage extends ConsumerWidget {
@@ -363,17 +364,63 @@ class _DonationDialogState extends ConsumerState<_DonationDialog> {
         ElevatedButton.icon(
           icon: const Icon(Icons.favorite),
           label: const Text('寄付する'),
-          onPressed: () {
-            // TODO: 実装 - 寄付記録を保存
-            Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('¥$_dononationAmountを${widget.charity.name}に寄付しました'),
-              ),
-            );
-          },
+          onPressed: () => _recordDonation(context),
         ),
       ],
     );
+  }
+
+  /// 寄付記録をFirestoreに保存
+  Future<void> _recordDonation(BuildContext context) async {
+    try {
+      // 現在のユーザーを取得
+      final userAsync = ref.watch(currentUserProvider);
+      final user = userAsync.asData?.value;
+
+      if (user == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('ログイン状態を確認できません。再度試してください。'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+
+      // 寄付記録を保存
+      final mutator = ref.read(socialContributionMutatorProvider);
+      await mutator.recordDonation(
+        widget.groupId,
+        user.uid,
+        widget.charity.id,
+        widget.charity.name,
+        _donationAmount,
+        'ユーザー寄付',
+      );
+
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '¥$_donationAmount を ${widget.charity.name} に寄付しました ❤️',
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('寄付の保存に失敗しました: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
