@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../domain/models/household_expense_summary.dart';
+import '../../../household/domain/models/household_expense_summary.dart';
 import '../../../household/presentation/providers/household_budget_provider.dart';
 import '../../../household/presentation/providers/social_contribution_provider.dart';
 import '../providers/dashboard_provider.dart';
