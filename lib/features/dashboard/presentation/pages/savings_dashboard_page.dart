@@ -11,11 +11,8 @@ import '../../../procedures/presentation/providers/procedures_provider.dart';
 import '../../../../core/subscription/subscription_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../premium/presentation/pages/paywall_page.dart';
-import '../widgets/unified_metrics_card.dart';
-import '../widgets/monthly_summary_card.dart';
 import '../widgets/quick_actions_card.dart';
-import '../widgets/category_breakdown_card.dart';
-import '../widgets/goals_progress_card.dart';
+import '../widgets/dashboard_sections.dart';
 
 /// 家計改善ダッシュボード。XP・ストリーク・投資・ミッション・制度確認状況を
 /// 1画面にまとめ、これまでの取り組みの成果を可視化する。
@@ -47,16 +44,14 @@ class SavingsDashboardPage extends ConsumerWidget {
                   _TrialPromoBanner(streak: user.streak, level: user.level),
                   const SizedBox(height: 20),
 
-                  // 統合メトリクスセクション
-                  UnifiedMetricsCard(groupId: user.uid),
+                  // 統合メトリクスセクション - 独立したProvider監視で効率的に更新
+                  UnifiedMetricsSection(groupId: user.uid),
                   const SizedBox(height: 20),
 
-                  // 月間家計セクション
-                  MonthlySummaryCard(
-                    income: 350000,
-                    expenses: 305000,
-                    savings: 45000,
-                    savingsRate: 0.1286,
+                  // 月間家計セクション - 動的データをFirestoreから取得
+                  MonthlySummarySection(
+                    groupId: user.uid,
+                    month: _getCurrentMonth(),
                   ),
                   const SizedBox(height: 20),
 
@@ -85,70 +80,19 @@ class SavingsDashboardPage extends ConsumerWidget {
                   ),
                   const SizedBox(height: 20),
 
-                  // カテゴリ別支出セクション
-                  CategoryBreakdownCard(
-                    totalExpense: 305000,
-                    expenses: {
-                      '食費': CategoryExpense(
-                        emoji: '🍽️',
-                        color: Colors.orange,
-                        amount: 75000,
-                      ),
-                      '交通費': CategoryExpense(
-                        emoji: '🚗',
-                        color: Colors.blue,
-                        amount: 35000,
-                      ),
-                      'エネルギー': CategoryExpense(
-                        emoji: '⚡',
-                        color: Colors.yellow.shade700,
-                        amount: 18000,
-                      ),
-                      '娯楽': CategoryExpense(
-                        emoji: '🎮',
-                        color: Colors.purple,
-                        amount: 42000,
-                      ),
-                      'サービス': CategoryExpense(
-                        emoji: '💳',
-                        color: Colors.red,
-                        amount: 58000,
-                      ),
-                      'その他': CategoryExpense(
-                        emoji: '📦',
-                        color: Colors.grey.shade600,
-                        amount: 77000,
-                      ),
-                    },
+                  // カテゴリ別支出セクション - 動的データをFirestoreから取得
+                  CategoryBreakdownSection(
+                    groupId: user.uid,
+                    month: _getCurrentMonth(),
                   ),
                   const SizedBox(height: 20),
 
-                  // 目標進捗セクション
-                  GoalsProgressCard(
-                    goals: [
-                      FinancialGoal(
-                        name: '緊急資金',
-                        targetAmount: 1000000,
-                        currentAmount: 650000,
-                        deadline: DateTime.now().add(const Duration(days: 180)),
-                        category: 'savings',
-                      ),
-                      FinancialGoal(
-                        name: '投資基金',
-                        targetAmount: 500000,
-                        currentAmount: 250000,
-                        deadline: DateTime.now().add(const Duration(days: 365)),
-                        category: 'investment',
-                      ),
-                      FinancialGoal(
-                        name: 'ボーナス貯蓄',
-                        targetAmount: 200000,
-                        currentAmount: 200000,
-                        deadline: DateTime.now().subtract(const Duration(days: 30)),
-                        category: 'bonus',
-                      ),
-                    ],
-                  ),
+                  // 目標進捗セクション - 貯蓄目標の進捗を追跡
+                  GoalsProgressSection(groupId: user.uid),
+                  const SizedBox(height: 20),
+
+                  // 社会貢献インパクトセクション - 社会的影響を可視化
+                  SocialImpactSection(groupId: user.uid),
                   const SizedBox(height: 20),
 
                   const Text(
@@ -162,6 +106,12 @@ class SavingsDashboardPage extends ConsumerWidget {
               ),
             ),
     );
+  }
+
+  /// 現在の月を YYYY-MM 形式で返す
+  String _getCurrentMonth() {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}';
   }
 
   Widget _buildLevelCard(int totalXP, int level) {
