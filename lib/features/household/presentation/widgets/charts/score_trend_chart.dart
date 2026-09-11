@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../domain/models/financial_health_score.dart';
+import '../../../domain/models/financial_health_score.dart';
 import '../../../../core/theme/app_colors.dart';
 
 /// 財務健全性スコアの6ヶ月トレンドを表示するラインチャート
