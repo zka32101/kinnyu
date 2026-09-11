@@ -56,25 +56,25 @@ final financialHealthScoreProvider = FutureProvider.autoDispose
   final socialAsync = ref.watch(socialContributionAmountProvider(groupId));
 
   // すべての非同期処理が完了するまで待機
-  final budget = await budgetAsync.when(
+  final budget = budgetAsync.when(
     data: (data) => data,
     error: (error, stack) => null,
     loading: () => null,
   );
 
-  final summary = await summaryAsync.when(
+  final summary = summaryAsync.when(
     data: (data) => data,
     error: (error, stack) => null,
     loading: () => null,
   );
 
-  final investment = await investmentAsync.when(
+  final investment = investmentAsync.when(
     data: (data) => data,
     error: (error, stack) => 0,
     loading: () => 0,
   );
 
-  final social = await socialAsync.when(
+  final social = socialAsync.when(
     data: (data) => data,
     error: (error, stack) => 0,
     loading: () => 0,
@@ -100,7 +100,7 @@ final financialHealthScoreDetailProvider = FutureProvider.autoDispose
     .family<FinancialHealthScoreDetail?, String>((ref, groupId) async {
   final scoreAsync = ref.watch(financialHealthScoreProvider(groupId));
 
-  final score = await scoreAsync.when(
+  final score = scoreAsync.when(
     data: (data) => data,
     error: (error, stack) => null,
     loading: () => null,
@@ -164,7 +164,7 @@ final financialHealthRecommendationsProvider = FutureProvider.autoDispose
     .family<List<HealthScoreRecommendation>, String>((ref, groupId) async {
   final detailAsync = ref.watch(financialHealthScoreDetailProvider(groupId));
 
-  final detail = await detailAsync.when(
+  final detail = detailAsync.when(
     data: (data) => data,
     error: (error, stack) => null,
     loading: () => null,

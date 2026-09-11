@@ -77,10 +77,10 @@ class FinancialHealthRecommendations extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         border: Border.all(
-          color: _getPriorityColor(recommendation.priority).withOpacity(0.3),
+          color: _getPriorityColor(recommendation.priority).withValues(alpha: 0.3),
         ),
         borderRadius: BorderRadius.circular(12),
-        color: _getPriorityColor(recommendation.priority).withOpacity(0.05),
+        color: _getPriorityColor(recommendation.priority).withValues(alpha: 0.05),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,7 +99,7 @@ class FinancialHealthRecommendations extends ConsumerWidget {
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: _getPriorityColor(recommendation.priority)
-                      .withOpacity(0.2),
+                      .withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -151,8 +151,8 @@ class FinancialHealthRecommendations extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: color.withValues(alpha: 0.1),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
@@ -211,12 +211,12 @@ class FinancialHealthRecommendations extends ConsumerWidget {
                 children: [
                   Container(
                     height: 16,
-                    color: Colors.grey.withOpacity(0.2),
+                    color: Colors.grey.withValues(alpha: 0.2),
                   ),
                   const SizedBox(height: 8),
                   Container(
                     height: 12,
-                    color: Colors.grey.withOpacity(0.2),
+                    color: Colors.grey.withValues(alpha: 0.2),
                   ),
                 ],
               ),
