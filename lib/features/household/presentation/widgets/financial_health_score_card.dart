@@ -68,7 +68,7 @@ class FinancialHealthScoreCard extends ConsumerWidget {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: _getScoreColor(score.overallScore)
-                                .withOpacity(0.1),
+                                .withValues(alpha: 0.1),
                             border: Border.all(
                               color: _getScoreColor(score.overallScore),
                               width: 3,
@@ -108,7 +108,7 @@ class FinancialHealthScoreCard extends ConsumerWidget {
                     ),
                     decoration: BoxDecoration(
                       color: _getScoreColor(score.overallScore)
-                          .withOpacity(0.2),
+                          .withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -187,7 +187,7 @@ class FinancialHealthScoreCard extends ConsumerWidget {
                 value: value / 100,
                 minHeight: 8,
                 backgroundColor:
-                    Colors.grey.withOpacity(0.2),
+                    Colors.grey.withValues(alpha: 0.2),
                 valueColor: AlwaysStoppedAnimation<Color>(
                   _getScoreColor(value),
                 ),
@@ -212,12 +212,12 @@ class FinancialHealthScoreCard extends ConsumerWidget {
             const SizedBox(height: 200),
             Container(
               height: 16,
-              color: Colors.grey.withOpacity(0.2),
+              color: Colors.grey.withValues(alpha: 0.2),
             ),
             const SizedBox(height: 16),
             Container(
               height: 16,
-              color: Colors.grey.withOpacity(0.2),
+              color: Colors.grey.withValues(alpha: 0.2),
             ),
           ],
         ),
