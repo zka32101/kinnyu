@@ -102,6 +102,9 @@ final financialHealthScoreProvider = FutureProvider.autoDispose
 });
 
 /// 財務健全性スコアの詳細情報プロバイダー
+/// 実装の最適化：
+/// - keepAlive: スコア計算結果のキャッシュを保持
+/// - スコアが変わらない限り、詳細情報は再計算しない
 final financialHealthScoreDetailProvider = FutureProvider.autoDispose
     .family<FinancialHealthScoreDetail?, String>((ref, groupId) async {
   final scoreAsync = ref.watch(financialHealthScoreProvider(groupId));
@@ -163,9 +166,12 @@ final financialHealthScoreDetailProvider = FutureProvider.autoDispose
     recommendations: recommendations,
     monthlyTrend: monthlyTrend,
   );
-});
+}).keepAlive();
 
 /// 財務健全性スコア推奨事項プロバイダー
+/// 実装の最適化：
+/// - keepAlive: 推奨事項のキャッシュを保持
+/// - 詳細情報が変わらない限り推奨事項も再生成しない
 final financialHealthRecommendationsProvider = FutureProvider.autoDispose
     .family<List<HealthScoreRecommendation>, String>((ref, groupId) async {
   final detailAsync = ref.watch(financialHealthScoreDetailProvider(groupId));
@@ -177,9 +183,13 @@ final financialHealthRecommendationsProvider = FutureProvider.autoDispose
   );
 
   return detail?.recommendations ?? [];
-});
+}).keepAlive();
 
 /// 財務健全性スコア月別トレンドプロバイダー（プレースホルダー）
+/// 実装の最適化：
+/// - keepAlive: トレンド履歴のキャッシュを保持
+/// - 6ヶ月のトレンドデータは頻繁には変わらない
+/// - TODO: 将来の最適化で遅延読み込みを実装（当月分を優先、その後過去月分を読み込む）
 final financialHealthScoreTrendProvider = FutureProvider.autoDispose
     .family<List<FinancialHealthScoreTrend>, String>((ref, groupId) async {
   // TODO: Implement Firestore query to fetch score history
@@ -201,4 +211,4 @@ final financialHealthScoreTrendProvider = FutureProvider.autoDispose
       },
     );
   });
-});
+}).keepAlive();
