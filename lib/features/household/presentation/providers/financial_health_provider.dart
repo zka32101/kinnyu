@@ -244,7 +244,7 @@ final goalScorePredictionProvider = FutureProvider.autoDispose
   try {
     // 現在のスコアと目標情報を取得
     final scoreAsync = ref.watch(financialHealthScoreProvider(groupId));
-    final groupAsync = ref.watch(householdProvider(groupId));
+    final groupAsync = ref.watch(groupStreamProvider(groupId));
 
     final score = scoreAsync.when(
       data: (data) => data,
@@ -252,10 +252,10 @@ final goalScorePredictionProvider = FutureProvider.autoDispose
       loading: () => null,
     );
 
-    final group = await groupAsync.when(
-      data: (data) => Future.value(data),
-      error: (error, stack) => Future.value(null),
-      loading: () => Future.value(null),
+    final group = groupAsync.when(
+      data: (data) => data,
+      error: (error, stack) => null,
+      loading: () => null,
     );
 
     if (score == null || group == null) {
