@@ -440,3 +440,176 @@ String _getMilestoneMessage(int milestone) {
       return 'スコアマイルストーン: $milestone に到達';
   }
 }
+
+/// 貯蓄目標進捗プロバイダー
+/// Priority 5.3 Enhancement: 目標進度と現在の貯蓄額を比較して進捗を可視化
+/// 実装の最適化：
+/// - keepAlive: 目標進捗データのキャッシュを保持
+/// - 月単位の貯蓄パターンを追跡
+final savingsGoalProgressProvider = FutureProvider.autoDispose
+    .family<({int currentSavings, int monthlyGoal, double progressPercent, int remainingToGoal}), String>((ref, groupId) async {
+  try {
+    // 現在月の支出サマリーから貯蓄額を取得
+    final summaryAsync = ref.watch(monthlyExpenseSummaryProvider(groupId));
+    final groupAsync = ref.watch(groupStreamProvider(groupId));
+
+    final summary = summaryAsync.when(
+      data: (data) => data,
+      error: (error, stack) => null,
+      loading: () => null,
+    );
+
+    final group = groupAsync.when(
+      data: (data) => data,
+      error: (error, stack) => null,
+      loading: () => null,
+    );
+
+    if (summary == null || group == null) {
+      return (currentSavings: 0, monthlyGoal: 30000, progressPercent: 0.0, remainingToGoal: 30000);
+    }
+
+    // グループの月次目標を取得（デフォルト: 30000）
+    final monthlyGoal = group.monthlyGoal;
+    final currentSavings = summary.savingAmount;
+    final progressPercent = monthlyGoal > 0
+      ? (currentSavings / monthlyGoal * 100).clamp(0.0, 100.0)
+      : 0.0;
+    final remainingToGoal = (monthlyGoal - currentSavings).clamp(0, monthlyGoal);
+
+    return (
+      currentSavings: currentSavings,
+      monthlyGoal: monthlyGoal,
+      progressPercent: progressPercent,
+      remainingToGoal: remainingToGoal,
+    );
+  } catch (e) {
+    return (currentSavings: 0, monthlyGoal: 30000, progressPercent: 0.0, remainingToGoal: 30000);
+  }
+}).keepAlive();
+
+/// 財務健全性スコア改善ガイドプロバイダー
+/// Priority 5.2 Enhancement: 各カテゴリの改善に向けた具体的なアクションガイド
+/// 実装の最適化：
+/// - keepAlive: 改善提案のキャッシュを保持
+final scoreImprovementGuideProvider = FutureProvider.autoDispose
+    .family<List<ScoreImprovementAction>, String>((ref, groupId) async {
+  try {
+    final scoreAsync = ref.watch(financialHealthScoreProvider(groupId));
+
+    final score = scoreAsync.when(
+      data: (data) => data,
+      error: (error, stack) => null,
+      loading: () => null,
+    );
+
+    if (score == null) {
+      return [];
+    }
+
+    final actions = <ScoreImprovementAction>[];
+
+    // 各カテゴリのスコアに基づいて改善提案を生成
+    if (score.savingsRatioScore < 70) {
+      actions.add(ScoreImprovementAction(
+        category: 'savingsRatio',
+        displayName: '貯蓄率改善',
+        priority: 1,
+        currentScore: score.savingsRatioScore,
+        targetScore: 85,
+        actionItems: [
+          '月間支出を5%削減する',
+          '固定費（通信費など）の見直し',
+          '自動貯蓄の設定を検討',
+        ],
+      ));
+    }
+
+    if (score.budgetAdherenceScore < 70) {
+      actions.add(ScoreImprovementAction(
+        category: 'budgetAdherence',
+        displayName: '予算遵守率改善',
+        priority: 2,
+        currentScore: score.budgetAdherenceScore,
+        targetScore: 85,
+        actionItems: [
+          '予算の見直しと調整',
+          'カテゴリ別の支出制限を設定',
+          '週単位で支出を追跡',
+        ],
+      ));
+    }
+
+    if (score.expenseControlScore < 70) {
+      actions.add(ScoreImprovementAction(
+        category: 'expenseControl',
+        displayName: '支出管理改善',
+        priority: 3,
+        currentScore: score.expenseControlScore,
+        targetScore: 85,
+        actionItems: [
+          '衝動買いの削減',
+          'レシート記録の習慣化',
+          '定期的な支出分析',
+        ],
+      ));
+    }
+
+    if (score.investmentEngagementScore < 70) {
+      actions.add(ScoreImprovementAction(
+        category: 'investmentEngagement',
+        displayName: '投資参加度向上',
+        priority: 4,
+        currentScore: score.investmentEngagementScore,
+        targetScore: 80,
+        actionItems: [
+          'つみたてNISAの活用検討',
+          '少額投資からの開始',
+          '投資の知識習得',
+        ],
+      ));
+    }
+
+    if (score.socialImpactScore < 70) {
+      actions.add(ScoreImprovementAction(
+        category: 'socialImpact',
+        displayName: '社会貢献度向上',
+        priority: 5,
+        currentScore: score.socialImpactScore,
+        targetScore: 80,
+        actionItems: [
+          '月々の寄付額設定',
+          'ボランティア活動の検討',
+          '環境配慮型の生活',
+        ],
+      ));
+    }
+
+    // 優先度でソート
+    actions.sort((a, b) => a.priority.compareTo(b.priority));
+    return actions;
+  } catch (e) {
+    return [];
+  }
+}).keepAlive();
+
+/// スコア改善アクション モデル
+class ScoreImprovementAction {
+  final String category;
+  final String displayName;
+  final int priority;
+  final int currentScore;
+  final int targetScore;
+  final List<String> actionItems;
+
+  ScoreImprovementAction({
+    required this.category,
+    required this.displayName,
+    required this.priority,
+    required this.currentScore,
+    required this.targetScore,
+    required this.actionItems,
+  });
+
+  int get scoreGain => targetScore - currentScore;
+}
