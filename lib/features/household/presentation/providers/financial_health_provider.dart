@@ -9,6 +9,7 @@ import './household_budget_provider.dart';
 import './household_provider.dart';
 import './social_contribution_provider.dart';
 import '../../../core/services/notification_provider.dart';
+import '../../../features/investment/presentation/providers/investment_provider.dart';
 
 /// 現在月の家計情報プロバイダー
 /// 実装の最適化：
