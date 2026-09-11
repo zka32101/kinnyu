@@ -34,20 +34,41 @@ final monthlyExpenseSummaryProvider = FutureProvider.autoDispose
 /// 実装の最適化：
 /// - keepAlive: ポートフォリオ計算のキャッシュを保持
 /// - 投資額は頻繁には変わらないため、キャッシュは有効
-///
-/// TODO Priority 5.1: Investment Portfolio Integration
-/// - 現在のポートフォリオから合計投資額を計算する
-/// - 注意：投資モジュールはuid（個人ID）を使用するため、
-///   グループ内の全メンバーの投資額を集計する必要がある
-/// - 実装例：
-///   1. グループのメンバーリストを取得
-///   2. 各メンバーのactiveInvestmentsProviderを監視
-///   3. 全投資額を合計
+/// - 実データ：グループメンバーの全投資額を集計
 final investmentAmountProvider = FutureProvider.autoDispose
     .family<int, String>((ref, groupId) async {
-  // TODO: Implement to fetch from investment portfolio
-  // 現在のところプレースホルダー値を返す
-  return 50000; // プレースホルダー: 月額5万円の投資
+  try {
+    // グループ情報を取得してメンバーリストを得る
+    final groupAsync = ref.watch(groupStreamProvider(groupId));
+    final group = groupAsync.when(
+      data: (data) => data,
+      error: (error, stack) => null,
+      loading: () => null,
+    );
+
+    if (group == null || group.members.isEmpty) {
+      return 0;
+    }
+
+    // 各メンバーの投資額を集計
+    int totalInvestmentAmount = 0;
+    for (final memberId in group.members) {
+      try {
+        final investments = await ref.watch(activeInvestmentsProvider(memberId).future);
+        for (final investment in investments) {
+          totalInvestmentAmount += investment.savingsAmount;
+        }
+      } catch (e) {
+        // メンバーのデータが取得できない場合は続行
+        continue;
+      }
+    }
+
+    return totalInvestmentAmount;
+  } catch (e) {
+    // エラー時はデフォルト値を返す
+    return 0;
+  }
 }).keepAlive();
 
 /// 社会貢献額プロバイダー
