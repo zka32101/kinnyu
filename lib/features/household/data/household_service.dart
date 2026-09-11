@@ -278,6 +278,68 @@ class HouseholdService {
     }
   }
 
+  /// 月間家計サマリーを取得（財務健全性スコア計算用）
+  Future<HouseholdExpenseSummary> getMonthlyExpenseSummary({
+    required String groupId,
+    required DateTime month,
+  }) async {
+    try {
+      final monthlyExpense = await getMonthlyExpense(groupId: groupId, month: month);
+
+      // カテゴリ別の合計を計算
+      final categoryBreakdown = <String, int>{};
+      int totalExpense = 0;
+
+      for (final category in monthlyExpense.expensesByCategory.values) {
+        for (final record in category) {
+          totalExpense += record.amount;
+          final categoryName = _getCategoryDisplayName(record.category);
+          categoryBreakdown[categoryName] = (categoryBreakdown[categoryName] ?? 0) + record.amount;
+        }
+      }
+
+      // グループの予算情報から収入を推定（総予算 = 月額予定収入）
+      // TODO: 実装時には実際の収入データを専用フィールドから取得する
+      final budget = await getBudget(groupId);
+      final totalIncome = budget?.totalBudget ?? 500000; // プレースホルダー
+      final savingAmount = totalIncome - totalExpense;
+
+      return HouseholdExpenseSummary(
+        groupId: groupId,
+        month: '${month.year}-${month.month.toString().padLeft(2, '0')}',
+        totalIncome: totalIncome,
+        totalExpense: totalExpense,
+        savingAmount: savingAmount,
+        categoryBreakdown: categoryBreakdown,
+      );
+    } catch (e) {
+      debugPrint('getMonthlyExpenseSummary failed: $e');
+      rethrow;
+    }
+  }
+
+  /// カテゴリ表示名を取得
+  String _getCategoryDisplayName(BudgetCategory category) {
+    switch (category) {
+      case BudgetCategory.food:
+        return '食費';
+      case BudgetCategory.utilities:
+        return '光熱費';
+      case BudgetCategory.transport:
+        return '交通費';
+      case BudgetCategory.entertainment:
+        return '娯楽';
+      case BudgetCategory.medical:
+        return '医療';
+      case BudgetCategory.education:
+        return '教育';
+      case BudgetCategory.shopping:
+        return 'ショッピング';
+      case BudgetCategory.other:
+        return 'その他';
+    }
+  }
+
   /// ReceiptCategory を HouseholdBudgetCategory にマップ
   BudgetCategory _mapReceiptCategoryToHouseholdCategory(ReceiptCategory category) {
     switch (category) {
