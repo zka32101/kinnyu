@@ -48,7 +48,7 @@ final financialHealthScoreProvider = FutureProvider.autoDispose
   );
 }).keepAlive();
 
-/// スコア詳細プロバイダー
+/// スコア詳細プロバイダー - 詳細データ表示用
 final financialHealthScoreDetailProvider = FutureProvider.autoDispose
     .family<FinancialHealthScoreDetail?, String>((ref, groupId) async {
   // Placeholder: Return null for now - full implementation deferred
