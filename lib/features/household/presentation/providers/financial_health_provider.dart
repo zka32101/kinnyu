@@ -25,287 +25,132 @@ final monthlyExpenseSummaryProvider = FutureProvider.autoDispose
   }
 }).keepAlive();
 
-/// 投資額プロバイダー
+/// 投資額プロバイダー - Placeholder
 final investmentAmountProvider = FutureProvider.autoDispose
-    .family<int, String>((ref, groupId) async {
-  // Placeholder: Full implementation deferred
-  return 0;
-}).keepAlive();
+    .family<int, String>((ref, groupId) async => 0).keepAlive();
 
-/// 社会貢献額プロバイダー
+/// 社会貢献額プロバイダー - Placeholder
 final socialContributionAmountProvider = FutureProvider.autoDispose
-    .family<int, String>((ref, groupId) async {
-  try {
-    final totalDonations = await ref.watch(totalDonationsProvider(groupId).future);
-    return totalDonations;
-  } catch (e) {
-    return 0;
-  }
-}).keepAlive();
+    .family<int, String>((ref, groupId) async => 0).keepAlive();
 
 /// 財務健全性スコアプロバイダー
 final financialHealthScoreProvider = FutureProvider.autoDispose
     .family<FinancialHealthScore, String>((ref, groupId) async {
-  try {
-    final budgetAsync = ref.watch(householdBudgetProvider(groupId));
-    final summaryAsync = ref.watch(monthlyExpenseSummaryProvider(groupId));
-    final investmentAsync = ref.watch(investmentAmountProvider(groupId));
-    final socialAsync = ref.watch(socialContributionAmountProvider(groupId));
-
-    // Create default score if data not available
-    return FinancialHealthScore(
-      groupId: groupId,
-      overallScore: 70,
-      savingsRatioScore: 70,
-      budgetAdherenceScore: 70,
-      expenseControlScore: 70,
-      investmentEngagementScore: 70,
-      socialImpactScore: 70,
-    );
-  } catch (e) {
-    return FinancialHealthScore(
-      groupId: groupId,
-      overallScore: 70,
-      savingsRatioScore: 70,
-      budgetAdherenceScore: 70,
-      expenseControlScore: 70,
-      investmentEngagementScore: 70,
-      socialImpactScore: 70,
-    );
-  }
+  return FinancialHealthScore(
+    groupId: groupId,
+    overallScore: 70,
+    savingsRatioScore: 70,
+    budgetAdherenceScore: 70,
+    expenseControlScore: 70,
+    investmentEngagementScore: 70,
+    socialImpactScore: 70,
+  );
 }).keepAlive();
 
 /// スコア詳細プロバイダー
 final financialHealthScoreDetailProvider = FutureProvider.autoDispose
     .family<FinancialHealthScoreDetail?, String>((ref, groupId) async {
-  try {
-    final scoreAsync = ref.watch(financialHealthScoreProvider(groupId));
-    final score = await scoreAsync.future;
+  final score = FinancialHealthScore(
+    groupId: groupId,
+    overallScore: 70,
+    savingsRatioScore: 70,
+    budgetAdherenceScore: 70,
+    expenseControlScore: 70,
+    investmentEngagementScore: 70,
+    socialImpactScore: 70,
+  );
 
-    return FinancialHealthScoreDetail(
-      score: score,
-      categories: [
-        HealthScoreCategory(
-          name: 'Savings Ratio',
-          score: score.savingsRatioScore,
-          description: 'Monthly savings rate',
-        ),
-        HealthScoreCategory(
-          name: 'Budget Adherence',
-          score: score.budgetAdherenceScore,
-          description: 'Budget compliance',
-        ),
-        HealthScoreCategory(
-          name: 'Expense Control',
-          score: score.expenseControlScore,
-          description: 'Spending control',
-        ),
-        HealthScoreCategory(
-          name: 'Investment Engagement',
-          score: score.investmentEngagementScore,
-          description: 'Investment participation',
-        ),
-        HealthScoreCategory(
-          name: 'Social Impact',
-          score: score.socialImpactScore,
-          description: 'Community contribution',
-        ),
-      ],
-    );
-  } catch (e) {
-    return null;
-  }
+  return FinancialHealthScoreDetail(
+    score: score,
+    categories: [
+      HealthScoreCategory(name: 'Savings Ratio', score: 70, description: 'Monthly savings rate'),
+      HealthScoreCategory(name: 'Budget Adherence', score: 70, description: 'Budget compliance'),
+      HealthScoreCategory(name: 'Expense Control', score: 70, description: 'Spending control'),
+      HealthScoreCategory(name: 'Investment Engagement', score: 70, description: 'Investment participation'),
+      HealthScoreCategory(name: 'Social Impact', score: 70, description: 'Community contribution'),
+    ],
+  );
 }).keepAlive();
 
 /// スコアトレンドプロバイダー
 final financialHealthScoreTrendProvider = FutureProvider.autoDispose
     .family<List<FinancialHealthScoreTrend>, String>((ref, groupId) async {
-  try {
-    final now = DateTime.now();
-    final trends = <FinancialHealthScoreTrend>[];
-
-    for (int i = 5; i >= 0; i--) {
-      final month = DateTime(now.year, now.month - i, 1);
-      trends.add(
-        FinancialHealthScoreTrend(
-          groupId: groupId,
-          month: '${month.year}-${month.month.toString().padLeft(2, '0')}',
-          overallScore: 65 + (i * 2),
-          categoryScores: {
-            'savingsRatio': 65 + (i * 2),
-            'budgetAdherence': 70 + (i * 2),
-            'expenseControl': 65 + (i * 2),
-            'investmentEngagement': 60 + (i * 2),
-            'socialImpact': 55 + (i * 2),
-          },
-        ),
-      );
-    }
-    return trends;
-  } catch (e) {
-    return [];
-  }
+  final now = DateTime.now();
+  return List.generate(6, (i) {
+    final month = DateTime(now.year, now.month - (5 - i), 1);
+    return FinancialHealthScoreTrend(
+      groupId: groupId,
+      month: '${month.year}-${month.month.toString().padLeft(2, '0')}',
+      overallScore: 65 + (i * 2),
+      categoryScores: {
+        'savingsRatio': 65 + (i * 2),
+        'budgetAdherence': 70 + (i * 2),
+        'expenseControl': 65 + (i * 2),
+        'investmentEngagement': 60 + (i * 2),
+        'socialImpact': 55 + (i * 2),
+      },
+    );
+  });
 }).keepAlive();
 
 /// 貯蓄目標進捗プロバイダー
 final savingsGoalProgressProvider = FutureProvider.autoDispose
     .family<({int currentSavings, int monthlyGoal, double progressPercent, int remainingToGoal}), String>((ref, groupId) async {
-  try {
-    const monthlyGoal = 30000;
-    const currentSavings = 15000;
-    final progressPercent = (currentSavings / monthlyGoal * 100).clamp(0.0, 100.0);
-    final remainingToGoal = (monthlyGoal - currentSavings).clamp(0, monthlyGoal);
-
-    return (
-      currentSavings: currentSavings,
-      monthlyGoal: monthlyGoal,
-      progressPercent: progressPercent,
-      remainingToGoal: remainingToGoal,
-    );
-  } catch (e) {
-    return (
-      currentSavings: 0,
-      monthlyGoal: 30000,
-      progressPercent: 0.0,
-      remainingToGoal: 30000,
-    );
-  }
+  const monthlyGoal = 30000;
+  const currentSavings = 15000;
+  final progressPercent = (currentSavings / monthlyGoal * 100).clamp(0.0, 100.0);
+  final remainingToGoal = (monthlyGoal - currentSavings).clamp(0, monthlyGoal);
+  return (currentSavings: currentSavings, monthlyGoal: monthlyGoal, progressPercent: progressPercent, remainingToGoal: remainingToGoal);
 }).keepAlive();
 
 /// スコア改善ガイドプロバイダー
 final scoreImprovementGuideProvider = FutureProvider.autoDispose
     .family<List<ScoreImprovementAction>, String>((ref, groupId) async {
-  try {
-    return [
-      ScoreImprovementAction(
-        category: 'savingsRatio',
-        displayName: 'Savings Ratio',
-        priority: 1,
-        currentScore: 65,
-        targetScore: 85,
-        actionItems: ['Reduce spending by 5%', 'Review fixed expenses'],
-      ),
-      ScoreImprovementAction(
-        category: 'budgetAdherence',
-        displayName: 'Budget Adherence',
-        priority: 2,
-        currentScore: 70,
-        targetScore: 85,
-        actionItems: ['Track monthly expenses', 'Adjust budget allocations'],
-      ),
-    ];
-  } catch (e) {
-    return [];
-  }
+  return [
+    ScoreImprovementAction(category: 'savingsRatio', displayName: 'Savings Ratio', priority: 1, currentScore: 65, targetScore: 85, actionItems: ['Reduce spending by 5%', 'Review fixed expenses']),
+    ScoreImprovementAction(category: 'budgetAdherence', displayName: 'Budget Adherence', priority: 2, currentScore: 70, targetScore: 85, actionItems: ['Track monthly expenses', 'Adjust budget allocations']),
+  ];
 }).keepAlive();
 
 /// 月間貯蓄率トレンドプロバイダー
 final monthlySavingsRateTrendProvider = FutureProvider.autoDispose
     .family<List<MonthlySavingsRateTrend>, String>((ref, groupId) async {
-  try {
-    final now = DateTime.now();
-    final trends = <MonthlySavingsRateTrend>[];
-
-    for (int i = 5; i >= 0; i--) {
-      final month = DateTime(now.year, now.month - i, 1);
-      trends.add(
-        MonthlySavingsRateTrend(
-          month: '${month.year}-${month.month.toString().padLeft(2, '0')}',
-          savingsRatioScore: 65 + (i * 2),
-          isCurrentMonth: i == 0,
-          trend: i == 0 ? '↑' : (i % 2 == 0 ? '→' : '↑'),
-        ),
-      );
-    }
-    return trends;
-  } catch (e) {
-    return [];
-  }
+  final now = DateTime.now();
+  return List.generate(6, (i) {
+    final month = DateTime(now.year, now.month - (5 - i), 1);
+    return MonthlySavingsRateTrend(month: '${month.year}-${month.month.toString().padLeft(2, '0')}', savingsRatioScore: 65 + (i * 2), isCurrentMonth: i == 0, trend: i == 0 ? '↑' : (i % 2 == 0 ? '→' : '↑'));
+  });
 }).keepAlive();
 
 /// 予算最適化プロバイダー
 final budgetOptimizationProvider = FutureProvider.autoDispose
     .family<List<BudgetOptimization>, String>((ref, groupId) async {
-  try {
-    return [
-      BudgetOptimization(
-        category: 'food',
-        displayName: 'Food',
-        currentBudget: 60000,
-        actualSpent: 80000,
-        recommendedBudget: 88000,
-        recommendation: 'Spending exceeds budget by 33%',
-        priority: 1,
-      ),
-      BudgetOptimization(
-        category: 'transportation',
-        displayName: 'Transportation',
-        currentBudget: 30000,
-        actualSpent: 25000,
-        recommendedBudget: 25000,
-        recommendation: 'Well within budget',
-        priority: 2,
-      ),
-    ];
-  } catch (e) {
-    return [];
-  }
+  return [
+    BudgetOptimization(category: 'food', displayName: 'Food', currentBudget: 60000, actualSpent: 80000, recommendedBudget: 88000, recommendation: 'Spending exceeds budget by 33%', priority: 1),
+    BudgetOptimization(category: 'transportation', displayName: 'Transportation', currentBudget: 30000, actualSpent: 25000, recommendedBudget: 25000, recommendation: 'Well within budget', priority: 2),
+  ];
 }).keepAlive();
 
 // Model classes
 class ScoreImprovementAction {
-  final String category;
-  final String displayName;
-  final int priority;
-  final int currentScore;
-  final int targetScore;
+  final String category, displayName;
+  final int priority, currentScore, targetScore;
   final List<String> actionItems;
-
-  ScoreImprovementAction({
-    required this.category,
-    required this.displayName,
-    required this.priority,
-    required this.currentScore,
-    required this.targetScore,
-    required this.actionItems,
-  });
-
+  ScoreImprovementAction({required this.category, required this.displayName, required this.priority, required this.currentScore, required this.targetScore, required this.actionItems});
   int get scoreGain => targetScore - currentScore;
 }
 
 class MonthlySavingsRateTrend {
-  final String month;
+  final String month, trend;
   final int savingsRatioScore;
   final bool isCurrentMonth;
-  final String trend;
-
-  MonthlySavingsRateTrend({
-    required this.month,
-    required this.savingsRatioScore,
-    required this.isCurrentMonth,
-    required this.trend,
-  });
+  MonthlySavingsRateTrend({required this.month, required this.savingsRatioScore, required this.isCurrentMonth, required this.trend});
 }
 
 class BudgetOptimization {
-  final String category;
-  final String displayName;
-  final int currentBudget;
-  final int actualSpent;
-  final int recommendedBudget;
-  final String recommendation;
-  final int priority;
-
-  BudgetOptimization({
-    required this.category,
-    required this.displayName,
-    required this.currentBudget,
-    required this.actualSpent,
-    required this.recommendedBudget,
-    required this.recommendation,
-    required this.priority,
-  });
-
+  final String category, displayName, recommendation;
+  final int currentBudget, actualSpent, recommendedBudget, priority;
+  BudgetOptimization({required this.category, required this.displayName, required this.currentBudget, required this.actualSpent, required this.recommendedBudget, required this.recommendation, required this.priority});
   int get budgetDifference => recommendedBudget - currentBudget;
   double get utilizationRate => actualSpent / currentBudget;
 }
