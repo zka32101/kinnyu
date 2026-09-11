@@ -5,133 +5,142 @@ import 'package:okane_kore/features/household/domain/models/household_expense_su
 void main() {
   group('HouseholdBudget Model', () {
     test('creates a valid household budget', () {
+      final now = DateTime.now();
       final budget = HouseholdBudget(
-        id: 'budget123',
-        groupId: 'group123',
-        userId: 'user123',
-        month: '2026-09',
-        allocatedBudget: 300000,
-        spentAmount: 150000,
-        savingGoal: 50000,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        id: 'group123',
+        categoryBudgets: {
+          BudgetCategory.food: 60000,
+          BudgetCategory.utilities: 25000,
+          BudgetCategory.transport: 20000,
+          BudgetCategory.entertainment: 20000,
+          BudgetCategory.healthcare: 15000,
+          BudgetCategory.education: 10000,
+          BudgetCategory.shopping: 30000,
+          BudgetCategory.other: 120000,
+        },
+        createdAt: now,
+        updatedAt: now,
       );
 
-      expect(budget.id, equals('budget123'));
-      expect(budget.groupId, equals('group123'));
-      expect(budget.allocatedBudget, equals(300000));
-      expect(budget.spentAmount, equals(150000));
+      expect(budget.id, equals('group123'));
+      expect(budget.categoryBudgets[BudgetCategory.food], equals(60000));
+      expect(budget.totalBudget, equals(300000));
     });
 
-    test('calculates remaining budget correctly', () {
+    test('calculates total budget correctly', () {
+      final now = DateTime.now();
       final budget = HouseholdBudget(
-        id: 'budget123',
-        groupId: 'group123',
-        userId: 'user123',
-        month: '2026-09',
-        allocatedBudget: 300000,
-        spentAmount: 150000,
-        savingGoal: 50000,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        id: 'group123',
+        categoryBudgets: {
+          BudgetCategory.food: 100000,
+          BudgetCategory.utilities: 50000,
+          BudgetCategory.transport: 30000,
+          BudgetCategory.entertainment: 20000,
+          BudgetCategory.healthcare: 0,
+          BudgetCategory.education: 0,
+          BudgetCategory.shopping: 0,
+          BudgetCategory.other: 0,
+        },
+        createdAt: now,
+        updatedAt: now,
       );
 
-      final remaining = budget.allocatedBudget - budget.spentAmount;
-      expect(remaining, equals(150000));
+      expect(budget.totalBudget, equals(200000));
     });
 
-    test('calculates spending rate correctly', () {
+    test('handles category budget updates', () {
+      final now = DateTime.now();
       final budget = HouseholdBudget(
-        id: 'budget123',
-        groupId: 'group123',
-        userId: 'user123',
-        month: '2026-09',
-        allocatedBudget: 300000,
-        spentAmount: 150000,
-        savingGoal: 50000,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        id: 'group123',
+        categoryBudgets: {
+          BudgetCategory.food: 60000,
+          BudgetCategory.utilities: 25000,
+          BudgetCategory.transport: 20000,
+          BudgetCategory.entertainment: 20000,
+          BudgetCategory.healthcare: 15000,
+          BudgetCategory.education: 10000,
+          BudgetCategory.shopping: 30000,
+          BudgetCategory.other: 120000,
+        },
+        createdAt: now,
+        updatedAt: now,
       );
 
-      final spendingRate = budget.spentAmount / budget.allocatedBudget;
-      expect(spendingRate, equals(0.5)); // 50% spent
+      expect(budget.categoryBudgets[BudgetCategory.food], equals(60000));
+      expect(budget.categoryBudgets[BudgetCategory.utilities], equals(25000));
     });
 
-    test('handles edge case: no spending', () {
+    test('handles zero budget for category', () {
+      final now = DateTime.now();
       final budget = HouseholdBudget(
-        id: 'budget123',
-        groupId: 'group123',
-        userId: 'user123',
-        month: '2026-09',
-        allocatedBudget: 300000,
-        spentAmount: 0,
-        savingGoal: 50000,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        id: 'group123',
+        categoryBudgets: {
+          BudgetCategory.food: 0,
+          BudgetCategory.utilities: 25000,
+          BudgetCategory.transport: 20000,
+          BudgetCategory.entertainment: 0,
+          BudgetCategory.healthcare: 0,
+          BudgetCategory.education: 0,
+          BudgetCategory.shopping: 0,
+          BudgetCategory.other: 55000,
+        },
+        createdAt: now,
+        updatedAt: now,
       );
 
-      expect(budget.spentAmount, equals(0));
-      expect(budget.allocatedBudget - budget.spentAmount, equals(300000));
+      expect(budget.categoryBudgets[BudgetCategory.food], equals(0));
+      expect(budget.totalBudget, equals(100000));
     });
 
-    test('handles edge case: budget fully spent', () {
+    test('handles high budget amounts', () {
+      final now = DateTime.now();
       final budget = HouseholdBudget(
-        id: 'budget123',
-        groupId: 'group123',
-        userId: 'user123',
-        month: '2026-09',
-        allocatedBudget: 300000,
-        spentAmount: 300000,
-        savingGoal: 50000,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        id: 'group123',
+        categoryBudgets: {
+          BudgetCategory.food: 150000,
+          BudgetCategory.utilities: 100000,
+          BudgetCategory.transport: 100000,
+          BudgetCategory.entertainment: 100000,
+          BudgetCategory.healthcare: 100000,
+          BudgetCategory.education: 100000,
+          BudgetCategory.shopping: 100000,
+          BudgetCategory.other: 100000,
+        },
+        createdAt: now,
+        updatedAt: now,
       );
 
-      final remaining = budget.allocatedBudget - budget.spentAmount;
-      expect(remaining, equals(0));
-      expect(budget.spentAmount / budget.allocatedBudget, equals(1.0));
+      expect(budget.totalBudget, equals(850000));
     });
 
-    test('handles edge case: budget exceeded', () {
+    test('default template creates valid budget', () {
+      final budget = HouseholdBudget.defaultTemplate('group123');
+      expect(budget.id, equals('group123'));
+      expect(budget.totalBudget, equals(200000));
+      expect(budget.categoryBudgets[BudgetCategory.food], equals(60000));
+    });
+
+    test('serializes to JSON correctly', () {
+      final now = DateTime.now();
       final budget = HouseholdBudget(
-        id: 'budget123',
-        groupId: 'group123',
-        userId: 'user123',
-        month: '2026-09',
-        allocatedBudget: 300000,
-        spentAmount: 350000,
-        savingGoal: 50000,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        id: 'group123',
+        categoryBudgets: {
+          BudgetCategory.food: 60000,
+          BudgetCategory.utilities: 25000,
+          BudgetCategory.transport: 20000,
+          BudgetCategory.entertainment: 20000,
+          BudgetCategory.healthcare: 15000,
+          BudgetCategory.education: 10000,
+          BudgetCategory.shopping: 30000,
+          BudgetCategory.other: 120000,
+        },
+        createdAt: now,
+        updatedAt: now,
       );
 
-      final remaining = budget.allocatedBudget - budget.spentAmount;
-      expect(remaining, equals(-50000)); // Over budget by ¥50,000
-      expect(budget.spentAmount / budget.allocatedBudget, equals(7 / 6)); // ~116.7%
-    });
-
-    test('validates that saving goal is reasonable', () {
-      const allocatedBudget = 300000;
-      const savingGoal = 100000;
-
-      expect(savingGoal, lessThanOrEqualTo(allocatedBudget));
-    });
-
-    test('month format is valid (YYYY-MM)', () {
-      final budget = HouseholdBudget(
-        id: 'budget123',
-        groupId: 'group123',
-        userId: 'user123',
-        month: '2026-09',
-        allocatedBudget: 300000,
-        spentAmount: 150000,
-        savingGoal: 50000,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-
-      // Verify month format matches YYYY-MM pattern
-      expect(RegExp(r'^\d{4}-\d{2}$').hasMatch(budget.month), isTrue);
+      final json = budget.toJson();
+      expect(json['id'], equals('group123'));
+      expect(json.containsKey('categoryBudgets'), isTrue);
     });
   });
 
@@ -238,55 +247,35 @@ void main() {
   });
 
   group('Budget Analysis', () {
-    test('detects overspending', () {
-      final budget = HouseholdBudget(
-        id: 'budget123',
+    test('detects overspending with summary', () {
+      final summary = HouseholdExpenseSummary(
         groupId: 'group123',
-        userId: 'user123',
         month: '2026-09',
-        allocatedBudget: 300000,
-        spentAmount: 350000,
-        savingGoal: 50000,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        totalIncome: 300000,
+        totalExpense: 350000,
+        savingAmount: -50000,
+        categoryBreakdown: const {},
       );
 
-      final isOverBudget = budget.spentAmount > budget.allocatedBudget;
+      final isOverBudget = summary.totalExpense > summary.totalIncome;
       expect(isOverBudget, isTrue);
     });
 
     test('detects if saving goal is achievable', () {
-      final budget = HouseholdBudget(
-        id: 'budget123',
-        groupId: 'group123',
-        userId: 'user123',
-        month: '2026-09',
-        allocatedBudget: 300000,
-        spentAmount: 150000,
-        savingGoal: 100000,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
+      const allocatedBudget = 300000;
+      const spentAmount = 150000;
+      const savingGoal = 100000;
 
-      final remaining = budget.allocatedBudget - budget.spentAmount;
-      final canAchieveSavingGoal = remaining >= budget.savingGoal;
+      final remaining = allocatedBudget - spentAmount;
+      final canAchieveSavingGoal = remaining >= savingGoal;
       expect(canAchieveSavingGoal, isTrue);
     });
 
     test('alerts when budget is near limit', () {
-      final budget = HouseholdBudget(
-        id: 'budget123',
-        groupId: 'group123',
-        userId: 'user123',
-        month: '2026-09',
-        allocatedBudget: 300000,
-        spentAmount: 270000, // 90% spent
-        savingGoal: 50000,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
+      const allocatedBudget = 300000;
+      const spentAmount = 270000; // 90% spent
 
-      final spendingRate = budget.spentAmount / budget.allocatedBudget;
+      final spendingRate = spentAmount / allocatedBudget;
       final shouldAlert = spendingRate >= 0.8; // Alert when 80%+ spent
       expect(shouldAlert, isTrue);
     });

@@ -1,5 +1,24 @@
 import 'household_budget.dart';
 
+/// 月間家計サマリー - ダッシュボード用の集計情報
+class HouseholdExpenseSummary {
+  final String groupId;
+  final String month; // YYYY-MM形式
+  final int totalIncome;
+  final int totalExpense;
+  final int savingAmount;
+  final Map<String, int> categoryBreakdown;
+
+  HouseholdExpenseSummary({
+    required this.groupId,
+    required this.month,
+    required this.totalIncome,
+    required this.totalExpense,
+    required this.savingAmount,
+    required this.categoryBreakdown,
+  });
+}
+
 class HouseholdMonthlyExpense {
   final String groupId;
   final DateTime month; // 年月を表す日付（日は1固定）

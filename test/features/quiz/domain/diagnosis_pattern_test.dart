@@ -23,7 +23,7 @@ void main() {
       for (var a = 0; a < 3; a++) {
         for (var b = 0; b < 3; b++) {
           for (var c = 0; c < 3; c++) {
-            final id = '$a_$b_$c';
+            final id = '${a}_${b}_$c';
             final d = PatternDiagnosisGenerator.getDiagnosis(id);
             expect(d.typeName, isNotEmpty, reason: '$id: タイプ名が空');
             expect(d.savingsTip1, isNotEmpty, reason: '$id: tip1 が空');
@@ -61,7 +61,7 @@ void main() {
       for (var a = 0; a < 3; a++) {
         for (var b = 0; b < 3; b++) {
           for (var c = 0; c < 3; c++) {
-            final d = PatternDiagnosisGenerator.getDiagnosis('$a_$b_$c');
+            final d = PatternDiagnosisGenerator.getDiagnosis('${a}_${b}_$c');
             expect(d.imageAsset, isNotEmpty);
             expect(d.imageAsset, startsWith('assets/images/diagnosis/'));
           }

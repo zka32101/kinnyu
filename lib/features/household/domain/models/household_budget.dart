@@ -117,14 +117,15 @@ class HouseholdBudget {
   int get totalBudget => categoryBudgets.values.fold(0, (a, b) => a + b);
 }
 
-class HouseholdExpenseSummary {
+/// カテゴリ別支出サマリー - 各カテゴリの使用状況を追跡
+class CategoryExpenseSummary {
   final BudgetCategory category;
   final int spent; // 実際に使った金額
   final int budget; // 予算
   final double usageRatio; // 使用率（0.0-1.0）
   final int remaining; // 残り予算
 
-  HouseholdExpenseSummary({
+  CategoryExpenseSummary({
     required this.category,
     required this.spent,
     required this.budget,

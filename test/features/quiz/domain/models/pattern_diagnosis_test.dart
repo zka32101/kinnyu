@@ -82,7 +82,7 @@ void main() {
         for (var b = 0; b < 3; b++) {
           for (var c = 0; c < 3; c++) {
             final d =
-                PatternDiagnosisGenerator.getDiagnosis('$a_$b_$c');
+                PatternDiagnosisGenerator.getDiagnosis('${a}_${b}_$c');
             expect(d.savingsTip1, isNotEmpty);
             expect(d.savingsTip2, isNotEmpty);
             expect(d.savingsTip3, isNotEmpty);
