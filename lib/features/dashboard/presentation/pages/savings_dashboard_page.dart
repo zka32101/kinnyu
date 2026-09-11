@@ -11,6 +11,8 @@ import '../../../procedures/presentation/providers/procedures_provider.dart';
 import '../../../../core/subscription/subscription_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../premium/presentation/pages/paywall_page.dart';
+import '../../../household/presentation/widgets/financial_health_score_card.dart';
+import '../../../household/presentation/widgets/financial_health_recommendations.dart';
 import '../widgets/quick_actions_card.dart';
 import '../widgets/dashboard_sections.dart';
 
@@ -48,6 +50,10 @@ class SavingsDashboardPage extends ConsumerWidget {
                   UnifiedMetricsSection(groupId: user.uid),
                   const SizedBox(height: 20),
 
+                  // 財務健全性スコア - ユーザーの財務状況を総合評価
+                  FinancialHealthScoreCard(groupId: user.uid),
+                  const SizedBox(height: 20),
+
                   // 月間家計セクション - 動的データをFirestoreから取得
                   MonthlySummarySection(
                     groupId: user.uid,
@@ -78,6 +84,10 @@ class SavingsDashboardPage extends ConsumerWidget {
                       );
                     },
                   ),
+                  const SizedBox(height: 20),
+
+                  // スコア改善の推奨事項 - 財務健全性向上のための具体的アドバイス
+                  FinancialHealthRecommendations(groupId: user.uid),
                   const SizedBox(height: 20),
 
                   // カテゴリ別支出セクション - 動的データをFirestoreから取得
