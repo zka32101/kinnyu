@@ -4,36 +4,30 @@ import '../../domain/models/household_budget.dart';
 import '../../domain/models/household_expense_summary.dart';
 import '../../domain/models/household_group.dart';
 import '../../domain/services/financial_health_calculator.dart';
+import '../../data/household_service.dart';
 import './household_budget_provider.dart';
 import './household_provider.dart';
 import './social_contribution_provider.dart';
 import '../../../core/services/notification_provider.dart';
 
-/// 現在月の家計情報プロバイダー（プレースホルダー）
+/// 現在月の家計情報プロバイダー
 /// 実装の最適化：
 /// - keepAlive: Firestore クエリのキャッシュを保持
 /// - Firestoreから月別の家計サマリーを取得する際の再計算を防止
+/// - 実データ：HouseholdServiceから実際のレシート集計データを取得
 final monthlyExpenseSummaryProvider = FutureProvider.autoDispose
     .family<HouseholdExpenseSummary?, String>((ref, groupId) async {
-  // TODO: Implement Firestore query to fetch monthly expense summary
-  // For now, return a placeholder
-  return HouseholdExpenseSummary(
-    groupId: groupId,
-    month: '2026-09',
-    totalIncome: 500000,
-    totalExpense: 300000,
-    savingAmount: 200000,
-    categoryBreakdown: {
-      '食費': 60000,
-      '光熱費': 25000,
-      '交通費': 20000,
-      '娯楽': 20000,
-      '医療': 15000,
-      '教育': 10000,
-      'ショッピング': 30000,
-      'その他': 120000,
-    },
-  );
+  try {
+    final service = HouseholdService();
+    final now = DateTime.now();
+    return await service.getMonthlyExpenseSummary(
+      groupId: groupId,
+      month: DateTime(now.year, now.month),
+    );
+  } catch (e) {
+    // エラー時はnullを返す（詳細ページでエラーハンドリング）
+    return null;
+  }
 }).keepAlive();
 
 /// 投資額プロバイダー
