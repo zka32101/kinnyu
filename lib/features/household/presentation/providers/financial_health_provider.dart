@@ -613,3 +613,85 @@ class ScoreImprovementAction {
 
   int get scoreGain => targetScore - currentScore;
 }
+
+/// 月間貯蓄率トレンドプロバイダー
+/// Phase 3 Enhancement: 貯蓄率の推移を6ヶ月間追跡して、改善トレンドを可視化
+/// 実装の最適化：
+/// - keepAlive: トレンドデータのキャッシュを保持
+/// - 貯蓄率は財務健全性の重要な指標
+final monthlySavingsRateTrendProvider = FutureProvider.autoDispose
+    .family<List<MonthlySavingsRateTrend>, String>((ref, groupId) async {
+  try {
+    // トレンドスコアから過去6ヶ月のスコア情報を取得
+    final trendsAsync = ref.watch(financialHealthScoreTrendProvider(groupId));
+
+    final trends = trendsAsync.when(
+      data: (data) => data,
+      error: (error, stack) => [],
+      loading: () => [],
+    );
+
+    if (trends.isEmpty) {
+      return [];
+    }
+
+    // 現在月の支出サマリーから実際の貯蓄率を計算
+    final summaryAsync = ref.watch(monthlyExpenseSummaryProvider(groupId));
+    final summary = summaryAsync.when(
+      data: (data) => data,
+      error: (error, stack) => null,
+      loading: () => null,
+    );
+
+    final savingsRateTrends = <MonthlySavingsRateTrend>[];
+
+    for (final (index, trend) in trends.indexed) {
+      final savingsRatio = trend.categoryScores['savingsRatio'] ?? 0;
+      final isCurrentMonth = index == trends.length - 1;
+
+      // 現在月の実績を反映
+      final actualSavingsRatio = isCurrentMonth && summary != null
+        ? ((summary.savingAmount / summary.totalIncome * 100).clamp(0.0, 100.0)).toInt()
+        : savingsRatio;
+
+      savingsRateTrends.add(
+        MonthlySavingsRateTrend(
+          month: trend.month,
+          savingsRatioScore: actualSavingsRatio,
+          isCurrentMonth: isCurrentMonth,
+          trend: _calculateTrend(savingsRateTrends.map((t) => t.savingsRatioScore).toList()),
+        ),
+      );
+    }
+
+    return savingsRateTrends;
+  } catch (e) {
+    return [];
+  }
+}).keepAlive();
+
+/// 月間貯蓄率のトレンド情報
+class MonthlySavingsRateTrend {
+  final String month; // YYYY-MM形式
+  final int savingsRatioScore; // 0-100
+  final bool isCurrentMonth;
+  final String trend; // '↑', '→', '↓'
+
+  MonthlySavingsRateTrend({
+    required this.month,
+    required this.savingsRatioScore,
+    required this.isCurrentMonth,
+    required this.trend,
+  });
+}
+
+/// 貯蓄率のトレンド方向を計算（前月比）
+String _calculateTrend(List<int> scores) {
+  if (scores.length < 2) return '→';
+  final current = scores.last.toDouble();
+  final previous = scores[scores.length - 2].toDouble();
+
+  if (current > previous + 2) return '↑';
+  if (current < previous - 2) return '↓';
+  return '→';
+}
