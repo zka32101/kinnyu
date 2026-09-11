@@ -51,59 +51,8 @@ final financialHealthScoreProvider = FutureProvider.autoDispose
 /// スコア詳細プロバイダー
 final financialHealthScoreDetailProvider = FutureProvider.autoDispose
     .family<FinancialHealthScoreDetail?, String>((ref, groupId) async {
-  final score = FinancialHealthScore(
-    groupId: groupId,
-    calculatedAt: DateTime.now(),
-    overallScore: 70,
-    savingsRatioScore: 70,
-    budgetAdherenceScore: 70,
-    expenseControlScore: 70,
-    investmentEngagementScore: 70,
-    socialImpactScore: 70,
-  );
-
-  return FinancialHealthScoreDetail(
-    score: score,
-    categories: [
-      HealthScoreCategory(
-        categoryName: 'savingsRatio',
-        displayName: 'Savings Ratio',
-        score: 70,
-        description: 'Monthly savings rate',
-        status: 'good',
-      ),
-      HealthScoreCategory(
-        categoryName: 'budgetAdherence',
-        displayName: 'Budget Adherence',
-        score: 70,
-        description: 'Budget compliance',
-        status: 'good',
-      ),
-      HealthScoreCategory(
-        categoryName: 'expenseControl',
-        displayName: 'Expense Control',
-        score: 70,
-        description: 'Spending control',
-        status: 'good',
-      ),
-      HealthScoreCategory(
-        categoryName: 'investmentEngagement',
-        displayName: 'Investment Engagement',
-        score: 70,
-        description: 'Investment participation',
-        status: 'good',
-      ),
-      HealthScoreCategory(
-        categoryName: 'socialImpact',
-        displayName: 'Social Impact',
-        score: 70,
-        description: 'Community contribution',
-        status: 'good',
-      ),
-    ],
-    recommendations: [],
-    monthlyTrend: 0.0,
-  );
+  // Placeholder: Return null for now - full implementation deferred
+  return null;
 }).keepAlive();
 
 /// スコアトレンドプロバイダー
