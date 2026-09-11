@@ -46,6 +46,7 @@ dependencies:
 
   # UI & Animations
   lottie: ^3.0.0
+  fl_chart: ^0.68.0
 
   # Image & File handling
   image_picker: ^1.0.0

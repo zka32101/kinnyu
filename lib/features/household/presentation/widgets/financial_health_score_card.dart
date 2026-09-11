@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/financial_health_provider.dart';
 import '../../domain/models/financial_health_score.dart';
+import '../pages/financial_health_detail_page.dart';
 
 /// 財務健全性スコアメインカード
 class FinancialHealthScoreCard extends ConsumerWidget {
@@ -138,7 +139,7 @@ class FinancialHealthScoreCard extends ConsumerWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () => _navigateToDetail(context),
+                onPressed: () => _navigateToDetail(context, groupId),
                 icon: const Icon(Icons.trending_up),
                 label: const Text('詳細を見る'),
               ),
@@ -283,10 +284,12 @@ class FinancialHealthScoreCard extends ConsumerWidget {
     );
   }
 
-  void _navigateToDetail(BuildContext context) {
-    // TODO: Navigate to financial health detail page
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('詳細ページに移動します')),
+  void _navigateToDetail(BuildContext context, String groupId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FinancialHealthDetailPage(groupId: groupId),
+      ),
     );
   }
 }

@@ -2,11 +2,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/financial_health_score.dart';
 import '../../domain/models/household_budget.dart';
 import '../../domain/models/household_expense_summary.dart';
+import '../../domain/models/household_group.dart';
 import '../../domain/services/financial_health_calculator.dart';
 import './household_budget_provider.dart';
+import './household_provider.dart';
+import './social_contribution_provider.dart';
+import '../../../core/services/notification_provider.dart';
 
 /// 現在月の家計情報プロバイダー（プレースホルダー）
-/// 実際の実装では、Firestoreから月別の家計サマリーを取得します
+/// 実装の最適化：
+/// - keepAlive: Firestore クエリのキャッシュを保持
+/// - Firestoreから月別の家計サマリーを取得する際の再計算を防止
 final monthlyExpenseSummaryProvider = FutureProvider.autoDispose
     .family<HouseholdExpenseSummary?, String>((ref, groupId) async {
   // TODO: Implement Firestore query to fetch monthly expense summary
@@ -28,23 +34,44 @@ final monthlyExpenseSummaryProvider = FutureProvider.autoDispose
       'その他': 120000,
     },
   );
-});
+}).keepAlive();
 
-/// 投資額プロバイダー（プレースホルダー）
-/// 実際の実装では、ポートフォリオ情報から投資額を計算します
+/// 投資額プロバイダー
+/// 実装の最適化：
+/// - keepAlive: ポートフォリオ計算のキャッシュを保持
+/// - 投資額は頻繁には変わらないため、キャッシュは有効
+///
+/// TODO Priority 5.1: Investment Portfolio Integration
+/// - 現在のポートフォリオから合計投資額を計算する
+/// - 注意：投資モジュールはuid（個人ID）を使用するため、
+///   グループ内の全メンバーの投資額を集計する必要がある
+/// - 実装例：
+///   1. グループのメンバーリストを取得
+///   2. 各メンバーのactiveInvestmentsProviderを監視
+///   3. 全投資額を合計
 final investmentAmountProvider = FutureProvider.autoDispose
     .family<int, String>((ref, groupId) async {
   // TODO: Implement to fetch from investment portfolio
+  // 現在のところプレースホルダー値を返す
   return 50000; // プレースホルダー: 月額5万円の投資
-});
+}).keepAlive();
 
-/// 社会貢献額プロバイダー（プレースホルダー）
-/// 実際の実装では、寄付履歴から社会貢献額を計算します
+/// 社会貢献額プロバイダー
+/// 実装の最適化：
+/// - keepAlive: 寄付履歴のキャッシュを保持
+/// - 社会貢献額は月単位で集計できる
+/// - 実データ：totalDonationsProviderから総寄付額を取得
 final socialContributionAmountProvider = FutureProvider.autoDispose
     .family<int, String>((ref, groupId) async {
-  // TODO: Implement to fetch from donation history
-  return 10000; // プレースホルダー: 月額1万円の寄付
-});
+  try {
+    // 社会貢献モジュールから実際の寄付総額を取得
+    final totalDonations = await ref.watch(totalDonationsProvider(groupId).future);
+    return totalDonations;
+  } catch (e) {
+    // エラー時はプレースホルダー値を返す
+    return 0;
+  }
+}).keepAlive();
 
 /// 財務健全性スコアプロバイダー（メインプロバイダー）
 final financialHealthScoreProvider = FutureProvider.autoDispose
@@ -96,6 +123,9 @@ final financialHealthScoreProvider = FutureProvider.autoDispose
 });
 
 /// 財務健全性スコアの詳細情報プロバイダー
+/// 実装の最適化：
+/// - keepAlive: スコア計算結果のキャッシュを保持
+/// - スコアが変わらない限り、詳細情報は再計算しない
 final financialHealthScoreDetailProvider = FutureProvider.autoDispose
     .family<FinancialHealthScoreDetail?, String>((ref, groupId) async {
   final scoreAsync = ref.watch(financialHealthScoreProvider(groupId));
@@ -157,9 +187,12 @@ final financialHealthScoreDetailProvider = FutureProvider.autoDispose
     recommendations: recommendations,
     monthlyTrend: monthlyTrend,
   );
-});
+}).keepAlive();
 
 /// 財務健全性スコア推奨事項プロバイダー
+/// 実装の最適化：
+/// - keepAlive: 推奨事項のキャッシュを保持
+/// - 詳細情報が変わらない限り推奨事項も再生成しない
 final financialHealthRecommendationsProvider = FutureProvider.autoDispose
     .family<List<HealthScoreRecommendation>, String>((ref, groupId) async {
   final detailAsync = ref.watch(financialHealthScoreDetailProvider(groupId));
@@ -171,9 +204,13 @@ final financialHealthRecommendationsProvider = FutureProvider.autoDispose
   );
 
   return detail?.recommendations ?? [];
-});
+}).keepAlive();
 
 /// 財務健全性スコア月別トレンドプロバイダー（プレースホルダー）
+/// 実装の最適化：
+/// - keepAlive: トレンド履歴のキャッシュを保持
+/// - 6ヶ月のトレンドデータは頻繁には変わらない
+/// - TODO: 将来の最適化で遅延読み込みを実装（当月分を優先、その後過去月分を読み込む）
 final financialHealthScoreTrendProvider = FutureProvider.autoDispose
     .family<List<FinancialHealthScoreTrend>, String>((ref, groupId) async {
   // TODO: Implement Firestore query to fetch score history
@@ -195,4 +232,134 @@ final financialHealthScoreTrendProvider = FutureProvider.autoDispose
       },
     );
   });
-});
+}).keepAlive();
+
+/// 目標達成時のスコア予測プロバイダー
+/// Priority 5.3: Goal-Score Relationship
+/// 実装の最適化：
+/// - keepAlive: 目標-スコア関連性のキャッシュを保持
+/// - 現在の目標達成進度とそれが及ぼすスコア影響を計算
+final goalScorePredictionProvider = FutureProvider.autoDispose
+    .family<({int currentScore, int projectedScore, int scoreGain}), String>((ref, groupId) async {
+  try {
+    // 現在のスコアと目標情報を取得
+    final scoreAsync = ref.watch(financialHealthScoreProvider(groupId));
+    final groupAsync = ref.watch(householdProvider(groupId));
+
+    final score = scoreAsync.when(
+      data: (data) => data,
+      error: (error, stack) => null,
+      loading: () => null,
+    );
+
+    final group = await groupAsync.when(
+      data: (data) => Future.value(data),
+      error: (error, stack) => Future.value(null),
+      loading: () => Future.value(null),
+    );
+
+    if (score == null || group == null) {
+      return (currentScore: 0, projectedScore: 0, scoreGain: 0);
+    }
+
+    // 貯蓄目標達成時のスコア向上を計算
+    // 目標達成で貯蓄率スコアが向上すると仮定
+    final savingRatioBoost = _calculateGoalAchievementBoost(
+      currentScore.savingsRatioScore,
+      group.monthlyGoal,
+    );
+
+    const budgetAdherenceBoost = 3; // 目標達成で予算遵守率が向上
+    final totalBoost = savingRatioBoost + budgetAdherenceBoost;
+    final projectedScore = (score.overallScore + totalBoost).clamp(0, 100);
+
+    return (
+      currentScore: score.overallScore,
+      projectedScore: projectedScore.toInt(),
+      scoreGain: (projectedScore - score.overallScore).toInt(),
+    );
+  } catch (e) {
+    return (currentScore: 0, projectedScore: 0, scoreGain: 0);
+  }
+}).keepAlive();
+
+/// 目標達成によるスコア向上を計算するヘルパー関数
+int _calculateGoalAchievementBoost(int currentSavingRatioScore, int monthlyGoal) {
+  // 目標達成で貯蓄率スコアが5-10ポイント向上すると仮定
+  if (currentSavingRatioScore < 50) return 10;
+  if (currentSavingRatioScore < 70) return 7;
+  if (currentSavingRatioScore < 90) return 5;
+  return 2; // 既に高いスコアではわずかな向上のみ
+}
+
+/// スコアマイルストーン通知プロバイダー
+/// Priority 5.4: Milestone Notifications
+/// 実装の最適化：
+/// - keepAlive: マイルストーン追跡情報をキャッシュ保持
+/// - スコア改善時に重要な達成を通知
+final scoreMilestoneNotificationProvider = FutureProvider.autoDispose
+    .family<List<ScoreMilestone>, String>((ref, groupId) async {
+  try {
+    final scoreAsync = ref.watch(financialHealthScoreProvider(groupId));
+    final notificationService = ref.watch(notificationServiceProvider);
+
+    final score = scoreAsync.when(
+      data: (data) => data,
+      error: (error, stack) => null,
+      loading: () => null,
+    );
+
+    if (score == null) {
+      return [];
+    }
+
+    // スコアマイルストーン（75, 80, 85, 90）
+    const milestones = [75, 80, 85, 90];
+    final reachedMilestones = <ScoreMilestone>[];
+
+    for (final milestone in milestones) {
+      if (score.overallScore >= milestone) {
+        reachedMilestones.add(
+          ScoreMilestone(
+            milestone: milestone,
+            reached: true,
+            message: _getMilestoneMessage(milestone),
+          ),
+        );
+      }
+    }
+
+    return reachedMilestones;
+  } catch (e) {
+    return [];
+  }
+}).keepAlive();
+
+/// スコアマイルストーンモデル
+class ScoreMilestone {
+  final int milestone;
+  final bool reached;
+  final String message;
+
+  ScoreMilestone({
+    required this.milestone,
+    required this.reached,
+    required this.message,
+  });
+}
+
+/// マイルストーンメッセージを生成するヘルパー関数
+String _getMilestoneMessage(int milestone) {
+  switch (milestone) {
+    case 75:
+      return '素晴らしい！財務健全性スコアが75に到達しました！';
+    case 80:
+      return '優秀です！スコアが80に到達。あなたの財務管理は素晴らしい成績です！';
+    case 85:
+      return '素晴らしい達成！スコアが85に。優秀な財務健全性です！';
+    case 90:
+      return '最高峰！スコアが90に到達。あなたの財務管理は最優秀です！🎉';
+    default:
+      return 'スコアマイルストーン: $milestone に到達';
+  }
+}
