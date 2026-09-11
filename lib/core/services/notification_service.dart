@@ -21,11 +21,15 @@ class NotificationService {
   static const String procedureChannelName = '制度・手続きリマインダー';
   static const String recommendationChannelId = 'weekly_recommendation';
   static const String recommendationChannelName = 'おすすめ通知';
+  static const String financialHealthChannelId = 'financial_health_milestone';
+  static const String financialHealthChannelName = '財務健全性スコア通知';
   // 制度リマインダーの通知IDは他機能(0, timestampベース)と衝突しない範囲を予約する
   static const int _procedureReminderIdBase = 20000;
   // 週次おすすめ通知の固定通知ID（streakReminderの0番、mission/diagnosisの
   // timestampベースID、制度リマインダーの20000番台と衝突しない値を使う）
   static const int _weeklyRecommendationId = 1;
+  // 財務健全性スコア通知の予約ID範囲
+  static const int _financialHealthMilestoneIdBase = 30000;
 
   late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
@@ -88,6 +92,15 @@ class NotificationService {
           enableVibration: true,
         );
         await androidImpl.createNotificationChannel(recommendationChannel);
+
+        const AndroidNotificationChannel financialHealthChannel = AndroidNotificationChannel(
+          financialHealthChannelId,
+          financialHealthChannelName,
+          description: '財務健全性スコアのマイルストーン達成やスコア改善をお知らせする通知',
+          importance: Importance.high,
+          enableVibration: true,
+        );
+        await androidImpl.createNotificationChannel(financialHealthChannel);
       }
 
       // ここまで例外なく到達した場合のみ初期化完了とみなす
@@ -378,6 +391,167 @@ class NotificationService {
       scheduled = tz.TZDateTime(tz.local, now.year + 1, month, day, hour);
     }
     return scheduled;
+  }
+
+  /// 財務健全性スコアがマイルストーンに到達したことを通知する。
+  /// マイルストーン：50, 60, 70, 80, 90
+  Future<void> showScoreMilestoneNotification(int currentScore) async {
+    if (!_initialized) {
+      debugPrint('NotificationService: not initialized, skipping showScoreMilestoneNotification');
+      return;
+    }
+
+    // マイルストーン判定: 50, 60, 70, 80, 90
+    final milestones = [50, 60, 70, 80, 90];
+    if (!milestones.contains(currentScore)) {
+      return;
+    }
+
+    try {
+      final title = _getMilestoneTitle(currentScore);
+      final body = _getMilestoneMessage(currentScore);
+      final notificationId = _financialHealthMilestoneIdBase + currentScore;
+
+      const AndroidNotificationDetails androidPlatformChannelSpecifics =
+          AndroidNotificationDetails(
+        financialHealthChannelId,
+        financialHealthChannelName,
+        channelDescription: '財務健全性スコアのマイルストーン達成やスコア改善をお知らせする通知',
+        importance: Importance.high,
+        priority: Priority.high,
+        enableVibration: true,
+        playSound: true,
+      );
+
+      const NotificationDetails platformChannelSpecifics =
+          NotificationDetails(
+        android: androidPlatformChannelSpecifics,
+      );
+
+      await flutterLocalNotificationsPlugin.show(
+        notificationId,
+        title,
+        body,
+        platformChannelSpecifics,
+      );
+    } catch (e) {
+      debugPrint('財務スコアマイルストーン通知の送信失敗: $e');
+    }
+  }
+
+  /// 財務健全性スコアが月単位で改善したことを通知する。
+  Future<void> showScoreImprovementNotification({
+    required int previousScore,
+    required int currentScore,
+    required String category = '総合スコア',
+  }) async {
+    if (!_initialized) {
+      debugPrint('NotificationService: not initialized, skipping showScoreImprovementNotification');
+      return;
+    }
+
+    final improvement = currentScore - previousScore;
+    if (improvement <= 0) {
+      return; // 改善がない場合は通知しない
+    }
+
+    try {
+      final notificationId = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+      const AndroidNotificationDetails androidPlatformChannelSpecifics =
+          AndroidNotificationDetails(
+        financialHealthChannelId,
+        financialHealthChannelName,
+        channelDescription: '財務健全性スコアのマイルストーン達成やスコア改善をお知らせする通知',
+        importance: Importance.high,
+        priority: Priority.high,
+        enableVibration: true,
+        playSound: true,
+      );
+
+      const NotificationDetails platformChannelSpecifics =
+          NotificationDetails(
+        android: androidPlatformChannelSpecifics,
+      );
+
+      await flutterLocalNotificationsPlugin.show(
+        notificationId,
+        '📈 $category が改善しました！',
+        '前月: $previousScore点 → 今月: $currentScore点 (+$improvement点)',
+        platformChannelSpecifics,
+      );
+    } catch (e) {
+      debugPrint('財務スコア改善通知の送信失敗: $e');
+    }
+  }
+
+  /// 目標達成がスコアに与える影響を通知する。
+  Future<void> showGoalAchievementImpactNotification({
+    required String goalName,
+    required int scoreGain,
+    required int projectedScore,
+  }) async {
+    if (!_initialized) {
+      debugPrint('NotificationService: not initialized, skipping showGoalAchievementImpactNotification');
+      return;
+    }
+
+    if (scoreGain <= 0) {
+      return; // スコア増加がない場合は通知しない
+    }
+
+    try {
+      final notificationId = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+      const AndroidNotificationDetails androidPlatformChannelSpecifics =
+          AndroidNotificationDetails(
+        financialHealthChannelId,
+        financialHealthChannelName,
+        channelDescription: '財務健全性スコアのマイルストーン達成やスコア改善をお知らせする通知',
+        importance: Importance.high,
+        priority: Priority.high,
+        enableVibration: true,
+        playSound: true,
+      );
+
+      const NotificationDetails platformChannelSpecifics =
+          NotificationDetails(
+        android: androidPlatformChannelSpecifics,
+      );
+
+      await flutterLocalNotificationsPlugin.show(
+        notificationId,
+        '🎯 $goalName を達成すると',
+        'スコアが+$scoreGain点増加して $projectedScore点になります！',
+        platformChannelSpecifics,
+      );
+    } catch (e) {
+      debugPrint('目標達成影響通知の送信失敗: $e');
+    }
+  }
+
+  /// スコアマイルストーンのタイトルを取得する。
+  String _getMilestoneTitle(int score) {
+    return switch (score) {
+      50 => '🎉 スコア50に到達！',
+      60 => '⭐ スコア60に到達！',
+      70 => '✨ スコア70に到達！',
+      80 => '🏆 スコア80に到達！',
+      90 => '👑 スコア90に到達！',
+      _ => 'スコア更新！',
+    };
+  }
+
+  /// スコアマイルストーンのメッセージを取得する。
+  String _getMilestoneMessage(int score) {
+    return switch (score) {
+      50 => 'あなたの財務健全性が平均レベルに達しました。このまま改善を続けましょう！',
+      60 => 'あなたの財務健全性が良好レベルに達しました。継続が成功を呼びます！',
+      70 => 'あなたの財務健全性が優秀レベルに達しました。素晴らしい進捗です！',
+      80 => 'あなたの財務健全性が卓越レベルに達しました。これはすごい！',
+      90 => 'あなたの財務健全性が最高レベルに達しました。完璧です！',
+      _ => '新しいマイルストーンを達成しました！',
+    };
   }
 
   Future<void> cancelAllNotifications() async {

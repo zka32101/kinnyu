@@ -9,6 +9,7 @@ import './household_budget_provider.dart';
 import './household_provider.dart';
 import './social_contribution_provider.dart';
 import '../../../core/services/notification_provider.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../features/investment/presentation/providers/investment_provider.dart';
 
 /// 現在月の家計情報プロバイダー
@@ -135,6 +136,42 @@ final scoreImprovementGuideProvider = FutureProvider.autoDispose
     ScoreImprovementAction(category: 'savingsRatio', displayName: 'Savings Ratio', priority: 1, currentScore: 65, targetScore: 85, actionItems: ['Reduce spending by 5%', 'Review fixed expenses']),
     ScoreImprovementAction(category: 'budgetAdherence', displayName: 'Budget Adherence', priority: 2, currentScore: 70, targetScore: 85, actionItems: ['Track monthly expenses', 'Adjust budget allocations']),
   ];
+}).keepAlive();
+
+/// 財務健全性スコアの変化を監視し、マイルストーン達成と改善をお知らせする
+final financialHealthNotificationProvider = FutureProvider.autoDispose
+    .family<void, String>((ref, groupId) async {
+  try {
+    // 現在のスコアを監視
+    final scoreAsync = ref.watch(financialHealthScoreProvider(groupId));
+    final currentScore = await scoreAsync.future;
+
+    // 前月のスコアを監視（トレンドプロバイダーから取得）
+    final trendsAsync = ref.watch(financialHealthScoreTrendProvider(groupId));
+    final trends = await trendsAsync.future;
+
+    // スコアが有効な場合、通知を送信する
+    if (currentScore.overallScore > 0 && trends.isNotEmpty) {
+      final notificationService = NotificationService();
+
+      // マイルストーン達成の通知
+      notificationService.showScoreMilestoneNotification(currentScore.overallScore);
+
+      // 月単位での改善を検出して通知
+      if (trends.length >= 2) {
+        final previousMonthScore = trends[trends.length - 2].overallScore;
+        if (currentScore.overallScore > previousMonthScore) {
+          notificationService.showScoreImprovementNotification(
+            previousScore: previousMonthScore,
+            currentScore: currentScore.overallScore,
+            category: '総合スコア',
+          );
+        }
+      }
+    }
+  } catch (e) {
+    // 通知送信の失敗はアプリの動作に影響しないようにする
+  }
 }).keepAlive();
 
 /// 月間貯蓄率トレンドプロバイダー

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/financial_health_score.dart';
 import './financial_health_provider.dart';
+import '../../../core/services/notification_service.dart';
 
 /// Goal achievement impact on financial health score
 class GoalScoreImpact {
@@ -95,5 +96,29 @@ final allGoalScoreImpactsProvider = FutureProvider.autoDispose
     return impacts;
   } catch (e) {
     return [];
+  }
+}).keepAlive();
+
+/// ゴール達成がスコアに与える影響を通知する
+final goalAchievementNotificationProvider = FutureProvider.autoDispose
+    .family<void, String>((ref, groupId) async {
+  try {
+    // すべてのゴールの影響を監視
+    final impactsAsync = ref.watch(allGoalScoreImpactsProvider(groupId));
+    final impacts = await impactsAsync.future;
+
+    // 各ゴールについて通知を送信
+    for (final impact in impacts) {
+      if (impact.scoreGain > 0) {
+        final notificationService = NotificationService();
+        notificationService.showGoalAchievementImpactNotification(
+          goalName: impact.goalName,
+          scoreGain: impact.scoreGain,
+          projectedScore: impact.projectedScore,
+        );
+      }
+    }
+  } catch (e) {
+    // 通知送信の失敗はアプリの動作に影響しないようにする
   }
 }).keepAlive();
