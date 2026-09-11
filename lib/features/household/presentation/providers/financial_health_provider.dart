@@ -61,9 +61,19 @@ final investmentAmountProvider = FutureProvider.autoDispose
   }
 }).keepAlive();
 
-/// 社会貢献額プロバイダー - Placeholder
+/// 社会貢献額プロバイダー - Fetch real donation/contribution data
 final socialContributionAmountProvider = FutureProvider.autoDispose
-    .family<int, String>((ref, groupId) async => 0).keepAlive();
+    .family<int, String>((ref, groupId) async {
+  try {
+    // Get real contribution data from social contribution service
+    final service = ref.watch(socialContributionServiceProvider);
+    final totalDonations = await service.getTotalDonations(groupId);
+    return totalDonations;
+  } catch (e) {
+    // Fallback to 0 if service unavailable
+    return 0;
+  }
+}).keepAlive();
 
 /// 財務健全性スコアプロバイダー
 final financialHealthScoreProvider = FutureProvider.autoDispose
