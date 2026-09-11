@@ -298,9 +298,10 @@ class HouseholdService {
         }
       }
 
-      // TODO: 実装時には実際の収入データをFirestoreから取得する
-      // 現在はプレースホルダー値を使用
-      const totalIncome = 500000;
+      // グループの予算情報から収入を推定（総予算 = 月額予定収入）
+      // TODO: 実装時には実際の収入データを専用フィールドから取得する
+      final budget = await getBudget(groupId);
+      final totalIncome = budget?.totalBudget ?? 500000; // プレースホルダー
       final savingAmount = totalIncome - totalExpense;
 
       return HouseholdExpenseSummary(
