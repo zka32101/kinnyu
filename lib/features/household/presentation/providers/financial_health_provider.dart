@@ -9,6 +9,7 @@ import './household_budget_provider.dart';
 import './household_provider.dart';
 import './social_contribution_provider.dart';
 import '../../../core/services/notification_provider.dart';
+import '../../../features/investment/presentation/providers/investment_provider.dart';
 
 /// 現在月の家計情報プロバイダー
 final monthlyExpenseSummaryProvider = FutureProvider.autoDispose
@@ -25,9 +26,40 @@ final monthlyExpenseSummaryProvider = FutureProvider.autoDispose
   }
 }).keepAlive();
 
-/// 投資額プロバイダー - Placeholder
+/// 投資額プロバイダー - Aggregate real investment values from all household members
 final investmentAmountProvider = FutureProvider.autoDispose
-    .family<int, String>((ref, groupId) async => 0).keepAlive();
+    .family<int, String>((ref, groupId) async {
+  try {
+    // Get household group to find all members
+    final groupAsync = ref.watch(groupStreamProvider(groupId));
+    final group = await groupAsync.future;
+
+    if (group == null || group.members.isEmpty) {
+      return 0;
+    }
+
+    // Aggregate investments from all members
+    int totalInvestment = 0;
+    for (final member in group.members) {
+      try {
+        final investmentsAsync = ref.watch(activeInvestmentsProvider(member.uid));
+        final investments = await investmentsAsync.future;
+        if (investments != null) {
+          for (final investment in investments) {
+            totalInvestment += investment.savingsAmount;
+          }
+        }
+      } catch (_) {
+        // Continue if one member's data fails
+        continue;
+      }
+    }
+
+    return totalInvestment;
+  } catch (e) {
+    return 0;
+  }
+}).keepAlive();
 
 /// 社会貢献額プロバイダー - Placeholder
 final socialContributionAmountProvider = FutureProvider.autoDispose
