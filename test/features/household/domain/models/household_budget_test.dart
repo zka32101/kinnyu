@@ -247,55 +247,35 @@ void main() {
   });
 
   group('Budget Analysis', () {
-    test('detects overspending', () {
-      final budget = HouseholdBudget(
-        id: 'budget123',
+    test('detects overspending with summary', () {
+      final summary = HouseholdExpenseSummary(
         groupId: 'group123',
-        userId: 'user123',
         month: '2026-09',
-        allocatedBudget: 300000,
-        spentAmount: 350000,
-        savingGoal: 50000,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        totalIncome: 300000,
+        totalExpense: 350000,
+        savingAmount: -50000,
+        categoryBreakdown: const {},
       );
 
-      final isOverBudget = budget.spentAmount > budget.allocatedBudget;
+      final isOverBudget = summary.totalExpense > summary.totalIncome;
       expect(isOverBudget, isTrue);
     });
 
     test('detects if saving goal is achievable', () {
-      final budget = HouseholdBudget(
-        id: 'budget123',
-        groupId: 'group123',
-        userId: 'user123',
-        month: '2026-09',
-        allocatedBudget: 300000,
-        spentAmount: 150000,
-        savingGoal: 100000,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
+      const allocatedBudget = 300000;
+      const spentAmount = 150000;
+      const savingGoal = 100000;
 
-      final remaining = budget.allocatedBudget - budget.spentAmount;
-      final canAchieveSavingGoal = remaining >= budget.savingGoal;
+      final remaining = allocatedBudget - spentAmount;
+      final canAchieveSavingGoal = remaining >= savingGoal;
       expect(canAchieveSavingGoal, isTrue);
     });
 
     test('alerts when budget is near limit', () {
-      final budget = HouseholdBudget(
-        id: 'budget123',
-        groupId: 'group123',
-        userId: 'user123',
-        month: '2026-09',
-        allocatedBudget: 300000,
-        spentAmount: 270000, // 90% spent
-        savingGoal: 50000,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
+      const allocatedBudget = 300000;
+      const spentAmount = 270000; // 90% spent
 
-      final spendingRate = budget.spentAmount / budget.allocatedBudget;
+      final spendingRate = spentAmount / allocatedBudget;
       final shouldAlert = spendingRate >= 0.8; // Alert when 80%+ spent
       expect(shouldAlert, isTrue);
     });
