@@ -4,6 +4,8 @@ import '../../domain/models/household_budget.dart';
 import '../../domain/models/household_expense_summary.dart';
 import '../../domain/services/financial_health_calculator.dart';
 import './household_budget_provider.dart';
+import './social_contribution_provider.dart';
+import '../../../investment/presentation/providers/investment_provider.dart';
 
 /// 現在月の家計情報プロバイダー（プレースホルダー）
 /// 実装の最適化：
@@ -32,24 +34,41 @@ final monthlyExpenseSummaryProvider = FutureProvider.autoDispose
   );
 }).keepAlive();
 
-/// 投資額プロバイダー（プレースホルダー）
+/// 投資額プロバイダー
 /// 実装の最適化：
 /// - keepAlive: ポートフォリオ計算のキャッシュを保持
 /// - 投資額は頻繁には変わらないため、キャッシュは有効
+///
+/// TODO Priority 5.1: Investment Portfolio Integration
+/// - 現在のポートフォリオから合計投資額を計算する
+/// - 注意：投資モジュールはuid（個人ID）を使用するため、
+///   グループ内の全メンバーの投資額を集計する必要がある
+/// - 実装例：
+///   1. グループのメンバーリストを取得
+///   2. 各メンバーのactiveInvestmentsProviderを監視
+///   3. 全投資額を合計
 final investmentAmountProvider = FutureProvider.autoDispose
     .family<int, String>((ref, groupId) async {
   // TODO: Implement to fetch from investment portfolio
+  // 現在のところプレースホルダー値を返す
   return 50000; // プレースホルダー: 月額5万円の投資
 }).keepAlive();
 
-/// 社会貢献額プロバイダー（プレースホルダー）
+/// 社会貢献額プロバイダー
 /// 実装の最適化：
 /// - keepAlive: 寄付履歴のキャッシュを保持
 /// - 社会貢献額は月単位で集計できる
+/// - 実データ：totalDonationsProviderから総寄付額を取得
 final socialContributionAmountProvider = FutureProvider.autoDispose
     .family<int, String>((ref, groupId) async {
-  // TODO: Implement to fetch from donation history
-  return 10000; // プレースホルダー: 月額1万円の寄付
+  try {
+    // 社会貢献モジュールから実際の寄付総額を取得
+    final totalDonations = await ref.watch(totalDonationsProvider(groupId).future);
+    return totalDonations;
+  } catch (e) {
+    // エラー時はプレースホルダー値を返す
+    return 0;
+  }
 }).keepAlive();
 
 /// 財務健全性スコアプロバイダー（メインプロバイダー）
