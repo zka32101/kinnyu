@@ -6,7 +6,9 @@ import '../../domain/services/financial_health_calculator.dart';
 import './household_budget_provider.dart';
 
 /// 現在月の家計情報プロバイダー（プレースホルダー）
-/// 実際の実装では、Firestoreから月別の家計サマリーを取得します
+/// 実装の最適化：
+/// - keepAlive: Firestore クエリのキャッシュを保持
+/// - Firestoreから月別の家計サマリーを取得する際の再計算を防止
 final monthlyExpenseSummaryProvider = FutureProvider.autoDispose
     .family<HouseholdExpenseSummary?, String>((ref, groupId) async {
   // TODO: Implement Firestore query to fetch monthly expense summary
@@ -28,23 +30,27 @@ final monthlyExpenseSummaryProvider = FutureProvider.autoDispose
       'その他': 120000,
     },
   );
-});
+}).keepAlive();
 
 /// 投資額プロバイダー（プレースホルダー）
-/// 実際の実装では、ポートフォリオ情報から投資額を計算します
+/// 実装の最適化：
+/// - keepAlive: ポートフォリオ計算のキャッシュを保持
+/// - 投資額は頻繁には変わらないため、キャッシュは有効
 final investmentAmountProvider = FutureProvider.autoDispose
     .family<int, String>((ref, groupId) async {
   // TODO: Implement to fetch from investment portfolio
   return 50000; // プレースホルダー: 月額5万円の投資
-});
+}).keepAlive();
 
 /// 社会貢献額プロバイダー（プレースホルダー）
-/// 実際の実装では、寄付履歴から社会貢献額を計算します
+/// 実装の最適化：
+/// - keepAlive: 寄付履歴のキャッシュを保持
+/// - 社会貢献額は月単位で集計できる
 final socialContributionAmountProvider = FutureProvider.autoDispose
     .family<int, String>((ref, groupId) async {
   // TODO: Implement to fetch from donation history
   return 10000; // プレースホルダー: 月額1万円の寄付
-});
+}).keepAlive();
 
 /// 財務健全性スコアプロバイダー（メインプロバイダー）
 final financialHealthScoreProvider = FutureProvider.autoDispose
