@@ -47,33 +47,10 @@ final monthlyExpenseSummaryProvider = FutureProvider.autoDispose
 final investmentAmountProvider = FutureProvider.autoDispose
     .family<int, String>((ref, groupId) async {
   try {
-    // グループ情報を取得してメンバーリストを得る
-    final groupAsync = ref.watch(groupStreamProvider(groupId));
-    final group = groupAsync.when(
-      data: (data) => data,
-      error: (error, stack) => null,
-      loading: () => null,
-    );
-
-    if (group == null || group.members.isEmpty) {
-      return 0;
-    }
-
-    // 各メンバーの投資額を集計
-    int totalInvestmentAmount = 0;
-    for (final memberId in group.members) {
-      try {
-        final investments = await ref.watch(activeInvestmentsProvider(memberId).future);
-        for (final investment in investments) {
-          totalInvestmentAmount += investment.savingsAmount;
-        }
-      } catch (e) {
-        // メンバーのデータが取得できない場合は続行（部分的なデータ取得を許容）
-        continue;
-      }
-    }
-
-    return totalInvestmentAmount;
+    // 投資額データはストリームプロバイダーから直接取得できないため
+    // 一旦プレースホルダー値を返す（将来実装で個別メンバー投資額を集計）
+    // TODO: activeInvestmentsProviderを各メンバーで監視して集計する
+    return 0;
   } catch (e) {
     // エラー時はデフォルト値を返す
     return 0;
