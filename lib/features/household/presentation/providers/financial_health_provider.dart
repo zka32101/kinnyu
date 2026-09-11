@@ -15,6 +15,10 @@ import '../../../core/services/notification_provider.dart';
 /// - keepAlive: Firestore クエリのキャッシュを保持
 /// - Firestoreから月別の家計サマリーを取得する際の再計算を防止
 /// - 実データ：HouseholdServiceから実際のレシート集計データを取得
+/// パフォーマンス特性：
+/// - キャッシュ有効期間: autoDispose中は永続（月が変わるまで再計算なし）
+/// - Firestoreクエリ数: 1（月間レシート集計 + 予算取得）
+/// - 注意: 日付が変わっても現在月を基準とするため、日付変更時に再計算を推奨
 final monthlyExpenseSummaryProvider = FutureProvider.autoDispose
     .family<HouseholdExpenseSummary?, String>((ref, groupId) async {
   try {
@@ -35,6 +39,10 @@ final monthlyExpenseSummaryProvider = FutureProvider.autoDispose
 /// - keepAlive: ポートフォリオ計算のキャッシュを保持
 /// - 投資額は頻繁には変わらないため、キャッシュは有効
 /// - 実データ：グループメンバーの全投資額を集計
+/// パフォーマンス特性：
+/// - キャッシュ有効期間: autoDispose中は永続
+/// - 再計算トリガー: groupStreamProvider または activeInvestmentsProvider の変更時
+/// - Firestoreクエリ数: グループメンバー数 + 1（グループクエリ）
 final investmentAmountProvider = FutureProvider.autoDispose
     .family<int, String>((ref, groupId) async {
   try {
@@ -59,7 +67,7 @@ final investmentAmountProvider = FutureProvider.autoDispose
           totalInvestmentAmount += investment.savingsAmount;
         }
       } catch (e) {
-        // メンバーのデータが取得できない場合は続行
+        // メンバーのデータが取得できない場合は続行（部分的なデータ取得を許容）
         continue;
       }
     }
@@ -76,6 +84,10 @@ final investmentAmountProvider = FutureProvider.autoDispose
 /// - keepAlive: 寄付履歴のキャッシュを保持
 /// - 社会貢献額は月単位で集計できる
 /// - 実データ：totalDonationsProviderから総寄付額を取得
+/// パフォーマンス特性：
+/// - キャッシュ有効期間: autoDispose中は永続
+/// - 再計算トリガー: totalDonationsProvider の変更時
+/// - Firestoreクエリ数: 1（月間寄付集計）
 final socialContributionAmountProvider = FutureProvider.autoDispose
     .family<int, String>((ref, groupId) async {
   try {
@@ -83,12 +95,16 @@ final socialContributionAmountProvider = FutureProvider.autoDispose
     final totalDonations = await ref.watch(totalDonationsProvider(groupId).future);
     return totalDonations;
   } catch (e) {
-    // エラー時はプレースホルダー値を返す
+    // エラー時はプレースホルダー値を返す（社会貢献機能が利用不可の場合）
     return 0;
   }
 }).keepAlive();
 
 /// 財務健全性スコアプロバイダー（メインプロバイダー）
+/// 実装の最適化：
+/// - keepAlive: スコア計算結果のキャッシュを保持
+/// - メインスコアは頻繁にアクセスされるため、キャッシュは有効
+/// - 依存プロバイダーの変更時にのみ再計算される
 final financialHealthScoreProvider = FutureProvider.autoDispose
     .family<FinancialHealthScore?, String>((ref, groupId) async {
   // 依存するプロバイダーから情報を取得
@@ -135,7 +151,7 @@ final financialHealthScoreProvider = FutureProvider.autoDispose
     investmentAmount: investment,
     socialContributionAmount: social,
   );
-});
+}).keepAlive();
 
 /// 財務健全性スコアの詳細情報プロバイダー
 /// 実装の最適化：
