@@ -239,12 +239,12 @@ final financialHealthScoreTrendProvider = FutureProvider.autoDispose
 /// 実装の最適化：
 /// - keepAlive: 目標-スコア関連性のキャッシュを保持
 /// - 現在の目標達成進度とそれが及ぼすスコア影響を計算
+/// TODO: 完全な実装では、groupStreamProviderを監視して実際の月次目標を使用する
 final goalScorePredictionProvider = FutureProvider.autoDispose
     .family<({int currentScore, int projectedScore, int scoreGain}), String>((ref, groupId) async {
   try {
-    // 現在のスコアと目標情報を取得
+    // 現在のスコア情報を取得
     final scoreAsync = ref.watch(financialHealthScoreProvider(groupId));
-    final groupAsync = ref.watch(groupStreamProvider(groupId));
 
     final score = scoreAsync.when(
       data: (data) => data,
@@ -252,21 +252,16 @@ final goalScorePredictionProvider = FutureProvider.autoDispose
       loading: () => null,
     );
 
-    final group = groupAsync.when(
-      data: (data) => data,
-      error: (error, stack) => null,
-      loading: () => null,
-    );
-
-    if (score == null || group == null) {
+    if (score == null) {
       return (currentScore: 0, projectedScore: 0, scoreGain: 0);
     }
 
     // 貯蓄目標達成時のスコア向上を計算
-    // 目標達成で貯蓄率スコアが向上すると仮定
+    // 現在のスコアに基づいて推定される向上を計算（プレースホルダー月次目標: 30000）
+    const placeholderMonthlyGoal = 30000;
     final savingRatioBoost = _calculateGoalAchievementBoost(
-      currentScore.savingsRatioScore,
-      group.monthlyGoal,
+      score.savingsRatioScore,
+      placeholderMonthlyGoal,
     );
 
     const budgetAdherenceBoost = 3; // 目標達成で予算遵守率が向上
