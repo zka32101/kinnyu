@@ -695,3 +695,96 @@ String _calculateTrend(List<int> scores) {
   if (current < previous - 2) return '↓';
   return '→';
 }
+
+/// 予算最適化プロバイダー
+/// Phase 3 Enhancement: 実際の支出パターンに基づいて予算配分を最適化する提案を生成
+/// 実装の最適化：
+/// - keepAlive: 最適化提案のキャッシュを保持
+/// - 実際の支出と予算の乖離を分析
+final budgetOptimizationProvider = FutureProvider.autoDispose
+    .family<List<BudgetOptimization>, String>((ref, groupId) async {
+  try {
+    final summaryAsync = ref.watch(monthlyExpenseSummaryProvider(groupId));
+    final budgetAsync = ref.watch(householdBudgetProvider(groupId));
+
+    final summary = summaryAsync.when(
+      data: (data) => data,
+      error: (error, stack) => null,
+      loading: () => null,
+    );
+
+    final budget = budgetAsync.when(
+      data: (data) => data,
+      error: (error, stack) => null,
+      loading: () => null,
+    );
+
+    if (summary == null || budget == null) {
+      return [];
+    }
+
+    final optimizations = <BudgetOptimization>[];
+
+    // カテゴリごとに支出と予算を比較
+    for (final category in budget.categoryBudgets.entries) {
+      final categoryName = category.key.name;
+      final budgetAmount = category.value;
+      final actualSpent = summary.categoryBreakdown[_getCategoryDisplayName(category.key)] ?? 0;
+
+      // 実際の支出が予算の130%を超える場合は予算増加を提案
+      if (actualSpent > budgetAmount * 1.3) {
+        optimizations.add(BudgetOptimization(
+          category: categoryName,
+          displayName: category.key.displayName,
+          currentBudget: budgetAmount,
+          actualSpent: actualSpent,
+          recommendedBudget: (actualSpent * 1.1).toInt(), // 実績の110%を推奨
+          recommendation: '支出が予算を${((actualSpent - budgetAmount) / budgetAmount * 100).toInt()}%超過',
+          priority: 1, // 高優先度
+        ));
+      }
+      // 実際の支出が予算の50%未満の場合は予算削減を提案
+      else if (actualSpent < budgetAmount * 0.5) {
+        optimizations.add(BudgetOptimization(
+          category: categoryName,
+          displayName: category.key.displayName,
+          currentBudget: budgetAmount,
+          actualSpent: actualSpent,
+          recommendedBudget: (actualSpent * 1.2).toInt(), // 実績の120%を推奨
+          recommendation: '予算が多すぎる可能性。余剰分は貯蓄に回せます',
+          priority: 2, // 低優先度
+        ));
+      }
+    }
+
+    // 優先度でソート
+    optimizations.sort((a, b) => a.priority.compareTo(b.priority));
+    return optimizations;
+  } catch (e) {
+    return [];
+  }
+}).keepAlive();
+
+/// 予算最適化提案 モデル
+class BudgetOptimization {
+  final String category; // enum name
+  final String displayName;
+  final int currentBudget;
+  final int actualSpent;
+  final int recommendedBudget;
+  final String recommendation;
+  final int priority; // 1=高, 2=低
+
+  BudgetOptimization({
+    required this.category,
+    required this.displayName,
+    required this.currentBudget,
+    required this.actualSpent,
+    required this.recommendedBudget,
+    required this.recommendation,
+    required this.priority,
+  });
+
+  int get budgetDifference => recommendedBudget - currentBudget;
+  double get utilizationRate => actualSpent / currentBudget;
+}
