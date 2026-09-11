@@ -38,6 +38,7 @@ final financialHealthScoreProvider = FutureProvider.autoDispose
     .family<FinancialHealthScore, String>((ref, groupId) async {
   return FinancialHealthScore(
     groupId: groupId,
+    calculatedAt: DateTime.now(),
     overallScore: 70,
     savingsRatioScore: 70,
     budgetAdherenceScore: 70,
@@ -52,6 +53,7 @@ final financialHealthScoreDetailProvider = FutureProvider.autoDispose
     .family<FinancialHealthScoreDetail?, String>((ref, groupId) async {
   final score = FinancialHealthScore(
     groupId: groupId,
+    calculatedAt: DateTime.now(),
     overallScore: 70,
     savingsRatioScore: 70,
     budgetAdherenceScore: 70,
@@ -63,11 +65,41 @@ final financialHealthScoreDetailProvider = FutureProvider.autoDispose
   return FinancialHealthScoreDetail(
     score: score,
     categories: [
-      HealthScoreCategory(name: 'Savings Ratio', score: 70, description: 'Monthly savings rate'),
-      HealthScoreCategory(name: 'Budget Adherence', score: 70, description: 'Budget compliance'),
-      HealthScoreCategory(name: 'Expense Control', score: 70, description: 'Spending control'),
-      HealthScoreCategory(name: 'Investment Engagement', score: 70, description: 'Investment participation'),
-      HealthScoreCategory(name: 'Social Impact', score: 70, description: 'Community contribution'),
+      HealthScoreCategory(
+        categoryName: 'savingsRatio',
+        displayName: 'Savings Ratio',
+        score: 70,
+        description: 'Monthly savings rate',
+        status: 'good',
+      ),
+      HealthScoreCategory(
+        categoryName: 'budgetAdherence',
+        displayName: 'Budget Adherence',
+        score: 70,
+        description: 'Budget compliance',
+        status: 'good',
+      ),
+      HealthScoreCategory(
+        categoryName: 'expenseControl',
+        displayName: 'Expense Control',
+        score: 70,
+        description: 'Spending control',
+        status: 'good',
+      ),
+      HealthScoreCategory(
+        categoryName: 'investmentEngagement',
+        displayName: 'Investment Engagement',
+        score: 70,
+        description: 'Investment participation',
+        status: 'good',
+      ),
+      HealthScoreCategory(
+        categoryName: 'socialImpact',
+        displayName: 'Social Impact',
+        score: 70,
+        description: 'Community contribution',
+        status: 'good',
+      ),
     ],
   );
 }).keepAlive();
