@@ -7,7 +7,6 @@ import '../../domain/services/financial_health_calculator.dart';
 import './household_budget_provider.dart';
 import './household_provider.dart';
 import './social_contribution_provider.dart';
-import '../../../investment/presentation/providers/investment_provider.dart';
 import '../../../core/services/notification_provider.dart';
 
 /// 現在月の家計情報プロバイダー（プレースホルダー）
