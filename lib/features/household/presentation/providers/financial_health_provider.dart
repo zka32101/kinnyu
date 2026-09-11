@@ -101,6 +101,8 @@ final financialHealthScoreDetailProvider = FutureProvider.autoDispose
         status: 'good',
       ),
     ],
+    recommendations: [],
+    monthlyTrend: 0.0,
   );
 }).keepAlive();
 
