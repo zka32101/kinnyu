@@ -2,8 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/financial_health_score.dart';
 import '../../domain/models/household_budget.dart';
 import '../../domain/models/household_expense_summary.dart';
+import '../../domain/models/household_group.dart';
 import '../../domain/services/financial_health_calculator.dart';
 import './household_budget_provider.dart';
+import './household_provider.dart';
 import './social_contribution_provider.dart';
 import '../../../investment/presentation/providers/investment_provider.dart';
 
@@ -231,3 +233,61 @@ final financialHealthScoreTrendProvider = FutureProvider.autoDispose
     );
   });
 }).keepAlive();
+
+/// 目標達成時のスコア予測プロバイダー
+/// Priority 5.3: Goal-Score Relationship
+/// 実装の最適化：
+/// - keepAlive: 目標-スコア関連性のキャッシュを保持
+/// - 現在の目標達成進度とそれが及ぼすスコア影響を計算
+final goalScorePredictionProvider = FutureProvider.autoDispose
+    .family<({int currentScore, int projectedScore, int scoreGain}), String>((ref, groupId) async {
+  try {
+    // 現在のスコアと目標情報を取得
+    final scoreAsync = ref.watch(financialHealthScoreProvider(groupId));
+    final groupAsync = ref.watch(householdProvider(groupId));
+
+    final score = scoreAsync.when(
+      data: (data) => data,
+      error: (error, stack) => null,
+      loading: () => null,
+    );
+
+    final group = await groupAsync.when(
+      data: (data) => Future.value(data),
+      error: (error, stack) => Future.value(null),
+      loading: () => Future.value(null),
+    );
+
+    if (score == null || group == null) {
+      return (currentScore: 0, projectedScore: 0, scoreGain: 0);
+    }
+
+    // 貯蓄目標達成時のスコア向上を計算
+    // 目標達成で貯蓄率スコアが向上すると仮定
+    final savingRatioBoost = _calculateGoalAchievementBoost(
+      currentScore.savingsRatioScore,
+      group.monthlyGoal,
+    );
+
+    const budgetAdherenceBoost = 3; // 目標達成で予算遵守率が向上
+    final totalBoost = savingRatioBoost + budgetAdherenceBoost;
+    final projectedScore = (score.overallScore + totalBoost).clamp(0, 100);
+
+    return (
+      currentScore: score.overallScore,
+      projectedScore: projectedScore.toInt(),
+      scoreGain: (projectedScore - score.overallScore).toInt(),
+    );
+  } catch (e) {
+    return (currentScore: 0, projectedScore: 0, scoreGain: 0);
+  }
+}).keepAlive();
+
+/// 目標達成によるスコア向上を計算するヘルパー関数
+int _calculateGoalAchievementBoost(int currentSavingRatioScore, int monthlyGoal) {
+  // 目標達成で貯蓄率スコアが5-10ポイント向上すると仮定
+  if (currentSavingRatioScore < 50) return 10;
+  if (currentSavingRatioScore < 70) return 7;
+  if (currentSavingRatioScore < 90) return 5;
+  return 2; // 既に高いスコアではわずかな向上のみ
+}
