@@ -5,6 +5,7 @@ import '../widgets/charts/score_trend_chart.dart';
 import '../widgets/charts/category_radar_chart.dart';
 import '../widgets/charts/monthly_comparison_chart.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:flutter/foundation.dart';
 
 /// 財務健全性スコアの詳細分析ページ
 /// 4つのタブで総合的な分析を提供：Overview, Categories, Trends, Recommendations
@@ -55,9 +56,12 @@ class _DetailPageContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final trendAsync = ref.watch(financialHealthScoreTrendProvider(groupId));
+    final improvementGuideAsync = ref.watch(scoreImprovementGuideProvider(groupId));
+    final savingsGoalAsync = ref.watch(savingsGoalProgressProvider(groupId));
+    final budgetOptAsync = ref.watch(budgetOptimizationProvider(groupId));
 
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: Column(
         children: [
           // Tab Bar
@@ -73,6 +77,7 @@ class _DetailPageContent extends ConsumerWidget {
                 Tab(text: 'カテゴリ'),
                 Tab(text: 'トレンド'),
                 Tab(text: '改善提案'),
+                Tab(text: '最適化'),
               ],
             ),
           ),
@@ -82,7 +87,7 @@ class _DetailPageContent extends ConsumerWidget {
             child: TabBarView(
               children: [
                 // Tab 1: Overview
-                _OverviewTab(detail: detail),
+                _OverviewTab(detail: detail, groupId: groupId),
 
                 // Tab 2: Categories
                 _CategoriesTab(detail: detail),
@@ -96,6 +101,13 @@ class _DetailPageContent extends ConsumerWidget {
 
                 // Tab 4: Recommendations
                 _RecommendationsTab(recommendations: detail.recommendations),
+
+                // Tab 5: Optimization (Improvement Guide + Budget Optimization)
+                _OptimizationTab(
+                  improvementGuideAsync: improvementGuideAsync,
+                  budgetOptAsync: budgetOptAsync,
+                  savingsGoalAsync: savingsGoalAsync,
+                ),
               ],
             ),
           ),
@@ -106,10 +118,11 @@ class _DetailPageContent extends ConsumerWidget {
 }
 
 // ================= Tab 1: Overview =================
-class _OverviewTab extends StatelessWidget {
+class _OverviewTab extends ConsumerWidget {
   final FinancialHealthScoreDetail detail;
+  final String groupId;
 
-  const _OverviewTab({required this.detail});
+  const _OverviewTab({required this.detail, required this.groupId});
 
   Color _getScoreColor(int score) {
     if (score >= 90) return const Color(0xFF4CAF50); // Green - A
@@ -120,7 +133,8 @@ class _OverviewTab extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final savingsGoalAsync = ref.watch(savingsGoalProgressProvider(groupId));
     final score = detail.score;
     final scoreColor = _getScoreColor(score.overallScore);
 
@@ -202,6 +216,27 @@ class _OverviewTab extends StatelessWidget {
           MonthlyComparisonChart(
             currentScore: score,
             targetScore: 85,
+          ),
+          const SizedBox(height: 32),
+
+          // Savings Goal Progress
+          Text(
+            '今月の貯蓄目標進捗',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 12),
+          savingsGoalAsync.when(
+            data: (goal) => _SavingsGoalProgressCard(
+              currentSavings: goal.currentSavings,
+              monthlyGoal: goal.monthlyGoal,
+              progressPercent: goal.progressPercent,
+              remainingToGoal: goal.remainingToGoal,
+            ),
+            loading: () => const SizedBox(
+              height: 80,
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (error, stack) => Text('読み込みエラー: $error'),
           ),
           const SizedBox(height: 32),
 
@@ -517,6 +552,310 @@ class _RecommendationCard extends StatelessWidget {
           fontSize: 12,
           color: color,
           fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
+
+// ================= Widgets =================
+
+/// 貯蓄目標進捗カード
+class _SavingsGoalProgressCard extends StatelessWidget {
+  final int currentSavings;
+  final int monthlyGoal;
+  final double progressPercent;
+  final int remainingToGoal;
+
+  const _SavingsGoalProgressCard({
+    required this.currentSavings,
+    required this.monthlyGoal,
+    required this.progressPercent,
+    required this.remainingToGoal,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
+        border: Border.all(
+          color: const Color(0xFF4CAF50).withValues(alpha: 0.3),
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '¥${currentSavings.toString()}',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF4CAF50),
+                ),
+              ),
+              Text(
+                '目標: ¥${monthlyGoal.toString()}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: (progressPercent / 100).clamp(0.0, 1.0),
+              minHeight: 8,
+              backgroundColor: Colors.grey[300],
+              valueColor: const AlwaysStoppedAnimation(Color(0xFF4CAF50)),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '進捗: ${progressPercent.toStringAsFixed(1)}% (残り: ¥${remainingToGoal.toString()})',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: remainingToGoal <= 0 ? const Color(0xFF4CAF50) : Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Tab 5: 最適化（改善提案 + 予算最適化）
+class _OptimizationTab extends ConsumerWidget {
+  final AsyncValue<List<ScoreImprovementAction>> improvementGuideAsync;
+  final AsyncValue<List<BudgetOptimization>> budgetOptAsync;
+  final AsyncValue<({int currentSavings, int monthlyGoal, double progressPercent, int remainingToGoal})> savingsGoalAsync;
+
+  const _OptimizationTab({
+    required this.improvementGuideAsync,
+    required this.budgetOptAsync,
+    required this.savingsGoalAsync,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Savings Goal Progress Section
+          Text(
+            '貯蓄進捗',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 12),
+          savingsGoalAsync.when(
+            data: (goal) => _SavingsGoalProgressCard(
+              currentSavings: goal.currentSavings,
+              monthlyGoal: goal.monthlyGoal,
+              progressPercent: goal.progressPercent,
+              remainingToGoal: goal.remainingToGoal,
+            ),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stack) => Text('エラー: $error'),
+          ),
+          const SizedBox(height: 32),
+
+          // Improvement Guide Section
+          Text(
+            'スコア改善ガイド',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 12),
+          improvementGuideAsync.when(
+            data: (actions) {
+              if (actions.isEmpty) {
+                return const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text('すべてのカテゴリで優秀な成績です！'),
+                );
+              }
+              return Column(
+                children: actions.map((action) {
+                  return _ImprovementActionCard(action: action);
+                }).toList(),
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stack) => Text('エラー: $error'),
+          ),
+          const SizedBox(height: 32),
+
+          // Budget Optimization Section
+          Text(
+            '予算最適化提案',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 12),
+          budgetOptAsync.when(
+            data: (optimizations) {
+              if (optimizations.isEmpty) {
+                return const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text('予算配分は最適化されています'),
+                );
+              }
+              return Column(
+                children: optimizations.map((opt) {
+                  return _BudgetOptimizationCard(optimization: opt);
+                }).toList(),
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stack) => Text('エラー: $error'),
+          ),
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+}
+
+/// スコア改善アクションカード
+class _ImprovementActionCard extends StatelessWidget {
+  final ScoreImprovementAction action;
+
+  const _ImprovementActionCard({required this.action});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    action.displayName,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${action.currentScore} → ${action.targetScore}',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'アクション:',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            ...action.actionItems.map((item) {
+              return Padding(
+                padding: const EdgeInsets.only(left: 12, bottom: 4),
+                child: Text(
+                  '• $item',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 予算最適化カード
+class _BudgetOptimizationCard extends StatelessWidget {
+  final BudgetOptimization optimization;
+
+  const _BudgetOptimizationCard({required this.optimization});
+
+  @override
+  Widget build(BuildContext context) {
+    final isOverspent = optimization.actualSpent > optimization.currentBudget * 1.3;
+    final cardColor = isOverspent
+      ? const Color(0xFFF44336)
+      : const Color(0xFF4CAF50);
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  optimization.displayName,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: cardColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${optimization.utilizationRate.toStringAsFixed(1)}x',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: cardColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '予算: ¥${optimization.currentBudget}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                Text(
+                  '実績: ¥${optimization.actualSpent}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: isOverspent ? Colors.red : Colors.green,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '推奨予算: ¥${optimization.recommendedBudget}',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.blue,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              optimization.recommendation,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
         ),
       ),
     );
