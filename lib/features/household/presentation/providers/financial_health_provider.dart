@@ -8,6 +8,7 @@ import './household_budget_provider.dart';
 import './household_provider.dart';
 import './social_contribution_provider.dart';
 import '../../../investment/presentation/providers/investment_provider.dart';
+import '../../../core/services/notification_provider.dart';
 
 /// 現在月の家計情報プロバイダー（プレースホルダー）
 /// 実装の最適化：
@@ -290,4 +291,76 @@ int _calculateGoalAchievementBoost(int currentSavingRatioScore, int monthlyGoal)
   if (currentSavingRatioScore < 70) return 7;
   if (currentSavingRatioScore < 90) return 5;
   return 2; // 既に高いスコアではわずかな向上のみ
+}
+
+/// スコアマイルストーン通知プロバイダー
+/// Priority 5.4: Milestone Notifications
+/// 実装の最適化：
+/// - keepAlive: マイルストーン追跡情報をキャッシュ保持
+/// - スコア改善時に重要な達成を通知
+final scoreMilestoneNotificationProvider = FutureProvider.autoDispose
+    .family<List<ScoreMilestone>, String>((ref, groupId) async {
+  try {
+    final scoreAsync = ref.watch(financialHealthScoreProvider(groupId));
+    final notificationService = ref.watch(notificationServiceProvider);
+
+    final score = scoreAsync.when(
+      data: (data) => data,
+      error: (error, stack) => null,
+      loading: () => null,
+    );
+
+    if (score == null) {
+      return [];
+    }
+
+    // スコアマイルストーン（75, 80, 85, 90）
+    const milestones = [75, 80, 85, 90];
+    final reachedMilestones = <ScoreMilestone>[];
+
+    for (final milestone in milestones) {
+      if (score.overallScore >= milestone) {
+        reachedMilestones.add(
+          ScoreMilestone(
+            milestone: milestone,
+            reached: true,
+            message: _getMilestoneMessage(milestone),
+          ),
+        );
+      }
+    }
+
+    return reachedMilestones;
+  } catch (e) {
+    return [];
+  }
+}).keepAlive();
+
+/// スコアマイルストーンモデル
+class ScoreMilestone {
+  final int milestone;
+  final bool reached;
+  final String message;
+
+  ScoreMilestone({
+    required this.milestone,
+    required this.reached,
+    required this.message,
+  });
+}
+
+/// マイルストーンメッセージを生成するヘルパー関数
+String _getMilestoneMessage(int milestone) {
+  switch (milestone) {
+    case 75:
+      return '素晴らしい！財務健全性スコアが75に到達しました！';
+    case 80:
+      return '優秀です！スコアが80に到達。あなたの財務管理は素晴らしい成績です！';
+    case 85:
+      return '素晴らしい達成！スコアが85に。優秀な財務健全性です！';
+    case 90:
+      return '最高峰！スコアが90に到達。あなたの財務管理は最優秀です！🎉';
+    default:
+      return 'スコアマイルストーン: $milestone に到達';
+  }
 }
