@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/household_budget.dart';
 import '../providers/household_budget_provider.dart';
+import '../providers/household_provider.dart';
 
 class BudgetSettingsDialog extends ConsumerStatefulWidget {
   final String groupId;

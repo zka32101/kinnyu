@@ -158,10 +158,10 @@ class SocialContributionService {
     final familiesHelped = (totalDonations / 3000).toInt();
 
     // トップカテゴリ（CO2削減が多い順）
-    final topCategories = carbonByCategory.entries
-        .toList()
-        ..sort((a, b) => b.value.compareTo(a.value))
-        ..take(3)
+    final sortedEntries = carbonByCategory.entries.toList();
+    sortedEntries.sort((a, b) => b.value.compareTo(a.value));
+    final topCategories = sortedEntries
+        .take(3)
         .map((e) => e.key)
         .toList();
 
