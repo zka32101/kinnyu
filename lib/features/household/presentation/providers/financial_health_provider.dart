@@ -7,7 +7,7 @@ final investmentAmountProvider = FutureProvider.autoDispose
 
 /// 社会貢献額プロバイダー - Placeholder
 final socialContributionAmountProvider = FutureProvider.autoDispose
-    .family<int, String>((ref, groupId) async => 0).keepAlive();
+    .family<int, String>((ref, groupId) async => 0);
 
 /// 財務健全性スコアプロバイダー
 final financialHealthScoreProvider = FutureProvider.autoDispose
