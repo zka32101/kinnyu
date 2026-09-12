@@ -54,18 +54,16 @@ final savingsDashboardProvider =
 
     // Calculate aggregate metrics
     if (budget == null) {
-      return DashboardMetrics(
-        totalBalance: 0,
-        monthlyIncome: 0,
+      return SavingsDashboard(
+        totalIncome: 0,
         totalExpense: 0,
         savingsAmount: 0,
-        savingsRate: 0.0,
         goalProgress: 0.0,
       );
     }
 
-    final totalIncome = budget.allocatedBudget; // Assuming allocated = income
-    final totalExpense = budget.spentAmount;
+    final totalIncome = budget.totalBudget; // Use total budget as income proxy
+    final totalExpense = 0; // TODO: Fetch actual expenses from expense data
     final savingsAmount = totalIncome - totalExpense;
 
     // Calculate goal progress (0.0 to 1.0)

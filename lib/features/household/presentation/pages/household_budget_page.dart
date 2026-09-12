@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../providers/household_budget_provider.dart';
 import '../../domain/models/household_budget.dart';
+import '../../domain/models/household_expense_summary.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class HouseholdBudgetPage extends ConsumerStatefulWidget {
