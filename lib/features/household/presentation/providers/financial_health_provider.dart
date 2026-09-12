@@ -3,7 +3,7 @@ import '../../domain/models/financial_health_score.dart';
 
 /// 投資額プロバイダー - Placeholder
 final investmentAmountProvider = FutureProvider.autoDispose
-    .family<int, String>((ref, groupId) async => 0).keepAlive();
+    .family<int, String>((ref, groupId) async => 0);
 
 /// 社会貢献額プロバイダー - Placeholder
 final socialContributionAmountProvider = FutureProvider.autoDispose
@@ -22,13 +22,13 @@ final financialHealthScoreProvider = FutureProvider.autoDispose
     investmentEngagementScore: 70,
     socialImpactScore: 70,
   );
-}).keepAlive();
+});
 
 /// スコア詳細プロバイダー
 final financialHealthScoreDetailProvider = FutureProvider.autoDispose
     .family<FinancialHealthScoreDetail?, String>((ref, groupId) async {
   return null;
-}).keepAlive();
+});
 
 /// スコアトレンドプロバイダー
 final financialHealthScoreTrendProvider = FutureProvider.autoDispose
@@ -49,7 +49,7 @@ final financialHealthScoreTrendProvider = FutureProvider.autoDispose
       },
     );
   });
-}).keepAlive();
+});
 
 /// 貯蓄目標進捗プロバイダー
 final savingsGoalProgressProvider = FutureProvider.autoDispose
@@ -59,7 +59,7 @@ final savingsGoalProgressProvider = FutureProvider.autoDispose
   final progressPercent = (currentSavings / monthlyGoal * 100).clamp(0.0, 100.0);
   final remainingToGoal = (monthlyGoal - currentSavings).clamp(0, monthlyGoal);
   return (currentSavings: currentSavings, monthlyGoal: monthlyGoal, progressPercent: progressPercent, remainingToGoal: remainingToGoal);
-}).keepAlive();
+});
 
 /// スコア改善ガイドプロバイダー
 final scoreImprovementGuideProvider = FutureProvider.autoDispose
@@ -68,7 +68,7 @@ final scoreImprovementGuideProvider = FutureProvider.autoDispose
     ScoreImprovementAction(category: 'savingsRatio', displayName: 'Savings Ratio', priority: 1, currentScore: 65, targetScore: 85, actionItems: ['Reduce spending by 5%', 'Review fixed expenses']),
     ScoreImprovementAction(category: 'budgetAdherence', displayName: 'Budget Adherence', priority: 2, currentScore: 70, targetScore: 85, actionItems: ['Track monthly expenses', 'Adjust budget allocations']),
   ];
-}).keepAlive();
+});
 
 /// 月間貯蓄率トレンドプロバイダー
 final monthlySavingsRateTrendProvider = FutureProvider.autoDispose
@@ -78,7 +78,7 @@ final monthlySavingsRateTrendProvider = FutureProvider.autoDispose
     final month = DateTime(now.year, now.month - (5 - i), 1);
     return MonthlySavingsRateTrend(month: '${month.year}-${month.month.toString().padLeft(2, '0')}', savingsRatioScore: 65 + (i * 2), isCurrentMonth: i == 0, trend: i == 0 ? '↑' : (i % 2 == 0 ? '→' : '↑'));
   });
-}).keepAlive();
+});
 
 /// 予算最適化プロバイダー
 final budgetOptimizationProvider = FutureProvider.autoDispose
@@ -87,7 +87,7 @@ final budgetOptimizationProvider = FutureProvider.autoDispose
     BudgetOptimization(category: 'food', displayName: 'Food', currentBudget: 60000, actualSpent: 80000, recommendedBudget: 88000, recommendation: 'Spending exceeds budget by 33%', priority: 1),
     BudgetOptimization(category: 'transportation', displayName: 'Transportation', currentBudget: 30000, actualSpent: 25000, recommendedBudget: 25000, recommendation: 'Well within budget', priority: 2),
   ];
-}).keepAlive();
+});
 
 // Model classes
 class ScoreImprovementAction {

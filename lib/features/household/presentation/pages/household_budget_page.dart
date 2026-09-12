@@ -91,13 +91,16 @@ class _HouseholdBudgetPageState extends ConsumerState<HouseholdBudgetPage> {
         (groupId: widget.groupId, month: _selectedMonth),
       ),
     );
+    final budgetAsync = ref.watch(householdBudgetProvider(widget.groupId));
 
     return summaryAsync.when(
       data: (summaries) {
-        final totalBudget =
-            summaries.values.fold<int>(0, (sum, s) => sum + s.budget);
         final totalSpent =
-            summaries.values.fold<int>(0, (sum, s) => sum + s.spent);
+            summaries.values.fold<int>(0, (sum, s) => sum + s.totalExpense);
+        final totalBudget = budgetAsync.maybeWhen(
+          data: (budget) => budget?.totalBudget ?? 0,
+          orElse: () => 0,
+        );
 
         final budgetFormat = NumberFormat('#,###');
         final ratio = totalBudget > 0 ? totalSpent / totalBudget : 0.0;
@@ -167,9 +170,9 @@ class _HouseholdBudgetPageState extends ConsumerState<HouseholdBudgetPage> {
 
     return summaryAsync.when(
       data: (summaries) {
-        // カテゴリを使用度順でソート
+        // カテゴリを支出順でソート
         final sortedCategories = summaries.entries.toList()
-          ..sort((a, b) => b.value.usageRatio.compareTo(a.value.usageRatio));
+          ..sort((a, b) => b.value.totalExpense.compareTo(a.value.totalExpense));
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,7 +183,7 @@ class _HouseholdBudgetPageState extends ConsumerState<HouseholdBudgetPage> {
             ),
             const SizedBox(height: 12),
             ...sortedCategories.map((entry) {
-              return _buildCategoryCard(entry.value);
+              return _buildCategoryCard(entry.key, entry.value);
             }).toList(),
           ],
         );
@@ -190,9 +193,9 @@ class _HouseholdBudgetPageState extends ConsumerState<HouseholdBudgetPage> {
     );
   }
 
-  Widget _buildCategoryCard(HouseholdExpenseSummary summary) {
+  Widget _buildCategoryCard(BudgetCategory category, HouseholdExpenseSummary summary) {
     final budgetFormat = NumberFormat('#,###');
-    final indicator = _getStatusIndicator(summary);
+    final spent = summary.totalExpense;
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -204,20 +207,19 @@ class _HouseholdBudgetPageState extends ConsumerState<HouseholdBudgetPage> {
             Row(
               children: [
                 Text(
-                  summary.category.icon,
+                  category.icon,
                   style: const TextStyle(fontSize: 20),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    summary.category.displayName,
+                    category.displayName,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
-                _buildStatusBadge(summary),
               ],
             ),
             const SizedBox(height: 8),
@@ -225,16 +227,8 @@ class _HouseholdBudgetPageState extends ConsumerState<HouseholdBudgetPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '¥${budgetFormat.format(summary.spent)} / ¥${budgetFormat.format(summary.budget)}',
+                  '¥${budgetFormat.format(spent)}',
                   style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-                Text(
-                  '${(summary.usageRatio * 100).toStringAsFixed(0)}%',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: indicator.color,
-                  ),
                 ),
               ],
             ),
@@ -242,9 +236,9 @@ class _HouseholdBudgetPageState extends ConsumerState<HouseholdBudgetPage> {
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
-                value: summary.usageRatio.clamp(0.0, 1.0),
+                value: 0.5,
                 backgroundColor: Colors.grey.shade200,
-                color: indicator.color,
+                color: Colors.blue,
                 minHeight: 6,
               ),
             ),
@@ -253,69 +247,4 @@ class _HouseholdBudgetPageState extends ConsumerState<HouseholdBudgetPage> {
       ),
     );
   }
-
-  Widget _buildStatusBadge(HouseholdExpenseSummary summary) {
-    if (summary.isOverBudget) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.red.shade100,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: const Text(
-          '超過',
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors.red,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      );
-    } else if (summary.isWarning) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.orange.shade100,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: const Text(
-          '注意',
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors.orange,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      );
-    }
-    return const SizedBox.shrink();
-  }
-
-  _StatusIndicator _getStatusIndicator(HouseholdExpenseSummary summary) {
-    if (summary.isOverBudget) {
-      return _StatusIndicator(
-        color: Colors.red,
-        label: '超過',
-      );
-    } else if (summary.isWarning) {
-      return _StatusIndicator(
-        color: Colors.orange,
-        label: '注意',
-      );
-    }
-    return _StatusIndicator(
-      color: Colors.green,
-      label: '良好',
-    );
-  }
-}
-
-class _StatusIndicator {
-  final Color color;
-  final String label;
-
-  _StatusIndicator({
-    required this.color,
-    required this.label,
-  });
 }
