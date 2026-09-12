@@ -147,6 +147,7 @@ class NotificationService {
         platformChannelSpecifics,
         androidScheduleMode: AndroidScheduleMode.exact,
         matchDateTimeComponents: DateTimeComponents.time,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
     } catch (e) {
       debugPrint('通知スケジュール失敗: $e');
@@ -203,6 +204,7 @@ class NotificationService {
         scheduledDate,
         platformChannelSpecifics,
         androidScheduleMode: AndroidScheduleMode.exact,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
     } catch (e) {
       debugPrint('週次おすすめ通知のスケジュール失敗: $e');
@@ -327,6 +329,7 @@ class NotificationService {
               scheduledDate,
               platformChannelSpecifics,
               androidScheduleMode: AndroidScheduleMode.exact,
+              uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
             );
           } catch (e) {
             debugPrint(
