@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../domain/models/family_mission.dart';
 import '../providers/family_mission_provider.dart';
 import '../widgets/family_mission_card.dart';
 
@@ -305,6 +306,3 @@ class _MissionDetailsSheet extends ConsumerWidget {
     );
   }
 }
-
-// 必要なインポート
-import '../../domain/models/family_mission.dart';
