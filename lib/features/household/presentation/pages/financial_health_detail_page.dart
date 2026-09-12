@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../domain/models/financial_health_score.dart';
 import '../providers/financial_health_provider.dart';
 import '../widgets/charts/score_trend_chart.dart';
 import '../widgets/charts/category_radar_chart.dart';
