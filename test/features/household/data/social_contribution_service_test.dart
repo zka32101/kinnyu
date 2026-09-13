@@ -5,8 +5,9 @@ import 'package:mockito/mockito.dart';
 import 'package:okane_kore/features/household/data/social_contribution_service.dart';
 import 'package:okane_kore/features/household/domain/models/social_contribution.dart';
 
-@GenerateMocks([FirebaseFirestore, CollectionReference, QuerySnapshot, DocumentSnapshot])
 import 'social_contribution_service_test.mocks.dart';
+
+@GenerateMocks([FirebaseFirestore, CollectionReference, QuerySnapshot, DocumentSnapshot])
 
 void main() {
   group('SocialContributionService', () {
@@ -202,9 +203,9 @@ void main() {
       test('each ESG score has valid range', () {
         final scores = ESGScore.defaultScores;
 
-        for (final score in scores) {
-          expect(score.score, greaterThanOrEqualTo(0));
-          expect(score.score, lessThanOrEqualTo(100));
+        for (final score in scores.values) {
+          expect(score.totalScore, greaterThanOrEqualTo(0));
+          expect(score.totalScore, lessThanOrEqualTo(100));
         }
       });
     });
@@ -214,15 +215,16 @@ void main() {
         const carbonSaved = 100.0;
         const totalDonations = 50000;
         const averageESG = ESGScore(
-          category: 'Environment',
-          score: 75,
-          description: 'Good environmental practices',
+          categoryName: 'Environment',
+          environmentScore: 75,
+          socialScore: 75,
+          governanceScore: 75,
         );
 
         // Verify dashboard can be instantiated with these values
         expect(carbonSaved, greaterThan(0));
         expect(totalDonations, greaterThan(0));
-        expect(averageESG.score, greaterThanOrEqualTo(0));
+        expect(averageESG.totalScore, greaterThanOrEqualTo(0));
       });
     });
 

@@ -3,8 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
-@GenerateMocks([FirebaseAuth, UserCredential, User])
 import 'auth_flow_test.mocks.dart';
+
+@GenerateMocks([FirebaseAuth, UserCredential, User])
 
 void main() {
   group('Authentication Flow', () {
