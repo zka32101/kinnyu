@@ -185,7 +185,6 @@ class _ScoreTrendChartState extends State<ScoreTrendChart> {
               lineTouchData: LineTouchData(
                 enabled: true,
                 touchTooltipData: LineTouchTooltipData(
-                  backgroundColor: Colors.grey.shade800,
                   tooltipRoundedRadius: 8,
                   getTooltipItems: (touchedSpots) {
                     return touchedSpots.map(
