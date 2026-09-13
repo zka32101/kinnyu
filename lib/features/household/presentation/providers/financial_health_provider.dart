@@ -35,22 +35,7 @@ final financialHealthScoreTrendProvider = FutureProvider.autoDispose
     .family<List<FinancialHealthScoreTrend>, String>((ref, groupId) async {
   final now = DateTime.now();
   return List.generate(6, (i) {
-    // Calculate month with proper year adjustment for dates before current month
-    int monthOffset = (5 - i);
-    int newMonth = now.month - monthOffset;
-    int newYear = now.year;
-
-    // Adjust year if month is out of range
-    while (newMonth < 1) {
-      newMonth += 12;
-      newYear -= 1;
-    }
-    while (newMonth > 12) {
-      newMonth -= 12;
-      newYear += 1;
-    }
-
-    final month = DateTime(newYear, newMonth, 1);
+    final month = DateTime(now.year, now.month - (5 - i), 1);
     return FinancialHealthScoreTrend(
       groupId: groupId,
       month: '${month.year}-${month.month.toString().padLeft(2, '0')}',
@@ -90,22 +75,7 @@ final monthlySavingsRateTrendProvider = FutureProvider.autoDispose
     .family<List<MonthlySavingsRateTrend>, String>((ref, groupId) async {
   final now = DateTime.now();
   return List.generate(6, (i) {
-    // Calculate month with proper year adjustment for dates before current month
-    int monthOffset = (5 - i);
-    int newMonth = now.month - monthOffset;
-    int newYear = now.year;
-
-    // Adjust year if month is out of range
-    while (newMonth < 1) {
-      newMonth += 12;
-      newYear -= 1;
-    }
-    while (newMonth > 12) {
-      newMonth -= 12;
-      newYear += 1;
-    }
-
-    final month = DateTime(newYear, newMonth, 1);
+    final month = DateTime(now.year, now.month - (5 - i), 1);
     return MonthlySavingsRateTrend(month: '${month.year}-${month.month.toString().padLeft(2, '0')}', savingsRatioScore: 65 + (i * 2), isCurrentMonth: i == 0, trend: i == 0 ? '↑' : (i % 2 == 0 ? '→' : '↑'));
   });
 });
