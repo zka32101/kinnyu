@@ -11,17 +11,8 @@ final familyMissionServiceProvider = Provider((ref) {
 
 /// 現在のグループIDプロバイダー
 /// 注: household_provider から取得する必要があります
-final currentGroupIdProvider = StateNotifierProvider<_CurrentGroupIdNotifier, String?>((ref) {
-  return _CurrentGroupIdNotifier();
-});
-
-class _CurrentGroupIdNotifier extends StateNotifier<String?> {
-  _CurrentGroupIdNotifier() : super(null);
-
-  void setGroupId(String? groupId) {
-    state = groupId;
-  }
-}
+/// TODO: Implement proper group ID provider using newer Riverpod API
+final currentGroupIdProvider = Provider<String?>((ref) => null);
 
 /// 今週の家族ミッションを取得
 final weeklyFamilyMissionProvider = FutureProvider.family<FamilyMission?, String>(

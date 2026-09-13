@@ -186,23 +186,6 @@ class _ScoreTrendChartState extends State<ScoreTrendChart> {
                 enabled: true,
                 touchTooltipData: LineTouchTooltipData(
                   tooltipRoundedRadius: 8,
-                  getTooltipItems: (touchedSpots) {
-                    return touchedSpots.map(
-                      (LineBarSpot touchedBarSpot) {
-                        final flSpot = touchedBarSpot.barIndex < 0 ? null : touchedBarSpot.lineBarData.spots[touchedBarSpot.spotIndex];
-                        if (flSpot == null) return null;
-                        final month = sortedTrends[flSpot.x.toInt()].month;
-                        return LineTooltipItem(
-                          '$month\nスコア: ${flSpot.y.toStringAsFixed(0)}',
-                          const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        );
-                      },
-                    ).whereType<LineTooltipItem>().toList();
-                  },
                 ),
               ),
             ),
