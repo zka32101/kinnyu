@@ -1,6 +1,19 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/financial_health_score.dart';
 
+/// Helper: Calculate DateTime for months in the past with proper year adjustment
+DateTime _calculateMonthBack(DateTime now, int monthsBack) {
+  int newMonth = now.month - monthsBack;
+  int newYear = now.year;
+
+  while (newMonth < 1) {
+    newMonth += 12;
+    newYear--;
+  }
+
+  return DateTime(newYear, newMonth, 1);
+}
+
 /// 投資額プロバイダー - Placeholder
 final investmentAmountProvider = FutureProvider.autoDispose
     .family<int, String>((ref, groupId) async => 0);
@@ -35,7 +48,7 @@ final financialHealthScoreTrendProvider = FutureProvider.autoDispose
     .family<List<FinancialHealthScoreTrend>, String>((ref, groupId) async {
   final now = DateTime.now();
   return List.generate(6, (i) {
-    final month = DateTime(now.year, now.month - (5 - i), 1);
+    final month = _calculateMonthBack(now, 5 - i);
     return FinancialHealthScoreTrend(
       groupId: groupId,
       month: '${month.year}-${month.month.toString().padLeft(2, '0')}',
@@ -75,7 +88,7 @@ final monthlySavingsRateTrendProvider = FutureProvider.autoDispose
     .family<List<MonthlySavingsRateTrend>, String>((ref, groupId) async {
   final now = DateTime.now();
   return List.generate(6, (i) {
-    final month = DateTime(now.year, now.month - (5 - i), 1);
+    final month = _calculateMonthBack(now, 5 - i);
     return MonthlySavingsRateTrend(month: '${month.year}-${month.month.toString().padLeft(2, '0')}', savingsRatioScore: 65 + (i * 2), isCurrentMonth: i == 0, trend: i == 0 ? '↑' : (i % 2 == 0 ? '→' : '↑'));
   });
 });
