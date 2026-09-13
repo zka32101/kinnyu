@@ -39,7 +39,7 @@ class UnifiedMetricsSection extends ConsumerWidget {
                   children: [
                     _MetricTile(
                       label: '今月の貯蓄',
-                      value: '¥${(dashboard.totalIncome - dashboard.totalExpense).toStringAsFixed(0)}',
+                      value: '¥${dashboard.totalIncome - dashboard.totalExpense}',
                       color: Colors.green,
                     ),
                     _MetricTile(
