@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../domain/models/financial_health_score.dart';
+import '../../../domain/models/financial_health_score.dart';
 
 /// 財務健全性スコアの5つのカテゴリを表示するレーダーチャート
 /// 各カテゴリのバランスを可視化する

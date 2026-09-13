@@ -36,15 +36,19 @@ final householdExpenseSummaryProvider = FutureProvider.family<
     );
 
     final summaries = <BudgetCategory, HouseholdExpenseSummary>{};
+    final monthStr = '${params.month.year}-${params.month.month.toString().padLeft(2, '0')}';
 
     for (var category in BudgetCategory.values) {
       final spent = expenses.getTotalByCategory(category);
       final budgetAmount = budget?.categoryBudgets[category] ?? 0;
 
       summaries[category] = HouseholdExpenseSummary(
-        category: category,
-        spent: spent,
-        budget: budgetAmount,
+        groupId: params.groupId,
+        month: monthStr,
+        totalIncome: 0,
+        totalExpense: spent,
+        savingAmount: 0,
+        categoryBreakdown: {category.name: spent},
       );
     }
 
