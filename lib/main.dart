@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'features/home/presentation/pages/home_page.dart';
@@ -66,11 +65,11 @@ void main() {
           // 既存の挙動（コンソール出力・デバッグ時の赤画面表示）は維持しつつ、
           // 追加でCrashlyticsにも記録する。
           FlutterError.presentError(details);
-          FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+          // FirebaseCrashlytics.instance.recordFlutterFatalError(details);
         };
         PlatformDispatcher.instance.onError = (error, stack) {
           debugPrint('[main] Uncaught platform error: $error\n$stack');
-          FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+          // FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
           return true;
         };
       } catch (e, stack) {
@@ -138,7 +137,7 @@ void main() {
     // 保証はないため、必ずtry-catchで包む。
     debugPrint('[main] Uncaught zone error: $error\n$stack');
     try {
-      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      // FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     } catch (_) {
       // Crashlytics自体が使えない場合は握りつぶす（ログ出力のみで十分）。
     }

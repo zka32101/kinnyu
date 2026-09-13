@@ -83,6 +83,31 @@ final scoreImprovementGuideProvider = FutureProvider.autoDispose
   ];
 });
 
+/// 財務健全性改善推奨プロバイダー
+final financialHealthRecommendationsProvider = FutureProvider.autoDispose
+    .family<List<HealthScoreRecommendation>, String>((ref, groupId) async {
+  return [
+    HealthScoreRecommendation(
+      id: 'rec_1',
+      title: 'Improve Savings Ratio',
+      description: 'Increase your monthly savings by reducing expenses or increasing income.',
+      category: 'savingsRatio',
+      potentialScoreGain: 20,
+      priority: 'high',
+      actionType: 'saving',
+    ),
+    HealthScoreRecommendation(
+      id: 'rec_2',
+      title: 'Better Budget Adherence',
+      description: 'Track your spending more closely and adjust budget allocations monthly.',
+      category: 'budgetAdherence',
+      potentialScoreGain: 15,
+      priority: 'medium',
+      actionType: 'budget',
+    ),
+  ];
+});
+
 /// 月間貯蓄率トレンドプロバイダー
 final monthlySavingsRateTrendProvider = FutureProvider.autoDispose
     .family<List<MonthlySavingsRateTrend>, String>((ref, groupId) async {

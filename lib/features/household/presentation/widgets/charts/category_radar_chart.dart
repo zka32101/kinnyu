@@ -46,10 +46,6 @@ class CategoryRadarChart extends StatelessWidget {
                 )
               ],
               radarBackgroundColor: Colors.transparent,
-              borderData: const RadarBorderData(show: true),
-              gridBorderData: const RadarGridBorderData(
-                show: true,
-              ),
               ticksTextStyle: const TextStyle(
                 color: Colors.grey,
                 fontSize: 10,
