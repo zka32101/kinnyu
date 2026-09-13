@@ -41,17 +41,14 @@ class CategoryRadarChart extends StatelessWidget {
                 RadarDataSet(
                   fillColor: Colors.green.withValues(alpha: 0.25),
                   borderColor: Colors.green,
-                  pointColor: Colors.green,
                   dataEntries: scaledScores.map((score) => RadarEntry(value: score)).toList(),
                   borderWidth: 2,
-                  pointSize: 6,
                 )
               ],
               radarBackgroundColor: Colors.transparent,
-              borderData: RadarBorderData(show: true),
-              gridBorderData: RadarGridBorderData(
+              borderData: const RadarBorderData(show: true),
+              gridBorderData: const RadarGridBorderData(
                 show: true,
-                color: Colors.grey.withValues(alpha: 0.2),
               ),
               ticksTextStyle: const TextStyle(
                 color: Colors.grey,
