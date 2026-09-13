@@ -39,7 +39,7 @@ class UnifiedMetricsSection extends ConsumerWidget {
                   children: [
                     _MetricTile(
                       label: '今月の貯蓄',
-                      value: '¥${(dashboard.totalIncome - dashboard.totalExpense).toStringAsFixed(0)}',
+                      value: '¥${dashboard.totalIncome - dashboard.totalExpense}',
                       color: Colors.green,
                     ),
                     _MetricTile(
@@ -79,7 +79,7 @@ class MonthlySummarySection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // このセクションのみが monthlyExpenseSummaryProvider を監視
-    final summaryAsync = ref.watch(monthlyExpenseSummaryProvider(groupId, month));
+    final summaryAsync = ref.watch(monthlyExpenseSummaryProvider((groupId, month)));
 
     return summaryAsync.when(
       data: (summary) {
@@ -97,19 +97,19 @@ class MonthlySummarySection extends ConsumerWidget {
                 const SizedBox(height: 16),
                 _SummaryRow(
                   label: '収入',
-                  value: '¥${summary.totalIncome.toStringAsFixed(0)}',
+                  value: '¥${summary.totalIncome}',
                   color: Colors.green,
                 ),
                 const SizedBox(height: 12),
                 _SummaryRow(
                   label: '支出',
-                  value: '¥${summary.totalExpense.toStringAsFixed(0)}',
+                  value: '¥${summary.totalExpense}',
                   color: Colors.red,
                 ),
                 const SizedBox(height: 12),
                 _SummaryRow(
                   label: '貯蓄',
-                  value: '¥${summary.savingAmount.toStringAsFixed(0)}',
+                  value: '¥${summary.savingAmount}',
                   color: Colors.green,
                   bold: true,
                 ),
@@ -138,7 +138,7 @@ class CategoryBreakdownSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // このセクションのみが categoryBreakdownProvider を監視
-    final breakdownAsync = ref.watch(categoryBreakdownProvider(groupId, month));
+    final breakdownAsync = ref.watch(categoryBreakdownProvider((groupId, month)));
 
     return breakdownAsync.when(
       data: (breakdown) {
@@ -251,19 +251,19 @@ class SocialImpactSection extends ConsumerWidget {
                 const SizedBox(height: 16),
                 _SummaryRow(
                   label: 'カーボン削減',
-                  value: '${impact.totalCarbonSaved.toStringAsFixed(1)} kg CO₂',
+                  value: '${(impact.totalCarbonSaved / 1000).toStringAsFixed(1)} kg CO₂',
                   color: Colors.green,
                 ),
                 const SizedBox(height: 12),
                 _SummaryRow(
                   label: '寄付総額',
-                  value: '¥${impact.totalDonations.toStringAsFixed(0)}',
+                  value: '¥${impact.totalDonationsAmount}',
                   color: Colors.blue,
                 ),
                 const SizedBox(height: 12),
                 _SummaryRow(
-                  label: 'ESGスコア',
-                  value: '${impact.averageESGScore.toStringAsFixed(0)}/100',
+                  label: 'インパクトレベル',
+                  value: impact.impactLevelDescription,
                   color: Colors.orange,
                   bold: true,
                 ),
@@ -372,7 +372,7 @@ class _CategoryRow extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(category),
-            Text('¥${amount.toStringAsFixed(0)}'),
+            Text('¥$amount'),
           ],
         ),
         const SizedBox(height: 4),
@@ -423,7 +423,7 @@ class _GoalProgressRow extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          '¥${current.toStringAsFixed(0)} / ¥${target.toStringAsFixed(0)}',
+          '¥$current / ¥$target',
           style: const TextStyle(fontSize: 12, color: Colors.grey),
         ),
         const SizedBox(height: 12),
