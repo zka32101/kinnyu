@@ -58,7 +58,6 @@ class MonthlyComparisonChart extends StatelessWidget {
               barTouchData: BarTouchData(
                 enabled: true,
                 touchTooltipData: BarTouchTooltipData(
-                  backgroundColor: Colors.grey.shade800,
                   tooltipRoundedRadius: 8,
                   getTooltipItem: (group, groupIndex, rod, rodIndex) {
                     String label;
