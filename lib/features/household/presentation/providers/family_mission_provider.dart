@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod/riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../data/family_mission_service.dart';
 import '../../domain/models/family_mission.dart';
@@ -12,7 +11,17 @@ final familyMissionServiceProvider = Provider((ref) {
 
 /// 現在のグループIDプロバイダー
 /// 注: household_provider から取得する必要があります
-final currentGroupIdProvider = StateProvider<String?>((ref) => null);
+final currentGroupIdProvider = StateNotifierProvider<_CurrentGroupIdNotifier, String?>((ref) {
+  return _CurrentGroupIdNotifier();
+});
+
+class _CurrentGroupIdNotifier extends StateNotifier<String?> {
+  _CurrentGroupIdNotifier() : super(null);
+
+  void setGroupId(String? groupId) {
+    state = groupId;
+  }
+}
 
 /// 今週の家族ミッションを取得
 final weeklyFamilyMissionProvider = FutureProvider.family<FamilyMission?, String>(

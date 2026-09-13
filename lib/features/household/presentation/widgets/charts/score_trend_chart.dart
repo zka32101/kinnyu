@@ -189,10 +189,11 @@ class _ScoreTrendChartState extends State<ScoreTrendChart> {
                   getTooltipItems: (touchedSpots) {
                     return touchedSpots.map(
                       (LineBarSpot touchedBarSpot) {
-                        final flSpot = touchedBarSpot.spot;
+                        final flSpot = touchedBarSpot.barIndex < 0 ? null : touchedBarSpot.lineBarData.spots[touchedBarSpot.spotIndex];
+                        if (flSpot == null) return null;
                         final month = sortedTrends[flSpot.x.toInt()].month;
                         return LineTooltipItem(
-                          '${month}\nスコア: ${flSpot.y.toStringAsFixed(0)}',
+                          '$month\nスコア: ${flSpot.y.toStringAsFixed(0)}',
                           const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -200,7 +201,7 @@ class _ScoreTrendChartState extends State<ScoreTrendChart> {
                           ),
                         );
                       },
-                    ).toList();
+                    ).whereType<LineTooltipItem>().toList();
                   },
                 ),
               ),
