@@ -83,6 +83,12 @@ final scoreImprovementGuideProvider = FutureProvider.autoDispose
   ];
 });
 
+/// 財務健全性改善推奨プロバイダー（scoreImprovementGuideProviderのエイリアス）
+final financialHealthRecommendationsProvider = FutureProvider.autoDispose
+    .family<List<ScoreImprovementAction>, String>((ref, groupId) async {
+  return ref.watch(scoreImprovementGuideProvider(groupId).future);
+});
+
 /// 月間貯蓄率トレンドプロバイダー
 final monthlySavingsRateTrendProvider = FutureProvider.autoDispose
     .family<List<MonthlySavingsRateTrend>, String>((ref, groupId) async {
