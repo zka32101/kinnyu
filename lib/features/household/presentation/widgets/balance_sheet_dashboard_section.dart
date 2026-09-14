@@ -211,9 +211,9 @@ class _RecommendationTab extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              ...evaluation.categoryEvaluations.map(
-                (cat) => CategoryEvaluationCard(evaluation: cat),
-              ),
+              ...evaluation.categoryEvaluations
+                  .map((cat) => CategoryEvaluationCard(evaluation: cat))
+                  .toList(),
             ],
           ),
         );
