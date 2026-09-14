@@ -1,11 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../dashboard/presentation/providers/dashboard_provider.dart';
 import '../../data/spending_evaluation_service.dart';
 import '../../domain/models/spending_evaluation.dart';
 import '../../domain/models/household_balance_sheet.dart';
-import 'household_budget_provider.dart';
-import 'household_provider.dart';
 
 /// SpendingEvaluationService プロバイダー
 final spendingEvaluationServiceProvider = Provider((ref) {
