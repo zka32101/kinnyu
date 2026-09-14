@@ -16,28 +16,24 @@ final spendingEvaluationServiceProvider = Provider((ref) {
 final simpleBalanceSummaryProvider =
     FutureProvider.autoDispose.family<SimpleBalanceSummary, String>(
   (ref, groupId) async {
-    final householdAsync = ref.watch(monthlyExpenseSummaryProvider((groupId, _getCurrentMonth())));
+    final summary = await ref.watch(
+      monthlyExpenseSummaryProvider((groupId, _getCurrentMonth())).future,
+    );
 
-    return householdAsync.when(
-      data: (summary) {
-        // プレースホルダー: 実装時に実際の収入データを取得
-        final monthlyIncome = 300000;
-        final monthlyExpense = summary.totalExpense;
-        final monthlySavings = monthlyIncome - monthlyExpense;
-        final savingsRate = monthlyIncome > 0
-            ? (monthlySavings / monthlyIncome) * 100
-            : 0.0;
+    // プレースホルダー: 実装時に実際の収入データを取得
+    final monthlyIncome = 300000;
+    final monthlyExpense = summary.totalExpense;
+    final monthlySavings = monthlyIncome - monthlyExpense;
+    final savingsRate = monthlyIncome > 0
+        ? (monthlySavings / monthlyIncome) * 100
+        : 0.0;
 
-        return SimpleBalanceSummary(
-          monthlyIncome: monthlyIncome,
-          monthlyExpense: monthlyExpense,
-          monthlySavings: monthlySavings,
-          savingsRate: savingsRate,
-          categoryExpenses: summary.categoryExpenses,
-        );
-      },
-      loading: () => throw Exception('Loading...'),
-      error: (error, stack) => throw error,
+    return SimpleBalanceSummary(
+      monthlyIncome: monthlyIncome,
+      monthlyExpense: monthlyExpense,
+      monthlySavings: monthlySavings,
+      savingsRate: savingsRate,
+      categoryExpenses: summary.categoryExpenses,
     );
   },
 );
@@ -80,17 +76,16 @@ final spendingEvaluationProvider =
     final service = ref.watch(spendingEvaluationServiceProvider);
 
     // バジェットと支出サマリーを取得
-    final budgetAsync = ref.watch(householdBudgetProvider(groupId));
-    final expenseAsync = ref.watch(monthlyExpenseSummaryProvider((groupId, month)));
+    final budget = await ref.watch(householdBudgetProvider(groupId).future);
+    final expenses =
+        await ref.watch(monthlyExpenseSummaryProvider((groupId, month)).future);
 
-    // 両方の AsyncValue が完了するまで待つ
-    return await (
-      budgetAsync.whenData((budget) async {
-        return await expenseAsync.whenData((expenses) async {
-          return await service.evaluateSpending(groupId, month, budget, expenses);
-        });
-      }).future
-    );
+    // バジェットが null の場合はエラーを返す
+    if (budget == null) {
+      throw Exception('Budget not found for group: $groupId');
+    }
+
+    return await service.evaluateSpending(groupId, month, budget, expenses);
   },
 );
 
