@@ -136,17 +136,7 @@ class _SixMonthTrendChartState extends State<SixMonthTrendChart> {
                   color: Colors.blue,
                   barWidth: 2,
                   isStrokeCapRound: true,
-                  dotData: FlDotData(
-                    show: true,
-                    getDotPainter: (spot, percent, barData, index) {
-                      return FlDotCirclePainter(
-                        radius: 3,
-                        color: Colors.blue,
-                        strokeWidth: 1,
-                        strokeColor: Colors.white,
-                      );
-                    },
-                  ),
+                  dotData: FlDotData(show: true),
                 ),
 
                 // 支出ライン (赤)
@@ -162,17 +152,7 @@ class _SixMonthTrendChartState extends State<SixMonthTrendChart> {
                   color: Colors.red,
                   barWidth: 2,
                   isStrokeCapRound: true,
-                  dotData: FlDotData(
-                    show: true,
-                    getDotPainter: (spot, percent, barData, index) {
-                      return FlDotCirclePainter(
-                        radius: 3,
-                        color: Colors.red,
-                        strokeWidth: 1,
-                        strokeColor: Colors.white,
-                      );
-                    },
-                  ),
+                  dotData: FlDotData(show: true),
                 ),
 
                 // 貯蓄ライン (緑)
@@ -188,17 +168,7 @@ class _SixMonthTrendChartState extends State<SixMonthTrendChart> {
                   color: Colors.green,
                   barWidth: 2,
                   isStrokeCapRound: true,
-                  dotData: FlDotData(
-                    show: true,
-                    getDotPainter: (spot, percent, barData, index) {
-                      return FlDotCirclePainter(
-                        radius: 3,
-                        color: Colors.green,
-                        strokeWidth: 1,
-                        strokeColor: Colors.white,
-                      );
-                    },
-                  ),
+                  dotData: FlDotData(show: true),
                 ),
               ],
               lineTouchData: LineTouchData(
