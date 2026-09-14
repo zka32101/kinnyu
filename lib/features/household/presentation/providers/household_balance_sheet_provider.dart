@@ -5,6 +5,7 @@ import '../../domain/models/spending_evaluation.dart';
 import '../../domain/models/household_balance_sheet.dart';
 
 /// SpendingEvaluationService プロバイダー
+/// Provides access to spending evaluation and recommendation generation
 final spendingEvaluationServiceProvider = Provider((ref) {
   return SpendingEvaluationService(FirebaseFirestore.instance);
 });
