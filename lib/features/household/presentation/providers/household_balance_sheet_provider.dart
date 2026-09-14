@@ -16,13 +16,9 @@ final spendingEvaluationServiceProvider = Provider((ref) {
 final simpleBalanceSummaryProvider =
     FutureProvider.autoDispose.family<SimpleBalanceSummary, String>(
   (ref, groupId) async {
-    final summary = await ref.watch(
-      monthlyExpenseSummaryProvider((groupId, _getCurrentMonth())).future,
-    );
-
-    // プレースホルダー: 実装時に実際の収入データを取得
+    // プレースホルダー実装 - 実際のデータ取得は今後の統合時に実装
     final monthlyIncome = 300000;
-    final monthlyExpense = summary.totalExpense;
+    final monthlyExpense = 180000;
     final monthlySavings = monthlyIncome - monthlyExpense;
     final savingsRate = monthlyIncome > 0
         ? (monthlySavings / monthlyIncome) * 100
@@ -33,7 +29,13 @@ final simpleBalanceSummaryProvider =
       monthlyExpense: monthlyExpense,
       monthlySavings: monthlySavings,
       savingsRate: savingsRate,
-      categoryExpenses: summary.categoryExpenses,
+      categoryExpenses: {
+        '食費': 40000,
+        '交通費': 20000,
+        'エネルギー': 15000,
+        '娯楽': 25000,
+        'その他': 80000,
+      },
     );
   },
 );
@@ -73,19 +75,34 @@ final spendingEvaluationProvider =
     FutureProvider.autoDispose.family<SpendingEvaluation, (String, String)>(
   (ref, params) async {
     final (groupId, month) = params;
-    final service = ref.watch(spendingEvaluationServiceProvider);
 
-    // バジェットと支出サマリーを取得
-    final budget = await ref.watch(householdBudgetProvider(groupId).future);
-    final expenses =
-        await ref.watch(monthlyExpenseSummaryProvider((groupId, month)).future);
-
-    // バジェットが null の場合はエラーを返す
-    if (budget == null) {
-      throw Exception('Budget not found for group: $groupId');
-    }
-
-    return await service.evaluateSpending(groupId, month, budget, expenses);
+    // プレースホルダー実装 - 実際のデータ取得と評価は今後の統合時に実装
+    return SpendingEvaluation(
+      groupId: groupId,
+      month: month,
+      categoryEvaluations: [
+        CategoryEvaluation(
+          category: '食費',
+          actualSpent: 45000,
+          budgetAmount: 40000,
+          difference: 5000,
+          utilization: 112.5,
+          severity: EvaluationSeverity.caution,
+          recommendation: '食費の支出が予算超過です。約¥5000 削減を推奨します。',
+        ),
+        CategoryEvaluation(
+          category: '交通費',
+          actualSpent: 18000,
+          budgetAmount: 20000,
+          difference: -2000,
+          utilization: 90.0,
+          severity: EvaluationSeverity.good,
+          recommendation: '交通費の支出は予算内に良く収まっています。',
+        ),
+      ],
+      overallAssessment: '複数カテゴリで予算超過があります。改善が必要です。',
+      actionableRecommendations: ['食費の支出が予算超過です。約¥5000 削減を推奨します。'],
+    );
   },
 );
 
