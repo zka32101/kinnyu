@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../domain/models/household_budget.dart';
 import '../domain/models/household_expense_summary.dart';
@@ -139,9 +140,4 @@ class SpendingEvaluationService {
       monthlySnapshots: snapshots,
     );
   }
-}
-
-// debugPrint のためのスタブ
-void debugPrint(String message) {
-  // 実装環境では適切なロギング機構に置き換える
 }
