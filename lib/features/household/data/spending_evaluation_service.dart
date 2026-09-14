@@ -103,10 +103,18 @@ class SpendingEvaluationService {
 
     // 過去6ヶ月のデータを取得
     for (int i = 5; i >= 0; i--) {
-      final monthDate = DateTime(now.year, now.month - i);
-      final yearAdjusted = DateTime(monthDate.year, monthDate.month, 1);
+      final targetMonth = now.month - i;
+      var year = now.year;
+      var month = targetMonth;
+
+      // Handle month underflow
+      while (month <= 0) {
+        month += 12;
+        year -= 1;
+      }
+
       final monthStr =
-          '${yearAdjusted.year}-${yearAdjusted.month.toString().padLeft(2, '0')}';
+          '${year.toString()}-${month.toString().padLeft(2, '0')}';
 
       try {
         // Firestore から月間支出サマリーを取得 (現在のプレースホルダーは使用)
