@@ -145,6 +145,7 @@ class NotificationService {
         body,
         scheduledDate,
         platformChannelSpecifics,
+        androidAllowWhileIdle: true,
         matchDateTimeComponents: DateTimeComponents.time,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
@@ -202,6 +203,7 @@ class NotificationService {
         body,
         scheduledDate,
         platformChannelSpecifics,
+        androidAllowWhileIdle: true,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
     } catch (e) {
@@ -326,6 +328,7 @@ class NotificationService {
               procedure.applyWindow,
               scheduledDate,
               platformChannelSpecifics,
+              androidAllowWhileIdle: true,
               uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
             );
           } catch (e) {
