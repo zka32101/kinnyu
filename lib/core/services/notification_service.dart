@@ -128,6 +128,7 @@ class NotificationService {
         ticker: 'ストリーク継続のお知らせ',
         enableVibration: true,
         playSound: true,
+        androidAllowWhileIdle: true,
       );
 
       const NotificationDetails platformChannelSpecifics =
@@ -145,7 +146,6 @@ class NotificationService {
         body,
         scheduledDate,
         platformChannelSpecifics,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.time,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
@@ -193,6 +193,7 @@ class NotificationService {
         priority: Priority.high,
         enableVibration: true,
         playSound: true,
+        androidAllowWhileIdle: true,
       );
       const NotificationDetails platformChannelSpecifics =
           NotificationDetails(android: androidPlatformChannelSpecifics);
@@ -203,7 +204,6 @@ class NotificationService {
         body,
         scheduledDate,
         platformChannelSpecifics,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
     } catch (e) {
@@ -312,6 +312,7 @@ class NotificationService {
         priority: Priority.high,
         enableVibration: true,
         playSound: true,
+        androidAllowWhileIdle: true,
       );
       const NotificationDetails platformChannelSpecifics =
           NotificationDetails(android: androidPlatformChannelSpecifics);
@@ -328,7 +329,6 @@ class NotificationService {
               procedure.applyWindow,
               scheduledDate,
               platformChannelSpecifics,
-              androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
               uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
             );
           } catch (e) {
