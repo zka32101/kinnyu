@@ -3,7 +3,7 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 
 /// RevenueCat の Entitlement 識別子。RevenueCat ダッシュボードで
 /// 同名の Entitlement を作成し、Google Play Console の商品と紐付けること。
-const String premiumEntitlementId = 'premium';
+const String premiumEntitlementId = 'okane-premium';
 
 /// お金コレ！のプレミアム課金（RevenueCat）を管理するサービス。
 /// API キー未設定時は課金機能を無効化した状態で安全に動作する
