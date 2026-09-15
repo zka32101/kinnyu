@@ -6,7 +6,7 @@ import '../domain/models/spending_evaluation.dart';
 
 /// 支出評価とレコメンデーション生成サービス
 class SpendingEvaluationService {
-  final FirebaseFirestore _firestore;
+  final FirebaseFirestore? _firestore;
 
   SpendingEvaluationService(this._firestore);
 
@@ -21,8 +21,8 @@ class SpendingEvaluationService {
     final recommendations = <String>[];
 
     // カテゴリごとに評価を実施
-    budget.budgets.forEach((category, budgetAmount) {
-      final actualAmount = summary.categoryExpenses[category] ?? 0;
+    budget.categoryBudgets.forEach((category, budgetAmount) {
+      final actualAmount = summary.categoryBreakdown[category.name] ?? 0;
       final difference = actualAmount - budgetAmount;
       final utilization = budgetAmount > 0 ? (actualAmount / budgetAmount) * 100 : 0.0;
 
