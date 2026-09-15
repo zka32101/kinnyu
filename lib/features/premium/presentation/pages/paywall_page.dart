@@ -134,20 +134,32 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
           const SizedBox(height: 24),
           _buildFeatureRow(
             Icons.trending_up,
-            '投資シミュレーション 全8パターン',
+            '投資シミュレーション全8パターン',
             'ライフステージ別プリセットを制限なく試せる',
           ),
           const SizedBox(height: 16),
           _buildFeatureRow(
-            Icons.ios_share,
-            'Excel出力',
-            'シミュレーション結果を.xlsxでいつでも書き出し',
+            Icons.file_download,
+            'ダッシュボード・レポート出力',
+            'ダッシュボード・分析結果をExcelで書き出し',
           ),
           const SizedBox(height: 16),
           _buildFeatureRow(
             Icons.account_balance,
-            '制度・補助金を無制限に閲覧',
-            '児童手当からNISA・医療費控除まで、全22制度の詳細を確認できる',
+            '政策・制度・補助金全22制度',
+            '児童手当からNISA・医療費控除まで詳細に確認',
+          ),
+          const SizedBox(height: 16),
+          _buildFeatureRow(
+            Icons.analytics,
+            'カスタム分析レポート',
+            '家計管理データから詳細な分析結果を自動生成',
+          ),
+          const SizedBox(height: 16),
+          _buildFeatureRow(
+            Icons.ads_click,
+            '広告なしで利用',
+            'ストレスフリーなユーザー体験',
           ),
           const SizedBox(height: 32),
           if (_loadingOfferings)
