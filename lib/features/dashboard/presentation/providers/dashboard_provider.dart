@@ -72,8 +72,8 @@ final savingsDashboardProvider =
       int totalSaved = 0;
       int totalTarget = 0;
       for (final goal in goals) {
-        totalSaved += goal.currentAmount;
-        totalTarget += goal.targetAmount;
+        totalSaved += goal.currentAmount.toInt();
+        totalTarget += goal.targetAmount.toInt();
       }
       goalProgress = totalTarget > 0 ? totalSaved / totalTarget : 0.0;
     }

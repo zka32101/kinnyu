@@ -32,27 +32,27 @@ class SpendingEvaluationService {
 
       if (utilization <= 80) {
         severity = EvaluationSeverity.excellent;
-        recommendation = '$category の支出は予算内に収まっています。';
+        recommendation = '${category.displayName}の支出は予算内に収まっています。';
       } else if (utilization <= 100) {
         severity = EvaluationSeverity.good;
-        recommendation = '$category の支出が予算に近づいています。注視が必要です。';
+        recommendation = '${category.displayName}の支出が予算に近づいています。注視が必要です。';
       } else if (utilization <= 120) {
         severity = EvaluationSeverity.caution;
         final overPercent = ((utilization - 100) * budgetAmount / 100).toStringAsFixed(0);
-        recommendation = '$category の支出が予算超過です。約¥$overPercent 削減を推奨します。';
+        recommendation = '${category.displayName}の支出が予算超過です。約¥$overPercent 削減を推奨します。';
       } else if (utilization <= 150) {
         severity = EvaluationSeverity.warning;
         final overPercent = ((utilization - 100) * budgetAmount / 100).toStringAsFixed(0);
-        recommendation = '$category の支出が大幅に超過しています。約¥$overPercent 削減してください。';
+        recommendation = '${category.displayName}の支出が大幅に超過しています。約¥$overPercent 削減してください。';
       } else {
         severity = EvaluationSeverity.critical;
         final overPercent = ((utilization - 100) * budgetAmount / 100).toStringAsFixed(0);
-        recommendation = '$category の支出が極度に超過しています。緊急の対応が必要です（¥$overPercent 削減必要）。';
+        recommendation = '${category.displayName}の支出が極度に超過しています。緊急の対応が必要です（¥$overPercent 削減必要）。';
       }
 
       categoryEvaluations.add(
         CategoryEvaluation(
-          category: category,
+          category: category.name,
           actualSpent: actualAmount,
           budgetAmount: budgetAmount,
           difference: difference,

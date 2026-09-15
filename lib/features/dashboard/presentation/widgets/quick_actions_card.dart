@@ -62,7 +62,7 @@ class QuickActionsCard extends StatelessWidget {
                 ),
                 _buildActionButton(
                   context,
-                  icon: Icons.target,
+                  icon: Icons.track_changes,
                   label: '目標設定',
                   color: Colors.orange,
                   onTap: onGoalTap,

@@ -41,7 +41,7 @@ class CategoryBreakdownCard extends StatelessWidget {
                 children: List.generate(sortedExpenses.length, (index) {
                   final entry = sortedExpenses[index];
                   final percentage =
-                      totalExpense > 0 ? entry.value.amount / totalExpense : 0;
+                      totalExpense > 0 ? (entry.value.amount / totalExpense).toDouble() : 0.0;
                   return Padding(
                     padding: EdgeInsets.only(
                       bottom: index < sortedExpenses.length - 1 ? 12 : 0,
