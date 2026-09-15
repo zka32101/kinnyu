@@ -59,7 +59,7 @@ class GoalsProgressCard extends StatelessWidget {
 
   Widget _buildGoalTile(BuildContext context, FinancialGoal goal) {
     final theme = Theme.of(context);
-    final progressPercent = (goal.currentAmount / goal.targetAmount).clamp(0, 1);
+    final progressPercent = ((goal.currentAmount / goal.targetAmount).clamp(0, 1) as double);
     final isCompleted = progressPercent >= 1.0;
 
     return Column(
