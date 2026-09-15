@@ -175,7 +175,6 @@ class _SixMonthTrendChartState extends State<SixMonthTrendChart> {
                 enabled: true,
                 touchTooltipData: LineTouchTooltipData(
                   tooltipRoundedRadius: 8,
-                  tooltipBgColor: Colors.black.withValues(alpha: 0.8),
                   getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
                     return touchedBarSpots.map((barSpot) {
                       final label = switch (barSpot.barIndex) {
