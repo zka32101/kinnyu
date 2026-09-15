@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../domain/models/household_balance_sheet.dart';
+import '../../../domain/models/household_balance_sheet.dart';
 
 /// 簡易バランスカード - 当月の収支概要を表示
 class SimpleBalanceCard extends StatelessWidget {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../domain/models/spending_evaluation.dart';
+import '../../../domain/models/spending_evaluation.dart';
 
 /// 支出レコメンデーションセクション
 class SpendingRecommendationsSection extends StatelessWidget {

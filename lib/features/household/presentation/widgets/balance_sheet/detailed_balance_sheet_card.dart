@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../domain/models/household_balance_sheet.dart';
+import '../../../domain/models/household_balance_sheet.dart';
 
 /// 詳細バランスシートカード - 資産・負債・純資産の詳細を表示
 class DetailedBalanceSheetCard extends StatefulWidget {
