@@ -16,7 +16,6 @@ import 'core/firebase/firebase_init.dart';
 import 'core/firebase/auth_service.dart';
 import 'core/subscription/subscription_service.dart';
 import 'core/subscription/subscription_provider.dart';
-import 'core/ads/ad_service.dart';
 import 'features/procedures/presentation/providers/procedures_provider.dart';
 
 /// アプリ全体で捕捉できなかった例外がプロセスごとクラッシュするのを防ぐための
@@ -90,13 +89,6 @@ void main() {
       await SubscriptionService().initialize();
     } catch (e, stack) {
       debugPrint('[main] SubscriptionService initialization failed: $e\n$stack');
-    }
-
-    // 広告サービス初期化
-    try {
-      await AdService().initialize();
-    } catch (e, stack) {
-      debugPrint('[main] AdService initialization failed: $e\n$stack');
     }
 
     // Firestore 初期化（Firebaseの完全初期化後）
