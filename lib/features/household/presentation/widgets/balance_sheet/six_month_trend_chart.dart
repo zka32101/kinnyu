@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../domain/models/spending_evaluation.dart';
+import '../../../domain/models/spending_evaluation.dart';
 
 /// 6ヶ月トレンドチャート - 収入・支出・貯蓄・貯蓄率を表示
 class SixMonthTrendChart extends StatefulWidget {
