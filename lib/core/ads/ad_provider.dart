@@ -36,28 +36,13 @@ final interstitialAdProvider = Provider<void>((ref) {
 
 /// バナー広告のセットアップと管理。
 /// 画面下部に常時表示する小さな広告。
-final bannerAdProvider = StateNotifierProvider<BannerAdNotifier, bool>((ref) {
+final bannerAdProvider = FutureProvider.autoDispose<bool>((ref) async {
   final service = ref.watch(adServiceProvider);
   final shouldShowAds = ref.watch(shouldShowAdsProvider);
-  return BannerAdNotifier(service, shouldShowAds);
+
+  if (shouldShowAds && service.isInitialized) {
+    final ad = await service.loadBannerAd();
+    return ad != null;
+  }
+  return false;
 });
-
-class BannerAdNotifier extends StateNotifier<bool> {
-  final AdService _adService;
-  final bool _shouldShowAds;
-
-  BannerAdNotifier(this._adService, this._shouldShowAds) : super(false) {
-    if (_shouldShowAds && _adService.isInitialized) {
-      _loadBanner();
-    }
-  }
-
-  Future<void> _loadBanner() async {
-    final ad = await _adService.loadBannerAd();
-    state = ad != null;
-  }
-
-  void dispose() {
-    _adService.disposeBannerAd();
-  }
-}

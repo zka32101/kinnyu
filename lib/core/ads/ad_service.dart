@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -13,10 +14,6 @@ class AdService {
   BannerAd? _bannerAd;
 
   bool get isInitialized => _initialized;
-
-  /// テスト用デバイスID。開発中はこれを設定して本番広告を避ける。
-  /// AdMob で実際の広告 ID を取得後、本番用に切り替える。
-  static const String _testDeviceId = 'GOOGLE_MOBILE_ADS_TEST_DEVICE_ID';
 
   // TODO: AdMob ダッシュボードから取得した実際の広告ユニットIDに置き換えること
   /// バナー広告ユニットID（Android: ca-app-pub-xxxxxxxxxxxxxxxx/yyyyyyyyyy）
