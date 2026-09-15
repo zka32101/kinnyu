@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../data/spending_evaluation_service.dart';
 import '../../domain/models/spending_evaluation.dart';
 import '../../domain/models/household_balance_sheet.dart';
@@ -7,7 +6,7 @@ import '../../domain/models/household_balance_sheet.dart';
 /// SpendingEvaluationService プロバイダー
 /// Provides access to spending evaluation and recommendation generation
 final spendingEvaluationServiceProvider = Provider((ref) {
-  return SpendingEvaluationService(FirebaseFirestore.instance);
+  return SpendingEvaluationService();
 });
 
 /// 簡易バランスサマリー (当月)
