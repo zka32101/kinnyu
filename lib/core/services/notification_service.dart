@@ -66,7 +66,7 @@ class NotificationService {
           streakChannelId,
           streakChannelName,
           description: 'ストリークを続けるためのリマインダー通知',
-          importance: Importance.defaultImportance,
+          importance: Importance.high,
           enableVibration: true,
         );
         await androidImpl.createNotificationChannel(channel);
@@ -75,7 +75,7 @@ class NotificationService {
           procedureChannelId,
           procedureChannelName,
           description: '申請できる制度・補助金の時期をお知らせする通知',
-          importance: Importance.defaultImportance,
+          importance: Importance.high,
           enableVibration: true,
         );
         await androidImpl.createNotificationChannel(procedureChannel);
@@ -84,7 +84,7 @@ class NotificationService {
           recommendationChannelId,
           recommendationChannelName,
           description: '未達成のミッションや未確認の制度・補助金をお知らせするおすすめ通知',
-          importance: Importance.defaultImportance,
+          importance: Importance.high,
           enableVibration: true,
         );
         await androidImpl.createNotificationChannel(recommendationChannel);
@@ -123,8 +123,8 @@ class NotificationService {
         streakChannelId,
         streakChannelName,
         channelDescription: 'ストリークを続けるためのリマインダー通知',
-        importance: Importance.defaultImportance,
-        priority: Priority.defaultPriority,
+        importance: Importance.high,
+        priority: Priority.high,
         ticker: 'ストリーク継続のお知らせ',
         enableVibration: true,
         playSound: true,
@@ -145,7 +145,7 @@ class NotificationService {
         body,
         scheduledDate,
         platformChannelSpecifics,
-        androidScheduleMode: AndroidScheduleMode.exact,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.time,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
@@ -189,8 +189,8 @@ class NotificationService {
         recommendationChannelId,
         recommendationChannelName,
         channelDescription: '未達成のミッションや未確認の制度・補助金をお知らせするおすすめ通知',
-        importance: Importance.defaultImportance,
-        priority: Priority.defaultPriority,
+        importance: Importance.high,
+        priority: Priority.high,
         enableVibration: true,
         playSound: true,
       );
@@ -203,7 +203,7 @@ class NotificationService {
         body,
         scheduledDate,
         platformChannelSpecifics,
-        androidScheduleMode: AndroidScheduleMode.exact,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
     } catch (e) {
@@ -308,8 +308,8 @@ class NotificationService {
         procedureChannelId,
         procedureChannelName,
         channelDescription: '申請できる制度・補助金の時期をお知らせする通知',
-        importance: Importance.defaultImportance,
-        priority: Priority.defaultPriority,
+        importance: Importance.high,
+        priority: Priority.high,
         enableVibration: true,
         playSound: true,
       );
@@ -324,11 +324,11 @@ class NotificationService {
 
             await flutterLocalNotificationsPlugin.zonedSchedule(
               id,
-              '📋 ${procedure.title} の申請時期です',
+              '📋 ${procedure.title}の申請時期です',
               procedure.applyWindow,
               scheduledDate,
               platformChannelSpecifics,
-              androidScheduleMode: AndroidScheduleMode.exact,
+              androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
               uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
             );
           } catch (e) {

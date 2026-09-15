@@ -28,7 +28,7 @@ UI Framework: Flutter (最新安定版)
 データベース: Firebase Firestore
 認証: Firebase Auth
 計測: Firebase Analytics + Crashlytics
-課金: RevenueCat (後で追加)
+課金: RevenueCat (完了 ✅)
 アニメーション: Lottie (後で追加)
 ```
 
@@ -45,12 +45,19 @@ lib/
 │   │   └── presentation/              # Pages, widgets, notifiers
 │   ├── home/                          # Home screen
 │   ├── user_profile/                  # User profile & state
-│   ├── payment/                       # RevenueCat integration (WIP)
-│   └── analytics/                     # Firebase Analytics (WIP)
+│   ├── premium/                       # Premium/subscription features
+│   │   └── presentation/
+│   │       └── pages/paywall_page.dart
+│   ├── household/                     # Household finance features
+│   ├── dashboard/                     # Dashboard & analytics
+│   └── other_features/                # Quiz, investments, challenges, etc.
 ├── core/
 │   ├── firebase/                      # Firebase helpers
+│   ├── subscription/                  # RevenueCat integration ✅
+│   ├── theme/                         # App theming & colors
 │   ├── remote_config/                 # Remote Config for A/B tests
-│   ├── analytics/                     # Analytics service
+│   ├── analytics/                     # Firebase Analytics
+│   ├── services/                      # Shared services
 │   └── constants/                     # App-wide constants
 └── utils/                             # Utility functions
 ```
@@ -76,10 +83,48 @@ lib/
    - Run: `flutterfire configure`
    - Update `lib/firebase_options.dart` with credentials
 
-3. **Run app**
+3. **Configure RevenueCat (for subscription features)**
+   - Create RevenueCat account (https://app.revenuecat.com)
+   - Create Android app and get Public API Key
+   - Add API key to `lib/core/subscription/subscription_service.dart` line 21
+   - Replace `'REPLACE_WITH_REVENUECAT_ANDROID_KEY'` with actual key
+   - Create products in RevenueCat and link to Google Play Console
+   - Test with sandbox testing account
+
+4. **Run app**
    ```bash
    flutter run
    ```
+
+## Monetization
+
+### RevenueCat Integration (✅ Complete)
+
+**Status**: Production-ready implementation  
+**Features**:
+- Subscription management via RevenueCat
+- Premium content gating with `isPremiumProvider`
+- Purchase & restore functionality in Paywall page
+- Graceful fallback for missing API keys (development mode)
+
+**Files**:
+- `lib/core/subscription/subscription_service.dart` — RevenueCat API wrapper
+- `lib/core/subscription/subscription_provider.dart` — Riverpod state management
+- `lib/features/premium/presentation/pages/paywall_page.dart` — Paywall UI
+
+**Setup Checklist**:
+- [ ] Create RevenueCat project and Android product
+- [ ] Get Public API Key from RevenueCat dashboard
+- [ ] Set API key in `subscription_service.dart`
+- [ ] Create premium product in RevenueCat (entitlement ID: `premium`)
+- [ ] Link RevenueCat product to Google Play Console
+- [ ] Configure pricing and availability
+- [ ] Test with sandbox account before launch
+
+**Testing without API Key**: 
+- App runs normally but subscription features are disabled
+- `isPremiumProvider` always returns `false`
+- No crashes or errors (safe for development)
 
 ## Roadmap
 

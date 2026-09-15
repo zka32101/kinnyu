@@ -13,6 +13,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../premium/presentation/pages/paywall_page.dart';
 import '../../../household/presentation/widgets/financial_health_score_card.dart';
 import '../../../household/presentation/widgets/financial_health_recommendations.dart';
+import '../../../household/presentation/widgets/balance_sheet_dashboard_section.dart';
 import '../widgets/quick_actions_card.dart';
 import '../widgets/dashboard_sections.dart';
 
@@ -95,6 +96,10 @@ class SavingsDashboardPage extends ConsumerWidget {
                     groupId: user.uid,
                     month: _getCurrentMonth(),
                   ),
+                  const SizedBox(height: 20),
+
+                  // バランスシートセクション - 資産・負債・純資産の管理
+                  BalanceSheetDashboardSection(groupId: user.uid),
                   const SizedBox(height: 20),
 
                   // 目標進捗セクション - 貯蓄目標の進捗を追跡
