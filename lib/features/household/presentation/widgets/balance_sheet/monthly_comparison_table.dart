@@ -71,7 +71,7 @@ class MonthlyComparisonTable extends StatelessWidget {
               index == comparison.monthlySnapshots.length - 2;
 
           return DataRow(
-            color: MaterialStatePropertyAll(
+            color: WidgetStatePropertyAll(
               isCurrentMonth
                   ? Colors.blue.withValues(alpha: 0.1)
                   : isPreviousMonth
