@@ -72,6 +72,9 @@ dependencies:
   # In-app purchases
   purchases_flutter: ^8.0.0
 
+  # Ads
+  google_mobile_ads: ^4.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
