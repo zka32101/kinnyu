@@ -32,7 +32,6 @@ class AdScaffold extends ConsumerStatefulWidget {
   final Color? backgroundColor;
   final bool? resizeToAvoidBottomInset;
   final bool primary;
-  final DragStartBehavior drawerDragStartBehavior;
   final bool extendBody;
   final bool extendBodyBehindAppBar;
   final Color? drawerScrimColor;
@@ -58,7 +57,6 @@ class AdScaffold extends ConsumerStatefulWidget {
     this.backgroundColor,
     this.resizeToAvoidBottomInset,
     this.primary = true,
-    this.drawerDragStartBehavior = DragStartBehavior.start,
     this.extendBody = false,
     this.extendBodyBehindAppBar = false,
     this.drawerScrimColor,
@@ -134,7 +132,6 @@ class _AdScaffoldState extends ConsumerState<AdScaffold> {
       backgroundColor: widget.backgroundColor,
       resizeToAvoidBottomInset: widget.resizeToAvoidBottomInset,
       primary: widget.primary,
-      drawerDragStartBehavior: widget.drawerDragStartBehavior,
       extendBody: widget.extendBody,
       extendBodyBehindAppBar: widget.extendBodyBehindAppBar,
       drawerScrimColor: widget.drawerScrimColor,

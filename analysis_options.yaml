@@ -30,15 +30,8 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
-    # Code quality suggestions (non-critical)
-    use_super_parameters: false
-    unnecessary_import: false
-    unused_local_variable: false
-    unused_field: false
-    unused_import: false
-    avoid_print: false
-    # Avoid enforcement of deprecated APIs during transition
-    deprecated_member_use: false
+    - use_super_parameters
+    - avoid_print
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
