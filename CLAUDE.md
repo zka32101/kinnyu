@@ -32,6 +32,50 @@ This private repository contains all iOS build credentials and secrets required 
   - Manual trigger (workflow_dispatch)
 - **macOS Cost Optimization**: Expensive jobs run only on schedule/PR/main, never on random push
 
+## 💳 RevenueCat Subscription Setup
+
+**Status**: Implementation complete ✅ | **Requires**: API Key configuration
+
+### Required Secrets
+Add these to GitHub repository secrets (Settings > Secrets and variables > Actions):
+- `REVENUECAT_ANDROID_API_KEY` — Google Play Public API Key from RevenueCat dashboard
+
+Alternatively, add directly to `lib/core/subscription/subscription_service.dart`:
+```dart
+static const String _androidApiKey = 'YOUR_REVENUECAT_ANDROID_API_KEY';
+```
+
+### Configuration Steps
+1. **Create RevenueCat Project**
+   - Sign up at https://app.revenuecat.com
+   - Create new Android app project
+   - Get Public API Key from "Project Settings > API Keys"
+
+2. **Create Premium Product**
+   - In RevenueCat: Create new Entitlement with ID `premium`
+   - Create subscription product (monthly/annual options)
+   - Link to Google Play Console product
+
+3. **Google Play Console Integration**
+   - Add subscription product to Google Play Console
+   - Create "premium" subscription (same as RevenueCat entitlement ID)
+   - Configure pricing and availability
+
+4. **Test Account Setup**
+   - Create sandbox testing account in Google Play Console
+   - Add to app's internal testing track
+   - Test purchase flow before production launch
+
+### Implementation Files
+- **Service**: `lib/core/subscription/subscription_service.dart`
+- **State Management**: `lib/core/subscription/subscription_provider.dart`
+- **Paywall UI**: `lib/features/premium/presentation/pages/paywall_page.dart`
+
+### Safety Features
+- App runs without crashes if API key is missing (development mode)
+- All subscription checks default to `false` if not initialized
+- Error handling for network/RevenueCat API failures
+
 ## 🏗️ Recent Fixes (Aug 2026)
 
 ### Startup Crash Investigation
