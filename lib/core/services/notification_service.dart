@@ -128,7 +128,6 @@ class NotificationService {
         ticker: 'ストリーク継続のお知らせ',
         enableVibration: true,
         playSound: true,
-        androidAllowWhileIdle: true,
       );
 
       const NotificationDetails platformChannelSpecifics =
@@ -193,7 +192,6 @@ class NotificationService {
         priority: Priority.high,
         enableVibration: true,
         playSound: true,
-        androidAllowWhileIdle: true,
       );
       const NotificationDetails platformChannelSpecifics =
           NotificationDetails(android: androidPlatformChannelSpecifics);
@@ -312,7 +310,6 @@ class NotificationService {
         priority: Priority.high,
         enableVibration: true,
         playSound: true,
-        androidAllowWhileIdle: true,
       );
       const NotificationDetails platformChannelSpecifics =
           NotificationDetails(android: androidPlatformChannelSpecifics);
