@@ -1,14 +1,11 @@
 import 'package:flutter/foundation.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../domain/models/household_budget.dart';
 import '../domain/models/household_expense_summary.dart';
 import '../domain/models/spending_evaluation.dart';
 
 /// 支出評価とレコメンデーション生成サービス
 class SpendingEvaluationService {
-  final FirebaseFirestore? _firestore;
-
-  SpendingEvaluationService(this._firestore);
+  SpendingEvaluationService();
 
   /// 月間の支出をバジェットに対して評価
   Future<SpendingEvaluation> evaluateSpending(

@@ -115,7 +115,7 @@ final monthlyExpenseSummaryProvider =
 final categoryBreakdownProvider =
     FutureProvider.autoDispose.family<Map<String, int>, (String, String)>(
   (ref, params) async {
-    final (groupId, month) = params;
+    final (_, _) = params;
 
     // Placeholder implementation - replace with actual service call
     return {
