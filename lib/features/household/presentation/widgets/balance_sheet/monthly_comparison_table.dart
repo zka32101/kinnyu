@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../domain/models/spending_evaluation.dart';
+import '../../../domain/models/spending_evaluation.dart';
 
 /// 月別比較テーブル - 6ヶ月の詳細データを表示
 class MonthlyComparisonTable extends StatelessWidget {
