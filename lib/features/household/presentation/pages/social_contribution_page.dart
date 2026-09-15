@@ -6,7 +6,7 @@ import '../widgets/carbon_tracker_widget.dart';
 import '../widgets/charity_card.dart';
 import '../widgets/esg_score_card.dart';
 import '../../domain/models/social_contribution.dart';
-import '../../../core/firebase/auth_provider.dart';
+import '../../../../core/firebase/auth_provider.dart';
 
 /// 社会貢献ページ
 class SocialContributionPage extends ConsumerWidget {

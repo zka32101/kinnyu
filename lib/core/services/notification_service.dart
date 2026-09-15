@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-// import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-// import 'package:timezone/timezone.dart' as tz;
-// import 'package:timezone/data/latest.dart' as tzdata;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tzdata;
 
 /// 制度・手続きの期限リマインダーをスケジュールするための入力データ。
 /// core/services は features 層に依存しないよう、ProcedureInfo モデルそのものではなく
@@ -147,6 +147,7 @@ class NotificationService {
         platformChannelSpecifics,
         androidScheduleMode: AndroidScheduleMode.exact,
         matchDateTimeComponents: DateTimeComponents.time,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
     } catch (e) {
       debugPrint('通知スケジュール失敗: $e');
@@ -203,6 +204,7 @@ class NotificationService {
         scheduledDate,
         platformChannelSpecifics,
         androidScheduleMode: AndroidScheduleMode.exact,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
     } catch (e) {
       debugPrint('週次おすすめ通知のスケジュール失敗: $e');
@@ -327,6 +329,7 @@ class NotificationService {
               scheduledDate,
               platformChannelSpecifics,
               androidScheduleMode: AndroidScheduleMode.exact,
+              uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
             );
           } catch (e) {
             debugPrint(

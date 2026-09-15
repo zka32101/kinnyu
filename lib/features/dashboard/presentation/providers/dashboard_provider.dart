@@ -42,13 +42,28 @@ final savingsDashboardProvider =
     final budgetAsync = ref.watch(householdBudgetProvider(groupId));
     final goalsAsync = ref.watch(savingsGoalProvider(groupId));
 
-    // AwaitFuture to get actual data
-    final budget = await budgetAsync.future;
-    final goals = await goalsAsync.future;
+    // Extract actual data from AsyncValue
+    final budget = budgetAsync.maybeWhen(
+      data: (data) => data,
+      orElse: () => null,
+    );
+    final goals = goalsAsync.maybeWhen(
+      data: (data) => data,
+      orElse: () => [],
+    );
 
     // Calculate aggregate metrics
-    final totalIncome = budget.allocatedBudget; // Assuming allocated = income
-    final totalExpense = budget.spentAmount;
+    if (budget == null) {
+      return SavingsDashboard(
+        totalIncome: 0,
+        totalExpense: 0,
+        savingsAmount: 0,
+        goalProgress: 0.0,
+      );
+    }
+
+    final totalIncome = budget.totalBudget; // Use total budget as income proxy
+    final totalExpense = 0; // TODO: Fetch actual expenses from expense data
     final savingsAmount = totalIncome - totalExpense;
 
     // Calculate goal progress (0.0 to 1.0)

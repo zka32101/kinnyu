@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../domain/models/financial_health_score.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../domain/models/financial_health_score.dart';
 
 /// 財務健全性スコアの6ヶ月トレンドを表示するラインチャート
 /// Overall scoreの推移と個別カテゴリーのオーバーレイを表示
@@ -186,24 +185,7 @@ class _ScoreTrendChartState extends State<ScoreTrendChart> {
               lineTouchData: LineTouchData(
                 enabled: true,
                 touchTooltipData: LineTouchTooltipData(
-                  backgroundColor: Colors.grey.shade800,
                   tooltipRoundedRadius: 8,
-                  getTooltipItems: (touchedSpots) {
-                    return touchedSpots.map(
-                      (LineBarSpot touchedBarSpot) {
-                        final flSpot = touchedBarSpot.spot;
-                        final month = sortedTrends[flSpot.x.toInt()].month;
-                        return LineTooltipItem(
-                          '${month}\nスコア: ${flSpot.y.toStringAsFixed(0)}',
-                          const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        );
-                      },
-                    ).toList();
-                  },
                 ),
               ),
             ),

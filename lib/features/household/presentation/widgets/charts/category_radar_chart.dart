@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../domain/models/financial_health_score.dart';
+import '../../../domain/models/financial_health_score.dart';
 
 /// 財務健全性スコアの5つのカテゴリを表示するレーダーチャート
 /// 各カテゴリのバランスを可視化する
@@ -41,18 +41,11 @@ class CategoryRadarChart extends StatelessWidget {
                 RadarDataSet(
                   fillColor: Colors.green.withValues(alpha: 0.25),
                   borderColor: Colors.green,
-                  pointColor: Colors.green,
                   dataEntries: scaledScores.map((score) => RadarEntry(value: score)).toList(),
                   borderWidth: 2,
-                  pointSize: 6,
                 )
               ],
               radarBackgroundColor: Colors.transparent,
-              borderData: RadarBorderData(show: true),
-              gridBorderData: RadarGridBorderData(
-                show: true,
-                color: Colors.grey.withValues(alpha: 0.2),
-              ),
               ticksTextStyle: const TextStyle(
                 color: Colors.grey,
                 fontSize: 10,

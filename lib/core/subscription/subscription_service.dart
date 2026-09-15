@@ -56,7 +56,7 @@ class SubscriptionService {
     }
   }
 
-  Future<PurchaseResult?> purchasePackage(Package package) async {
+  Future<dynamic> purchasePackage(Package package) async {
     if (!_initialized) return null;
     try {
       return await Purchases.purchasePackage(package);

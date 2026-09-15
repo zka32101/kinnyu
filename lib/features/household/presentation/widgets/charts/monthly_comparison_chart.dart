@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../domain/models/financial_health_score.dart';
+import '../../../domain/models/financial_health_score.dart';
 
 /// 先月・今月・目標スコアを比較するグループバーチャート
 class MonthlyComparisonChart extends StatelessWidget {
@@ -58,7 +58,6 @@ class MonthlyComparisonChart extends StatelessWidget {
               barTouchData: BarTouchData(
                 enabled: true,
                 touchTooltipData: BarTouchTooltipData(
-                  backgroundColor: Colors.grey.shade800,
                   tooltipRoundedRadius: 8,
                   getTooltipItem: (group, groupIndex, rod, rodIndex) {
                     String label;
