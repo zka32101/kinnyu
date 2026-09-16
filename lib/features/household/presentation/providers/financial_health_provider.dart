@@ -1,5 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/financial_health_score.dart';
+import '../../../investment/presentation/providers/investment_provider.dart';
+import '../../../investment/domain/services/market_simulator.dart';
+import './social_contribution_provider.dart';
 
 // PERFORMANCE NOTE: All providers use .autoDispose.family for optimal memory usage:
 // - .autoDispose: Automatically disposes unused providers (good for low-memory scenarios)
@@ -19,17 +22,44 @@ DateTime _calculateMonthBack(DateTime now, int monthsBack) {
   return DateTime(newYear, newMonth, 1);
 }
 
-/// 投資額プロバイダー - Placeholder (lazy-loaded, used by detail page only)
+/// 投資額プロバイダー - Integration with Investment module
+/// INTEGRATION: Fetches current investment portfolio value from activeInvestmentsProvider
 /// OPTIMIZATION: This provider is only watched by financial health detail page
 /// Not fetched on dashboard, avoiding unnecessary network requests
-final investmentAmountProvider = FutureProvider.autoDispose
-    .family<int, String>((ref, groupId) async => 0);
+final investmentAmountProvider = StreamProvider.autoDispose
+    .family<int, String>((ref, groupId) {
+  final investmentStream = ref.watch(activeInvestmentsProvider(groupId));
 
-/// 社会貢献額プロバイダー - Placeholder (lazy-loaded, used by detail page only)
+  return investmentStream.asyncMap((investments) async {
+    int totalValue = 0;
+    for (final investment in investments) {
+      final currentIndex = MarketSimulator.getCurrentIndexValue(
+        investment.investmentType,
+      );
+      final currentValue = investment.currentValue(currentIndex);
+      totalValue += currentValue.toInt();
+    }
+    return totalValue;
+  }).handleError((error) {
+    return 0;
+  });
+});
+
+/// 社会貢献額プロバイダー - Real-time integration with Social Contribution module
+/// INTEGRATION: Fetches total donations from socialContributionProvider
+/// - Streams donation records from Firestore
+/// - Updates in real-time as contributions are added
 /// OPTIMIZATION: This provider is only watched by financial health detail page
 /// Not fetched on dashboard, avoiding unnecessary network requests
 final socialContributionAmountProvider = FutureProvider.autoDispose
-    .family<int, String>((ref, groupId) async => 0);
+    .family<int, String>((ref, groupId) async {
+  try {
+    return await ref.watch(totalDonationsProvider(groupId).future);
+  } catch (e) {
+    // Fallback if social contribution service unavailable
+    return 0;
+  }
+});
 
 /// 財務健全性スコアプロバイダー
 final financialHealthScoreProvider = FutureProvider.autoDispose
