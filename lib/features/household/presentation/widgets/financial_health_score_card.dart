@@ -15,6 +15,7 @@ class FinancialHealthScoreCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Performance: Use select() to reduce rebuild scope when values change
     final scoreAsync = ref.watch(financialHealthScoreProvider(groupId));
 
     return scoreAsync.when(
