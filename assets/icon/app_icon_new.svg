@@ -1,0 +1,44 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="110" fill="#F5F7FA"/>
+
+  <!-- Primary circle (Score gauge) -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="#E8EEF5" stroke-width="20"/>
+
+  <!-- Accent circle inner -->
+  <circle cx="256" cy="256" r="140" fill="none" stroke="#3B82F6" stroke-width="8" opacity="0.3"/>
+
+  <!-- Score gauge - filled arc (70% for healthy financial state) -->
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#10B981" stroke-width="16"
+          stroke-dasharray="702.06 1005.31" stroke-dashoffset="0" stroke-linecap="round"
+          transform="rotate(-90 256 256)"/>
+
+  <!-- Graph bars - upward trend -->
+  <g transform="translate(160, 220)">
+    <!-- Bar 1 -->
+    <rect x="0" y="50" width="20" height="30" fill="#6366F1" rx="3"/>
+
+    <!-- Bar 2 -->
+    <rect x="28" y="35" width="20" height="45" fill="#8B5CF6" rx="3"/>
+
+    <!-- Bar 3 -->
+    <rect x="56" y="15" width="20" height="65" fill="#3B82F6" rx="3"/>
+
+    <!-- Trend line connecting tops -->
+    <polyline points="10,50 38,35 66,15" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Center icon - simplified house/home symbol -->
+  <g transform="translate(256, 290)">
+    <!-- House outline -->
+    <path d="M -20 10 L 0 -15 L 20 10 L 15 10 L 15 30 L -15 30 L -15 10 Z"
+          fill="none" stroke="#3B82F6" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+
+    <!-- Door -->
+    <rect x="-6" y="10" width="12" height="20" fill="none" stroke="#3B82F6" stroke-width="2" rx="2"/>
+  </g>
+
+  <!-- Accent dots for visual interest -->
+  <circle cx="420" cy="100" r="6" fill="#10B981" opacity="0.6"/>
+  <circle cx="100" cy="420" r="5" fill="#8B5CF6" opacity="0.4"/>
+</svg>
