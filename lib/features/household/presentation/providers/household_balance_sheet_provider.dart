@@ -3,6 +3,14 @@ import '../../data/spending_evaluation_service.dart';
 import '../../domain/models/spending_evaluation.dart';
 import '../../domain/models/household_balance_sheet.dart';
 
+// PERFORMANCE NOTE: All providers use .autoDispose.family for optimal memory usage
+// Current Implementation: Mock/placeholder data (for rapid prototyping)
+// Future Optimization: When connecting to Firestore:
+// - Use batch queries to fetch multiple months of data in single collection query
+// - Implement TTL caching (1 hour) for category score calculations
+// - Add pagination for historical data (current month first, older on demand)
+// - Monitor query count (target: <3 queries per screen load)
+
 /// SpendingEvaluationService プロバイダー
 /// Provides access to spending evaluation and recommendation generation
 final spendingEvaluationServiceProvider = Provider((ref) {

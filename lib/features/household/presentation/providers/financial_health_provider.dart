@@ -1,6 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/financial_health_score.dart';
 
+// PERFORMANCE NOTE: All providers use .autoDispose.family for optimal memory usage:
+// - .autoDispose: Automatically disposes unused providers (good for low-memory scenarios)
+// - .family: Caches values per parameter (same groupId reuses cached result)
+// See: lib/features/household/presentation/providers/PERFORMANCE_OPTIMIZATION.md
+
 /// Helper: Calculate DateTime for months in the past with proper year adjustment
 DateTime _calculateMonthBack(DateTime now, int monthsBack) {
   int newMonth = now.month - monthsBack;
@@ -14,11 +19,15 @@ DateTime _calculateMonthBack(DateTime now, int monthsBack) {
   return DateTime(newYear, newMonth, 1);
 }
 
-/// 投資額プロバイダー - Placeholder
+/// 投資額プロバイダー - Placeholder (lazy-loaded, used by detail page only)
+/// OPTIMIZATION: This provider is only watched by financial health detail page
+/// Not fetched on dashboard, avoiding unnecessary network requests
 final investmentAmountProvider = FutureProvider.autoDispose
     .family<int, String>((ref, groupId) async => 0);
 
-/// 社会貢献額プロバイダー - Placeholder
+/// 社会貢献額プロバイダー - Placeholder (lazy-loaded, used by detail page only)
+/// OPTIMIZATION: This provider is only watched by financial health detail page
+/// Not fetched on dashboard, avoiding unnecessary network requests
 final socialContributionAmountProvider = FutureProvider.autoDispose
     .family<int, String>((ref, groupId) async => 0);
 
@@ -43,7 +52,12 @@ final financialHealthScoreDetailProvider = FutureProvider.autoDispose
   return null;
 });
 
-/// スコアトレンドプロバイダー
+/// スコアトレンドプロバイダー (6ヶ月のトレンドデータ)
+/// OPTIMIZATION OPPORTUNITIES:
+/// - Current: Generates 6 months in-memory (fast, suitable for mock data)
+/// - When Firestore integrated: Consider pagination with startAfter() for large datasets
+/// - Possible: Lazy-load trends (show current month first, load historical on demand)
+/// - Consider: Batch query to fetch all months in one collection query instead of 6 queries
 final financialHealthScoreTrendProvider = FutureProvider.autoDispose
     .family<List<FinancialHealthScoreTrend>, String>((ref, groupId) async {
   final now = DateTime.now();
