@@ -398,4 +398,177 @@ class NotificationService {
     }
     await flutterLocalNotificationsPlugin.cancel(id);
   }
+
+  /// 財務健全性スコアマイルストーン通知をスケジュールする
+  /// スコアが特定の値に到達時に祝賀通知を送信
+  Future<void> showScoreMilestoneNotification(int score) async {
+    if (!_initialized) {
+      debugPrint('NotificationService: not initialized, skipping showScoreMilestoneNotification');
+      return;
+    }
+
+    // マイルストーン: 70, 75, 80, 85, 90
+    final milestones = [70, 75, 80, 85, 90];
+    if (!milestones.contains(score)) {
+      return; // Only notify on milestone scores
+    }
+
+    try {
+      String title = '🎉 スコアアップおめでとう！';
+      String body;
+      String emoji;
+
+      if (score >= 90) {
+        emoji = '🏆';
+        body = 'スコア90を達成！あなたは優秀な財務管理者です。このレベルを維持してください。';
+      } else if (score >= 85) {
+        emoji = '⭐';
+        body = 'スコア85に到達！財務健全性が優良水準です。目標達成まであと一歩です。';
+      } else if (score >= 80) {
+        emoji = '👍';
+        body = 'スコア80を突破！財務管理が上手くいっています。さらに上を目指しましょう。';
+      } else if (score >= 75) {
+        emoji = '📈';
+        body = 'スコア75達成！着実に改善が進んでいます。このペースで続けてください。';
+      } else {
+        emoji = '🚀';
+        body = 'スコア70に到達！財務健全性の改善が始まっています。頑張りましょう！';
+      }
+
+      const AndroidNotificationDetails androidPlatformChannelSpecifics =
+          AndroidNotificationDetails(
+        'score_milestone',
+        'スコアマイルストーン通知',
+        channelDescription: '財務スコアがマイルストーンに到達時の祝賀通知',
+        importance: Importance.high,
+        priority: Priority.high,
+        enableVibration: true,
+        playSound: true,
+      );
+
+      const NotificationDetails platformChannelSpecifics =
+          NotificationDetails(
+        android: androidPlatformChannelSpecifics,
+      );
+
+      await flutterLocalNotificationsPlugin.show(
+        score * 1000, // Unique ID based on score
+        '$emoji $title',
+        body,
+        platformChannelSpecifics,
+      );
+    } catch (e) {
+      debugPrint('スコアマイルストーン通知エラー: $e');
+    }
+  }
+
+  /// 財務改善提案通知
+  /// ユーザーが改善アクションを取ったときにお祝い通知
+  Future<void> showImprovementActionNotification({
+    required String actionType,
+    required String category,
+    required int estimatedScoreGain,
+  }) async {
+    if (!_initialized) {
+      debugPrint('NotificationService: not initialized, skipping showImprovementActionNotification');
+      return;
+    }
+
+    try {
+      String title = '改善アクション実行！';
+      String body;
+      String emoji;
+
+      switch (actionType) {
+        case 'savings':
+          emoji = '💰';
+          body = '貯蓄を開始しました。約$estimatedScoreGainポイントスコアが向上する見込みです。';
+          break;
+        case 'budget':
+          emoji = '📊';
+          body = '予算設定が完了！予算管理によりスコアが改善する見込みです。';
+          break;
+        case 'investment':
+          emoji = '📈';
+          body = '投資を開始しました。投資参加度スコアが向上する見込みです。';
+          break;
+        case 'donation':
+          emoji = '🤝';
+          body = '寄付をしていただきました。社会貢献度スコアが向上する見込みです。';
+          break;
+        default:
+          emoji = '✅';
+          body = '改善アクションを実行しました。スコアが向上する見込みです。';
+      }
+
+      const AndroidNotificationDetails androidPlatformChannelSpecifics =
+          AndroidNotificationDetails(
+        'improvement_action',
+        '改善アクション通知',
+        channelDescription: 'ユーザーが改善アクションを取った時のお祝い通知',
+        importance: Importance.high,
+        priority: Priority.high,
+        enableVibration: true,
+        playSound: true,
+      );
+
+      const NotificationDetails platformChannelSpecifics =
+          NotificationDetails(
+        android: androidPlatformChannelSpecifics,
+      );
+
+      await flutterLocalNotificationsPlugin.show(
+        DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        '$emoji $title',
+        body,
+        platformChannelSpecifics,
+      );
+    } catch (e) {
+      debugPrint('改善アクション通知エラー: $e');
+    }
+  }
+
+  /// 月間目標達成通知
+  /// ユーザーが月間目標を達成したときに通知
+  Future<void> showMonthlyGoalAchievedNotification({
+    required String goalName,
+    required int currentScore,
+    required int previousScore,
+  }) async {
+    if (!_initialized) {
+      debugPrint('NotificationService: not initialized, skipping showMonthlyGoalAchievedNotification');
+      return;
+    }
+
+    try {
+      final scoreImprovement = currentScore - previousScore;
+      final title = '🎯 月間目標達成！';
+      final body = '$goalNameを達成しました！\nスコア: $previousScore → $currentScore (+$scoreImprovement)';
+
+      const AndroidNotificationDetails androidPlatformChannelSpecifics =
+          AndroidNotificationDetails(
+        'monthly_goal',
+        '月間目標達成通知',
+        channelDescription: '月間目標達成時のお祝い通知',
+        importance: Importance.high,
+        priority: Priority.high,
+        enableVibration: true,
+        playSound: true,
+      );
+
+      const NotificationDetails platformChannelSpecifics =
+          NotificationDetails(
+        android: androidPlatformChannelSpecifics,
+      );
+
+      await flutterLocalNotificationsPlugin.show(
+        DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        title,
+        body,
+        platformChannelSpecifics,
+      );
+    } catch (e) {
+      debugPrint('月間目標達成通知エラー: $e');
+    }
+  }
 }
