@@ -32,6 +32,106 @@ This private repository contains all iOS build credentials and secrets required 
   - Manual trigger (workflow_dispatch)
 - **macOS Cost Optimization**: Expensive jobs run only on schedule/PR/main, never on random push
 
+## 🔑 Android Keystore & Release Signing Setup
+
+**Status**: Ready for configuration | **Required for**: Google Play Console submission
+
+### Required Secrets
+Add these to GitHub repository secrets (Settings > Secrets and variables > Actions):
+- `ANDROID_KEYSTORE_BASE64` — Base64-encoded .jks keystore file
+- `ANDROID_KEYSTORE_STORE_PASSWORD` — Keystore password
+- `ANDROID_KEYSTORE_PASSWORD` — Private key password
+- `ANDROID_KEYSTORE_KEY_ALIAS` — Key alias (default: `release`)
+
+### Setup Instructions
+
+#### 1. Create or Obtain Android Keystore
+
+**Option A: Generate new keystore (recommended for new apps)**
+```bash
+keytool -genkey -v -keystore okane_kore_release.jks \
+  -keyalg RSA -keysize 2048 -validity 10000 \
+  -alias release \
+  -storepass YOUR_KEYSTORE_PASSWORD \
+  -keypass YOUR_KEY_PASSWORD
+```
+
+**Option B: Retrieve existing keystore from ios-certs-vault**
+- Same repository structure as iOS certificates
+- Extract `okane_kore_release.jks` from private vault
+
+#### 2. Encode Keystore to Base64
+
+```bash
+base64 -i okane_kore_release.jks > keystore_base64.txt
+cat keystore_base64.txt
+```
+
+#### 3. Create GitHub Secrets
+
+1. Go to **okane_kore** repository → Settings → Secrets and variables → Actions
+2. Create 4 new repository secrets:
+   - **Secret name**: `ANDROID_KEYSTORE_BASE64`
+     **Value**: Paste the entire base64 output from step 2
+   
+   - **Secret name**: `ANDROID_KEYSTORE_STORE_PASSWORD`
+     **Value**: Your keystore password (from step 1)
+   
+   - **Secret name**: `ANDROID_KEYSTORE_PASSWORD`
+     **Value**: Your private key password (from step 1)
+   
+   - **Secret name**: `ANDROID_KEYSTORE_KEY_ALIAS`
+     **Value**: `release` (or your alias from step 1)
+
+#### 4. Store Keystore Safely
+
+- **DO NOT commit keystore to git** (already in .gitignore)
+- Keep backup copy in ios-certs-vault repository (private)
+- Never share passwords publicly
+
+### GitHub Actions Workflow
+- **File**: `.github/workflows/android-build.yml`
+- **Auto-triggers for AAB build**:
+  - Manual trigger (workflow_dispatch)
+  - Push to main branch (builds & signs AAB for Google Play)
+- **Graceful fallback**: If secrets not configured, build skips with informative message
+- **Cost optimization**: AAB builds only on explicit triggers (not every PR)
+
+### Local Development (Optional)
+
+**For local testing without GitHub secrets**, add to `android/local.properties`:
+```
+KEYSTORE_PATH=/path/to/okane_kore_release.jks
+KEYSTORE_STORE_PASSWORD=your_keystore_password
+```
+
+Then build locally:
+```bash
+flutter build appbundle --release
+```
+
+### Google Play Console Upload
+
+Once AAB is generated and signed by GitHub Actions:
+1. Go to **Google Play Console** → okane_kore app → Release → Production
+2. Click "Create new release"
+3. Upload the signed AAB artifact from GitHub Actions
+4. Review app details and submit for review
+
+### Troubleshooting
+
+**Error: "APK/AAB signed with debug key"**
+- Cause: Signing secrets not configured
+- Solution: Follow setup instructions above, ensure all 4 secrets are added
+
+**Error: "Invalid keystore password"**
+- Cause: Secret value doesn't match keystore password
+- Solution: Verify password in keystore, update secret with correct value
+
+**Error: "Key alias not found"**
+- Cause: `ANDROID_KEYSTORE_KEY_ALIAS` doesn't match keystore alias
+- Solution: Verify alias: `keytool -list -v -keystore keystore.jks`
+
 ## 💳 RevenueCat Subscription Setup
 
 **Status**: Implementation complete ✅ | **Requires**: API Key configuration
