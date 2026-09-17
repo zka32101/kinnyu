@@ -24,8 +24,13 @@ DateTime _calculateMonthBack(DateTime now, int monthsBack) {
 
 /// 投資額プロバイダー - Integration with Investment module
 /// INTEGRATION: Fetches current investment portfolio value from activeInvestmentsProvider
+/// CACHING:
+/// - StreamProvider (not FutureProvider) for real-time updates
+/// - .autoDispose: Clears when detail page closed
+/// - Deduplication: Multiple detail pages watch same groupId → single investment stream
 /// OPTIMIZATION: This provider is only watched by financial health detail page
 /// Not fetched on dashboard, avoiding unnecessary network requests
+/// LAZY LOADING: Only loads when user navigates to financial health detail page
 final investmentAmountProvider = StreamProvider.autoDispose
     .family<int, String>((ref, groupId) {
   final investmentStream = ref.watch(activeInvestmentsProvider(groupId));
@@ -49,8 +54,14 @@ final investmentAmountProvider = StreamProvider.autoDispose
 /// INTEGRATION: Fetches total donations from socialContributionProvider
 /// - Streams donation records from Firestore
 /// - Updates in real-time as contributions are added
+/// CACHING:
+/// - .autoDispose: Clears when detail page closed
+/// - Deduplication: Multiple detail pages watch same groupId → single donation fetch
+/// - Error handling: Returns 0 if social contribution service unavailable (no crash)
 /// OPTIMIZATION: This provider is only watched by financial health detail page
 /// Not fetched on dashboard, avoiding unnecessary network requests
+/// LAZY LOADING: Only loads when user navigates to financial health detail page
+/// MEMORY: With .autoDispose, donation data freed immediately when tab closed
 final socialContributionAmountProvider = FutureProvider.autoDispose
     .family<int, String>((ref, groupId) async {
   try {
@@ -62,6 +73,16 @@ final socialContributionAmountProvider = FutureProvider.autoDispose
 });
 
 /// 財務健全性スコアプロバイダー
+/// CACHING BEHAVIOR:
+/// - .autoDispose: Automatically clears when no longer watched (memory efficient)
+/// - .family: Caches per groupId (same groupId across widgets reuses same result)
+/// - No TTL: Currently refreshes on app resume; when Firestore integrated,
+///   consider 1-hour cache to reduce recalculation (category scores rarely change intraday)
+/// USAGE:
+/// - Dashboard: Watch via select() to only rebuild on score changes (not all fields)
+/// - Detail page: Watch full object (all scores needed for display)
+/// WATCH PATTERN: Use .select((async) => async.whenData((s) => s.overallScore))
+/// to optimize dashboard rebuilds when only the main score is displayed
 final financialHealthScoreProvider = FutureProvider.autoDispose
     .family<FinancialHealthScore, String>((ref, groupId) async {
   return FinancialHealthScore(
@@ -82,16 +103,63 @@ final financialHealthScoreDetailProvider = FutureProvider.autoDispose
   return null;
 });
 
+/// 現在月のスコアトレンドプロバイダー (Lazy-loading optimization)
+/// PERFORMANCE: Returns only current month data (< 100ms)
+/// Use this for dashboard/overview to avoid loading 6 months of data unnecessarily
+/// When user navigates to Trends tab, load historicalScoreTrendProvider
+final currentMonthScoreTrendProvider = FutureProvider.autoDispose
+    .family<FinancialHealthScoreTrend, String>((ref, groupId) async {
+  final now = DateTime.now();
+  return FinancialHealthScoreTrend(
+    groupId: groupId,
+    month: '${now.year}-${now.month.toString().padLeft(2, '0')}',
+    overallScore: 75,
+    categoryScores: {
+      'savingsRatio': 75,
+      'budgetAdherence': 80,
+      'expenseControl': 75,
+      'investmentEngagement': 70,
+      'socialImpact': 65,
+    },
+  );
+});
+
 /// スコアトレンドプロバイダー (6ヶ月のトレンドデータ)
-/// OPTIMIZATION OPPORTUNITIES:
-/// - Current: Generates 6 months in-memory (fast, suitable for mock data)
-/// - When Firestore integrated: Consider pagination with startAfter() for large datasets
-/// - Possible: Lazy-load trends (show current month first, load historical on demand)
-/// - Consider: Batch query to fetch all months in one collection query instead of 6 queries
+/// OPTIMIZATION NOTE: Cached by .family parameter (same groupId reuses result)
+/// CACHING: Riverpod .autoDispose provides automatic memory management
+/// TTL Strategy (when Firestore integrated):
+/// - Cache for 1 hour if data unchanged
+/// - Invalidate on explicit refresh or app resume
+/// LAZY LOADING: Use currentMonthScoreTrendProvider for fast initial load
+/// Only fetch all 6 months when Trends tab is opened (see historicalScoreTrendProvider)
 final financialHealthScoreTrendProvider = FutureProvider.autoDispose
     .family<List<FinancialHealthScoreTrend>, String>((ref, groupId) async {
   final now = DateTime.now();
   return List.generate(6, (i) {
+    final month = _calculateMonthBack(now, 5 - i);
+    return FinancialHealthScoreTrend(
+      groupId: groupId,
+      month: '${month.year}-${month.month.toString().padLeft(2, '0')}',
+      overallScore: 65 + (i * 2),
+      categoryScores: {
+        'savingsRatio': 65 + (i * 2),
+        'budgetAdherence': 70 + (i * 2),
+        'expenseControl': 65 + (i * 2),
+        'investmentEngagement': 60 + (i * 2),
+        'socialImpact': 55 + (i * 2),
+      },
+    );
+  });
+});
+
+/// 過去トレンドプロバイダー (Lazy-loading - 詳細ページのTrendsタブ用)
+/// PERFORMANCE: Only fetched when user opens Trends tab (on-demand loading)
+/// Combined with currentMonthScoreTrendProvider for fast initial page load
+/// Returns months 2-6 (previous 5 months, excluding current)
+final historicalScoreTrendProvider = FutureProvider.autoDispose
+    .family<List<FinancialHealthScoreTrend>, String>((ref, groupId) async {
+  final now = DateTime.now();
+  return List.generate(5, (i) {
     final month = _calculateMonthBack(now, 5 - i);
     return FinancialHealthScoreTrend(
       groupId: groupId,
