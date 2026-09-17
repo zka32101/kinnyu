@@ -15,7 +15,11 @@ class FinancialHealthScoreCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Performance: Use select() to reduce rebuild scope when values change
+    // Performance optimization: Watch full score object since _buildScoreCard needs all fields
+    // For dashboard-only score display, could optimize with:
+    // ref.watch(financialHealthScoreProvider(groupId)
+    //     .select((async) => async.whenData((s) => s.overallScore)))
+    // But here full object needed, so keep as-is
     final scoreAsync = ref.watch(financialHealthScoreProvider(groupId));
 
     return scoreAsync.when(
