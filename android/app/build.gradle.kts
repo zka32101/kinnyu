@@ -28,11 +28,45 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            keyAlias = System.getenv("ANDROID_KEYSTORE_KEY_ALIAS") ?: "release"
+            keyPassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+            storeFile = if (System.getenv("ANDROID_KEYSTORE_BASE64") != null) {
+                // For CI/CD: decode base64 and create temporary keystore
+                val keystoreBase64 = System.getenv("ANDROID_KEYSTORE_BASE64") ?: ""
+                if (keystoreBase64.isNotEmpty()) {
+                    val keystoreBytes = java.util.Base64.getDecoder().decode(keystoreBase64)
+                    val keystoreFile = File(buildDir, "release-keystore.jks")
+                    keystoreFile.writeBytes(keystoreBytes)
+                    keystoreFile
+                } else {
+                    null
+                }
+            } else {
+                // For local development: read from gradle.properties
+                val keystorePath = project.findProperty("KEYSTORE_PATH") as? String
+                if (keystorePath != null) File(keystorePath) else null
+            }
+            storePassword = System.getenv("ANDROID_KEYSTORE_STORE_PASSWORD")
+                ?: (project.findProperty("KEYSTORE_STORE_PASSWORD") as? String)
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (signingConfigs.getByName("release").storeFile != null) {
+                signingConfigs.getByName("release")
+            } else {
+                // Fallback to debug for local development without keystore
+                signingConfigs.getByName("debug")
+            }
+            minifyEnabled = true
+            shrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 }
