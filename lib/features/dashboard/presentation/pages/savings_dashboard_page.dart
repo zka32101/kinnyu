@@ -10,10 +10,12 @@ import '../../../procedures/domain/models/procedure_info.dart';
 import '../../../procedures/presentation/providers/procedures_provider.dart';
 import '../../../../core/subscription/subscription_provider.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/navigation/navigation_routes.dart';
 import '../../../premium/presentation/pages/paywall_page.dart';
 import '../../../household/presentation/widgets/financial_health_score_card.dart';
 import '../../../household/presentation/widgets/financial_health_recommendations.dart';
 import '../../../household/presentation/widgets/balance_sheet_dashboard_section.dart';
+import '../../../household/presentation/widgets/financial_insights_section.dart';
 import '../widgets/quick_actions_card.dart';
 import '../widgets/dashboard_sections.dart';
 
@@ -65,8 +67,10 @@ class SavingsDashboardPage extends ConsumerWidget {
                   // クイックアクションセクション
                   QuickActionsCard(
                     onReceiptTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('レシート記録へ移動します...')),
+                      NavigationRoutes.navigateToExpenseList(
+                        context,
+                        user.uid,
+                        user.uid,
                       );
                     },
                     onBudgetTap: () {
@@ -82,6 +86,20 @@ class SavingsDashboardPage extends ConsumerWidget {
                     onDonationTap: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('寄付へ移動します...')),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // AI インサイトセクション - 最上位3件の推奨事項と異常検知
+                  FinancialInsightsSection(
+                    groupId: user.uid,
+                    locale: 'ja',
+                    onViewAll: () {
+                      NavigationRoutes.navigateToInsightsDetail(
+                        context,
+                        user.uid,
+                        locale: 'ja',
                       );
                     },
                   ),
