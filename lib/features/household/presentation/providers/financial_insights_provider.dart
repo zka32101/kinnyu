@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/financial_insight.dart';
 import '../../domain/services/financial_insights_service.dart';
@@ -7,6 +8,7 @@ import './household_balance_sheet_provider.dart';
 // ===== Analysis Providers =====
 
 /// 前月の支出サマリー
+/// エッジケース対応: 初月の場合はnullを返す
 final previousMonthExpenseProvider = FutureProvider.autoDispose
     .family<HouseholdExpenseSummary?, String>((ref, groupId) async {
   // 前月の支出データを取得
@@ -16,6 +18,10 @@ final previousMonthExpenseProvider = FutureProvider.autoDispose
 });
 
 /// 支出の異常を分析
+/// エッジケース対応:
+/// - 初月: 前月データがないため異常なし
+/// - 支出がない: 全て0として処理（異常なし）
+/// - カテゴリ不足: スキップされる
 final spendingAnomaliesProvider = FutureProvider.autoDispose
     .family<List<SpendingAnomaly>, String>((ref, groupId) async {
   try {
@@ -78,11 +84,16 @@ final spendingAnomaliesProvider = FutureProvider.autoDispose
       budgetTargets,
     );
   } catch (e) {
+    debugPrint('Error analyzing anomalies: $e');
     return [];
   }
 });
 
 /// ユーザーのコンテキストを評価
+/// エッジケース対応:
+/// - スコアデータ不足: startuerとして分類
+/// - トレンドデータなし: スコア軌跡は'stable'
+/// - エラー時: デフォルト値を返す（クラッシュせず）
 final userContextProvider = FutureProvider.autoDispose
     .family<InsightContext, String>((ref, groupId) async {
   try {
@@ -91,6 +102,8 @@ final userContextProvider = FutureProvider.autoDispose
 
     return FinancialInsightsService.assessUserContext(trends, score.overallScore);
   } catch (e) {
+    debugPrint('Error assessing user context: $e');
+    // デフォルト値: 初期ユーザー、安定トレンド
     return InsightContext(
       userState: UserState.starter,
       scoreTrajectory: ScoreTrajectory.stable,
@@ -102,6 +115,10 @@ final userContextProvider = FutureProvider.autoDispose
 });
 
 /// 全インサイトを生成
+/// エッジケース対応:
+/// - スコアなし: 空のリストを返す（UIで「利用可能なインサイトなし」と表示）
+/// - 異常検知なし: 改善提案のみを返す
+/// - 全インサイトなし: 空のリストを返す
 final financialInsightsProvider = FutureProvider.autoDispose
     .family<List<FinancialInsight>, String>((ref, groupId) async {
   try {
@@ -109,28 +126,40 @@ final financialInsightsProvider = FutureProvider.autoDispose
     final trends = await ref.watch(financialHealthScoreTrendProvider(groupId).future);
     final anomalies = await ref.watch(spendingAnomaliesProvider(groupId).future);
 
-    return FinancialInsightsService.generateRecommendations(
+    final insights = FinancialInsightsService.generateRecommendations(
       score,
       trends,
-      anomalies,
+      anomalies ?? [],
     );
+
+    return insights;
   } catch (e) {
+    debugPrint('Error generating financial insights: $e');
     return [];
   }
 });
 
 /// ダッシュボード用の上位インサイト（最大3件）
+/// パフォーマンス最適化:
+/// - financialInsightsProviderから上位3件を取得
+/// - .autoDisposeで不使用時にメモリ解放
+/// - 毎回の優先度付けを効率化
 final topInsightsProvider = FutureProvider.autoDispose
     .family<List<FinancialInsight>, String>((ref, groupId) async {
   try {
     final allInsights = await ref.watch(financialInsightsProvider(groupId).future);
     return FinancialInsightsService.prioritizeInsights(allInsights, 3);
   } catch (e) {
+    debugPrint('Error getting top insights: $e');
     return [];
   }
 });
 
 /// 各インサイトのコンテキストメッセージ
+/// 多言語対応: 日本語（'ja'）と英語（'en'）
+/// エッジケース対応:
+/// - インサイトなし: 空マップを返す
+/// - メッセージ生成エラー: スキップして他を続行
 final insightContextualMessagesProvider = FutureProvider.autoDispose
     .family<Map<String, String>, (String, String)>((ref, params) async {
   final (groupId, locale) = params;
@@ -141,14 +170,20 @@ final insightContextualMessagesProvider = FutureProvider.autoDispose
 
     final messages = <String, String>{};
     for (final insight in insights) {
-      messages[insight.id] = FinancialInsightsService.composeContextualMessage(
-        insight,
-        context,
-        locale,
-      );
+      try {
+        messages[insight.id] = FinancialInsightsService.composeContextualMessage(
+          insight,
+          context,
+          locale,
+        );
+      } catch (e) {
+        debugPrint('Error composing message for insight ${insight.id}: $e');
+        messages[insight.id] = insight.description;
+      }
     }
     return messages;
   } catch (e) {
+    debugPrint('Error getting contextual messages: $e');
     return {};
   }
 });
