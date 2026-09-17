@@ -44,7 +44,7 @@ class FinancialHealthDetailPage extends ConsumerWidget {
   }
 }
 
-class _DetailPageContent extends ConsumerWidget {
+class _DetailPageContent extends ConsumerStatefulWidget {
   final FinancialHealthScoreDetail detail;
   final String groupId;
 
@@ -54,54 +54,84 @@ class _DetailPageContent extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final trendAsync = ref.watch(financialHealthScoreTrendProvider(groupId));
+  ConsumerState<_DetailPageContent> createState() => _DetailPageContentState();
+}
 
-    return DefaultTabController(
-      length: 4,
-      child: Column(
-        children: [
-          // Tab Bar
-          Material(
-            color: Colors.white,
-            elevation: 1,
-            child: TabBar(
-              indicatorColor: Theme.of(context).primaryColor,
-              labelColor: Theme.of(context).primaryColor,
-              unselectedLabelColor: Colors.grey,
-              tabs: const [
-                Tab(text: '概要'),
-                Tab(text: 'カテゴリ'),
-                Tab(text: 'トレンド'),
-                Tab(text: '改善提案'),
-              ],
-            ),
+class _DetailPageContentState extends ConsumerState<_DetailPageContent> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // PERFORMANCE: Only load trends when Trends tab (index 2) is active
+    // This is lazy loading - trends are fetched on-demand when user opens the tab
+    final shouldLoadTrends = _tabController.index == 2;
+    final trendAsync = shouldLoadTrends
+        ? ref.watch(financialHealthScoreTrendProvider(widget.groupId))
+        : null;
+
+    return Column(
+      children: [
+        // Tab Bar
+        Material(
+          color: Colors.white,
+          elevation: 1,
+          child: TabBar(
+            controller: _tabController,
+            indicatorColor: Theme.of(context).primaryColor,
+            labelColor: Theme.of(context).primaryColor,
+            unselectedLabelColor: Colors.grey,
+            tabs: const [
+              Tab(text: '概要'),
+              Tab(text: 'カテゴリ'),
+              Tab(text: 'トレンド'),
+              Tab(text: '改善提案'),
+            ],
           ),
+        ),
 
-          // Tab Content
-          Expanded(
-            child: TabBarView(
-              children: [
-                // Tab 1: Overview
-                _OverviewTab(detail: detail),
+        // Tab Content
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              // Tab 1: Overview
+              _OverviewTab(detail: widget.detail),
 
-                // Tab 2: Categories
-                _CategoriesTab(detail: detail),
+              // Tab 2: Categories
+              _CategoriesTab(detail: widget.detail),
 
-                // Tab 3: Trends
-                trendAsync.when(
-                  data: (trends) => _TrendsTab(trends: trends, currentScore: detail.score),
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (error, stack) => Center(child: Text('トレンド読み込みエラー: $error')),
-                ),
+              // Tab 3: Trends - Lazy loaded when tab is opened
+              shouldLoadTrends && trendAsync != null
+                  ? trendAsync.when(
+                      data: (trends) => _TrendsTab(trends: trends, currentScore: widget.detail.score),
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (error, stack) => Center(child: Text('トレンド読み込みエラー: $error')),
+                    )
+                  : const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text('トレンドタブを開くとデータが読み込まれます'),
+                      ),
+                    ),
 
-                // Tab 4: Recommendations
-                _RecommendationsTab(recommendations: detail.recommendations),
-              ],
-            ),
+              // Tab 4: Recommendations
+              _RecommendationsTab(recommendations: widget.detail.recommendations),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
