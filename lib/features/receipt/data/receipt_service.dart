@@ -77,4 +77,84 @@ class ReceiptService {
       return null;
     }
   }
+
+  /// 指定年月の支出一覧を日付降順で取得
+  Future<List<Receipt>> getMonthlyReceipts(
+    String uid, {
+    required int year,
+    required int month,
+  }) async {
+    try {
+      final startOfMonth = DateTime(year, month, 1);
+      final endOfMonth = DateTime(year, month + 1, 0, 23, 59, 59);
+
+      final snapshot = await _receiptsRef(uid)
+          .where('date', isGreaterThanOrEqualTo: startOfMonth.toIso8601String())
+          .where('date', isLessThanOrEqualTo: endOfMonth.toIso8601String())
+          .orderBy('date', descending: true)
+          .get();
+
+      return snapshot.docs
+          .map((doc) => Receipt.fromJson({...doc.data(), 'id': doc.id}))
+          .toList();
+    } catch (e) {
+      debugPrint('ReceiptService.getMonthlyReceipts failed: $e');
+      throw Exception('Failed to fetch monthly receipts: $e');
+    }
+  }
+
+  /// 支出を更新
+  Future<void> updateReceipt({
+    required String uid,
+    required String receiptId,
+    ReceiptCategory? category,
+    int? amount,
+    DateTime? date,
+  }) async {
+    try {
+      final updates = <String, dynamic>{};
+      if (category != null) updates['category'] = category.toString();
+      if (amount != null) updates['amount'] = amount;
+      if (date != null) updates['date'] = date.toIso8601String();
+
+      if (updates.isEmpty) return;
+
+      await _receiptsRef(uid).doc(receiptId).update(updates);
+    } catch (e) {
+      debugPrint('ReceiptService.updateReceipt failed: $e');
+      rethrow;
+    }
+  }
+
+  /// 支出を削除
+  Future<void> deleteReceipt(String uid, String receiptId) async {
+    try {
+      await _receiptsRef(uid).doc(receiptId).delete();
+    } catch (e) {
+      debugPrint('ReceiptService.deleteReceipt failed: $e');
+      rethrow;
+    }
+  }
+
+  /// 指定カテゴリの支出一覧を取得
+  Future<List<Receipt>> getReceiptsByCategory(
+    String uid, {
+    required ReceiptCategory category,
+    int limit = 100,
+  }) async {
+    try {
+      final snapshot = await _receiptsRef(uid)
+          .where('category', isEqualTo: category.toString())
+          .orderBy('date', descending: true)
+          .limit(limit)
+          .get();
+
+      return snapshot.docs
+          .map((doc) => Receipt.fromJson({...doc.data(), 'id': doc.id}))
+          .toList();
+    } catch (e) {
+      debugPrint('ReceiptService.getReceiptsByCategory failed: $e');
+      throw Exception('Failed to fetch receipts by category: $e');
+    }
+  }
 }
