@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/financial_insight.dart';
+import '../../domain/models/household_expense_summary.dart';
 import '../../domain/services/financial_insights_service.dart';
 import './financial_health_provider.dart';
 import './household_balance_sheet_provider.dart';
@@ -38,7 +39,7 @@ final spendingAnomaliesProvider = FutureProvider.autoDispose
     final currentExpense = HouseholdExpenseSummary(
       month: currentMonthStr,
       groupId: groupId,
-      categoryExpenses: {
+      categoryBreakdown: {
         'food': 85000,
         'transportation': 25000,
         'utilities': 12000,
@@ -49,12 +50,13 @@ final spendingAnomaliesProvider = FutureProvider.autoDispose
       },
       totalExpense: 160000,
       totalIncome: 300000,
+      savingAmount: 300000 - 160000,
     );
 
     final previousExpense = HouseholdExpenseSummary(
       month: previousMonthStr,
       groupId: groupId,
-      categoryExpenses: {
+      categoryBreakdown: {
         'food': 68000,
         'transportation': 24000,
         'utilities': 12000,
@@ -65,6 +67,7 @@ final spendingAnomaliesProvider = FutureProvider.autoDispose
       },
       totalExpense: 135000,
       totalIncome: 300000,
+      savingAmount: 300000 - 135000,
     );
 
     // 予算目標（仮）
@@ -187,24 +190,3 @@ final insightContextualMessagesProvider = FutureProvider.autoDispose
     return {};
   }
 });
-
-// ===== Helper Models for Mocking =====
-
-/// 家計支出サマリーのモックモデル
-class HouseholdExpenseSummary {
-  final String month;
-  final String groupId;
-  final Map<String, int> categoryExpenses;
-  final int totalExpense;
-  final int totalIncome;
-
-  HouseholdExpenseSummary({
-    required this.month,
-    required this.groupId,
-    required this.categoryExpenses,
-    required this.totalExpense,
-    required this.totalIncome,
-  });
-
-  double get savingsRate => totalIncome > 0 ? (totalIncome - totalExpense) / totalIncome : 0.0;
-}

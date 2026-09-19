@@ -24,8 +24,9 @@ void main() {
         groupId: 'group1',
         totalExpense: 100000,
         totalIncome: 300000,
+        savingAmount: 200000,
         month: '2026-08',
-        categoryExpenses: {
+        categoryBreakdown: {
           'food': 50000,
           'transportation': 20000,
           'utilities': 10000,
@@ -37,8 +38,9 @@ void main() {
         groupId: 'group1',
         totalExpense: 130000,
         totalIncome: 300000,
+        savingAmount: 170000,
         month: '2026-09',
-        categoryExpenses: {
+        categoryBreakdown: {
           'food': 68000, // 36% increase - should be detected
           'transportation': 20000,
           'utilities': 10000,
@@ -73,8 +75,9 @@ void main() {
         groupId: 'group1',
         totalExpense: 100000,
         totalIncome: 300000,
+        savingAmount: 200000,
         month: '2026-08',
-        categoryExpenses: {
+        categoryBreakdown: {
           'food': 50000,
           'transportation': 20000,
         },
@@ -84,8 +87,9 @@ void main() {
         groupId: 'group1',
         totalExpense: 60000,
         totalIncome: 300000,
+        savingAmount: 240000,
         month: '2026-09',
-        categoryExpenses: {
+        categoryBreakdown: {
           'food': 35000, // 30% decrease
           'transportation': 20000,
         },
@@ -107,8 +111,9 @@ void main() {
         groupId: 'group1',
         totalExpense: 100000,
         totalIncome: 300000,
+        savingAmount: 200000,
         month: '2026-08',
-        categoryExpenses: {
+        categoryBreakdown: {
           'food': 50000,
           'transportation': 20000,
         },
@@ -118,8 +123,9 @@ void main() {
         groupId: 'group1',
         totalExpense: 102000,
         totalIncome: 300000,
+        savingAmount: 198000,
         month: '2026-09',
-        categoryExpenses: {
+        categoryBreakdown: {
           'food': 52000, // Only 4% increase - below threshold
           'transportation': 20000,
         },
@@ -139,8 +145,9 @@ void main() {
         groupId: 'group1',
         totalExpense: 0,
         totalIncome: 0,
+        savingAmount: 0,
         month: '2026-08',
-        categoryExpenses: {
+        categoryBreakdown: {
           'food': 0,
           'transportation': 0,
         },
@@ -150,8 +157,9 @@ void main() {
         groupId: 'group1',
         totalExpense: 70000,
         totalIncome: 300000,
+        savingAmount: 230000,
         month: '2026-09',
-        categoryExpenses: {
+        categoryBreakdown: {
           'food': 50000,
           'transportation': 20000,
         },
@@ -172,8 +180,9 @@ void main() {
         groupId: 'group1',
         totalExpense: 100000,
         totalIncome: 300000,
+        savingAmount: 200000,
         month: '2026-08',
-        categoryExpenses: {
+        categoryBreakdown: {
           'food': 50000,
           'transportation': 20000,
           'utilities': 10000,
@@ -185,8 +194,9 @@ void main() {
         groupId: 'group1',
         totalExpense: 100000,
         totalIncome: 300000,
+        savingAmount: 200000,
         month: '2026-09',
-        categoryExpenses: {
+        categoryBreakdown: {
           'food': 50000,
           'transportation': 20000,
           'utilities': 10000,
@@ -208,8 +218,9 @@ void main() {
         groupId: 'group1',
         totalExpense: 100000,
         totalIncome: 300000,
+        savingAmount: 200000,
         month: '2026-08',
-        categoryExpenses: {
+        categoryBreakdown: {
           'food': 50000,
           'transportation': 20000,
           'entertainment': 10000,
@@ -220,8 +231,9 @@ void main() {
         groupId: 'group1',
         totalExpense: 160000,
         totalIncome: 300000,
+        savingAmount: 140000,
         month: '2026-09',
-        categoryExpenses: {
+        categoryBreakdown: {
           'food': 85000, // 70% - critical
           'transportation': 30000, // 50% - critical
           'entertainment': 25000, // 150% - critical
@@ -246,16 +258,18 @@ void main() {
         groupId: 'group1',
         totalExpense: 100000,
         totalIncome: 300000,
+        savingAmount: 200000,
         month: '2026-08',
-        categoryExpenses: {'food': 100},
+        categoryBreakdown: {'food': 100},
       );
 
       currentMonth = HouseholdExpenseSummary(
         groupId: 'group1',
         totalExpense: 130,
         totalIncome: 300000,
+        savingAmount: 299870,
         month: '2026-09',
-        categoryExpenses: {'food': 130},
+        categoryBreakdown: {'food': 130},
       );
 
       final anomalies = FinancialInsightsService.analyzeAnomalies(
@@ -931,8 +945,9 @@ void main() {
         groupId: 'group1',
         totalExpense: 100000,
         totalIncome: 300000,
+        savingAmount: 200000,
         month: '2026-08',
-        categoryExpenses: {
+        categoryBreakdown: {
           'food': 30000,
           'transportation': 20000,
           'utilities': 15000,
@@ -944,8 +959,9 @@ void main() {
         groupId: 'group1',
         totalExpense: 150000,
         totalIncome: 300000,
+        savingAmount: 150000,
         month: '2026-09',
-        categoryExpenses: {
+        categoryBreakdown: {
           'food': 50000,
           'transportation': 35000,
           'utilities': 30000,
@@ -975,16 +991,18 @@ void main() {
         groupId: 'group1',
         totalExpense: 100000,
         totalIncome: 300000,
+        savingAmount: 200000,
         month: '2026-08',
-        categoryExpenses: {'food': 50000},
+        categoryBreakdown: {'food': 50000},
       );
 
       final currentMonth = HouseholdExpenseSummary(
         groupId: 'group1',
         totalExpense: 120000,
-        totalIncome: 600000, // Income doubled
+        totalIncome: 600000,
+        savingAmount: 480000, // Income doubled
         month: '2026-09',
-        categoryExpenses: {'food': 60000}, // 20% increase
+        categoryBreakdown: {'food': 60000}, // 20% increase
       );
 
       final anomalies = FinancialInsightsService.analyzeAnomalies(
@@ -1005,16 +1023,18 @@ void main() {
         groupId: 'group1',
         totalExpense: 50000,
         totalIncome: 300000,
+        savingAmount: 250000,
         month: '2026-08',
-        categoryExpenses: {'food': 50000},
+        categoryBreakdown: {'food': 50000},
       );
 
       final currentMonth = HouseholdExpenseSummary(
         groupId: 'group1',
         totalExpense: 80000,
         totalIncome: 300000,
+        savingAmount: 220000,
         month: '2026-09',
-        categoryExpenses: {
+        categoryBreakdown: {
           'food': 50000,
           'transportation': 30000, // New category in current month
         },

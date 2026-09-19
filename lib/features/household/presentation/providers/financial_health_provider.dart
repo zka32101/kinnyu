@@ -37,7 +37,7 @@ DateTime _calculateMonthBack(DateTime now, int monthsBack) {
 /// LAZY LOADING: Only loads when user navigates to financial health detail page
 final investmentAmountProvider = StreamProvider.autoDispose
     .family<int, String>((ref, groupId) {
-  final investmentStream = ref.watch(activeInvestmentsProvider(groupId));
+  final investmentStream = ref.watch(activeInvestmentsProvider(groupId).stream);
 
   return investmentStream.asyncMap((investments) async {
     int totalValue = 0;
@@ -102,14 +102,11 @@ final financialHealthScoreProvider = FutureProvider.autoDispose
     final now = DateTime.now();
 
     // Fetch all required data in parallel where possible
-    final budgetAsync = ref.watch(householdBudgetProvider(groupId));
-    final investmentAsync = ref.watch(investmentAmountProvider(groupId));
-    final socialAsync = ref.watch(socialContributionAmountProvider(groupId));
-
-    // Wait for data to load
-    final budget = await budgetAsync.future;
-    final investmentAmount = await investmentAsync.future;
-    final socialAmount = await socialAsync.future;
+    final budget = await ref.watch(householdBudgetProvider(groupId).future);
+    final investmentAmount =
+        await ref.watch(investmentAmountProvider(groupId).future);
+    final socialAmount =
+        await ref.watch(socialContributionAmountProvider(groupId).future);
 
     // For expense summary, use placeholder data for now
     // In production, this would fetch actual expense data from Firestore
