@@ -1,3 +1,5 @@
+import java.util.Base64
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
@@ -36,7 +38,7 @@ android {
                 // For CI/CD: decode base64 and create temporary keystore
                 val keystoreBase64 = System.getenv("ANDROID_KEYSTORE_BASE64") ?: ""
                 if (keystoreBase64.isNotEmpty()) {
-                    val keystoreBytes = java.util.Base64.getDecoder().decode(keystoreBase64)
+                    val keystoreBytes = Base64.getDecoder().decode(keystoreBase64)
                     val keystoreFile = File(buildDir, "release-keystore.jks")
                     keystoreFile.writeBytes(keystoreBytes)
                     keystoreFile
@@ -61,8 +63,8 @@ android {
                 // Fallback to debug for local development without keystore
                 signingConfigs.getByName("debug")
             }
-            minifyEnabled = true
-            shrinkResources = true
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
