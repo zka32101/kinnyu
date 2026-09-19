@@ -158,7 +158,7 @@ class NotificationService {
         body,
         scheduledDate,
         platformChannelSpecifics,
-        androidAllowWhileIdle: true,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.time,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
@@ -216,7 +216,7 @@ class NotificationService {
         body,
         scheduledDate,
         platformChannelSpecifics,
-        androidAllowWhileIdle: true,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
     } catch (e) {
@@ -266,7 +266,7 @@ class NotificationService {
         body,
         scheduledDate,
         platformChannelSpecifics,
-        androidAllowWhileIdle: true,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
     } catch (e) {
@@ -403,7 +403,7 @@ class NotificationService {
               procedure.applyWindow,
               scheduledDate,
               platformChannelSpecifics,
-              androidAllowWhileIdle: true,
+              androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
               uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
             );
           } catch (e) {
