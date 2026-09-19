@@ -29,6 +29,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/engagement_tracker.dart';
 import '../../../../core/services/home_widget_service.dart';
+import '../../../household/presentation/providers/financial_health_provider.dart';
 import '../widgets/dashboard_preview_card.dart';
 
 class HomePage extends ConsumerWidget {
@@ -72,6 +73,23 @@ class HomePage extends ConsumerWidget {
         );
       } catch (e) {
         debugPrint('Failed to schedule notifications: $e');
+      }
+      try {
+        if (uid != null) {
+          final currentTrend =
+              await ref.read(currentMonthScoreTrendProvider(uid).future);
+          final historicalTrend =
+              await ref.read(historicalScoreTrendProvider(uid).future);
+          final previousScore = historicalTrend.isNotEmpty
+              ? historicalTrend.last.overallScore
+              : currentTrend.overallScore;
+          await NotificationService().scheduleMonthlyReport(
+            currentScore: currentTrend.overallScore,
+            previousScore: previousScore,
+          );
+        }
+      } catch (e) {
+        debugPrint('Failed to schedule monthly report: $e');
       }
       try {
         if (user != null) {
