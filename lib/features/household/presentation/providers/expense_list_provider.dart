@@ -1,9 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/receipt_service.dart';
+import '../../../receipt/data/receipt_service.dart';
+import '../../../receipt/domain/models/receipt.dart';
 import '../pages/expense_list_page.dart';
-
-// Import the ReceiptService from the receipt feature
-// Note: In the actual project, adjust the import path accordingly
 
 /// レシートサービスプロバイダー
 final expenseServiceProvider = Provider((ref) {
@@ -84,20 +82,11 @@ String _formatCategoryName(String category) {
   return names[category] ?? category;
 }
 
-// Parse category string back to enum
-// This is a placeholder - adjust based on actual ReceiptCategory enum values
+// Parse category string (e.g. "ReceiptCategory.grocery" or "grocery") back to enum
 ReceiptCategory _parseCategoryEnum(String categoryString) {
-  // Assuming the enum values are available
-  // This is a simplified version - adjust as needed
-  return ReceiptCategory.other;
-}
-
-// Import ReceiptCategory enum (adjust path as needed)
-// For now, this is a minimal implementation
-enum ReceiptCategory {
-  convenience,
-  grocery,
-  dining,
-  entertainment,
-  other,
+  final name = categoryString.split('.').last;
+  return ReceiptCategory.values.firstWhere(
+    (c) => c.name == name,
+    orElse: () => ReceiptCategory.other,
+  );
 }

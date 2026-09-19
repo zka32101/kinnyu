@@ -36,22 +36,20 @@ DateTime _calculateMonthBack(DateTime now, int monthsBack) {
 /// Not fetched on dashboard, avoiding unnecessary network requests
 /// LAZY LOADING: Only loads when user navigates to financial health detail page
 final investmentAmountProvider = StreamProvider.autoDispose
-    .family<int, String>((ref, groupId) {
-  final investmentStream = ref.watch(activeInvestmentsProvider(groupId));
+    .family<int, String>((ref, groupId) async* {
+  // Re-runs (and re-yields) whenever activeInvestmentsProvider emits, so this
+  // stays real-time without needing a nested Stream/`.asyncMap` chain.
+  final investments = ref.watch(activeInvestmentsProvider(groupId)).value ?? [];
 
-  return investmentStream.asyncMap((investments) async {
-    int totalValue = 0;
-    for (final investment in investments) {
-      final currentIndex = MarketSimulator.getCurrentIndexValue(
-        investment.investmentType,
-      );
-      final currentValue = investment.currentValue(currentIndex);
-      totalValue += currentValue.toInt();
-    }
-    return totalValue;
-  }).handleError((error) {
-    return 0;
-  });
+  int totalValue = 0;
+  for (final investment in investments) {
+    final currentIndex = MarketSimulator.getCurrentIndexValue(
+      investment.investmentType,
+    );
+    final currentValue = investment.currentValue(currentIndex);
+    totalValue += currentValue.toInt();
+  }
+  yield totalValue;
 });
 
 /// 社会貢献額プロバイダー - Real-time integration with Social Contribution module
@@ -102,14 +100,11 @@ final financialHealthScoreProvider = FutureProvider.autoDispose
     final now = DateTime.now();
 
     // Fetch all required data in parallel where possible
-    final budgetAsync = ref.watch(householdBudgetProvider(groupId));
-    final investmentAsync = ref.watch(investmentAmountProvider(groupId));
-    final socialAsync = ref.watch(socialContributionAmountProvider(groupId));
-
-    // Wait for data to load
-    final budget = await budgetAsync.future;
-    final investmentAmount = await investmentAsync.future;
-    final socialAmount = await socialAsync.future;
+    final budget = await ref.watch(householdBudgetProvider(groupId).future);
+    final investmentAmount =
+        await ref.watch(investmentAmountProvider(groupId).future);
+    final socialAmount =
+        await ref.watch(socialContributionAmountProvider(groupId).future);
 
     // For expense summary, use placeholder data for now
     // In production, this would fetch actual expense data from Firestore

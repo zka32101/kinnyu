@@ -21,11 +21,15 @@ class NotificationService {
   static const String procedureChannelName = '制度・手続きリマインダー';
   static const String recommendationChannelId = 'weekly_recommendation';
   static const String recommendationChannelName = 'おすすめ通知';
+  static const String monthlyReportChannelId = 'monthly_report';
+  static const String monthlyReportChannelName = '月次レポート';
   // 制度リマインダーの通知IDは他機能(0, timestampベース)と衝突しない範囲を予約する
   static const int _procedureReminderIdBase = 20000;
   // 週次おすすめ通知の固定通知ID（streakReminderの0番、mission/diagnosisの
   // timestampベースID、制度リマインダーの20000番台と衝突しない値を使う）
   static const int _weeklyRecommendationId = 1;
+  // 月次レポート通知の固定通知ID
+  static const int _monthlyReportId = 2;
 
   late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
@@ -88,6 +92,15 @@ class NotificationService {
           enableVibration: true,
         );
         await androidImpl.createNotificationChannel(recommendationChannel);
+
+        const AndroidNotificationChannel monthlyReportChannel = AndroidNotificationChannel(
+          monthlyReportChannelId,
+          monthlyReportChannelName,
+          description: '月初に前月の財務健全性スコアをお知らせするレポート通知',
+          importance: Importance.high,
+          enableVibration: true,
+        );
+        await androidImpl.createNotificationChannel(monthlyReportChannel);
       }
 
       // ここまで例外なく到達した場合のみ初期化完了とみなす
@@ -145,7 +158,7 @@ class NotificationService {
         body,
         scheduledDate,
         platformChannelSpecifics,
-        androidAllowWhileIdle: true,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.time,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
@@ -203,12 +216,74 @@ class NotificationService {
         body,
         scheduledDate,
         platformChannelSpecifics,
-        androidAllowWhileIdle: true,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
     } catch (e) {
       debugPrint('週次おすすめ通知のスケジュール失敗: $e');
     }
+  }
+
+  /// 月次財務レポート通知をスケジュールする。
+  ///
+  /// 翌月1日9:00に、前月のスコアと前々月比を知らせる通知を予約する。
+  /// このプラグインは月次の繰り返しスケジュールを安定して扱えないため、
+  /// 固定通知ID(_monthlyReportId)を毎回上書きする方式を取る。アプリ起動時に
+  /// 最新のスコアで呼び出し続けることで、翌月1日が来るまでに内容を更新する想定。
+  Future<void> scheduleMonthlyReport({
+    required int currentScore,
+    required int previousScore,
+  }) async {
+    if (!_initialized) {
+      debugPrint('NotificationService: not initialized, skipping scheduleMonthlyReport');
+      return;
+    }
+    try {
+      final delta = currentScore - previousScore;
+      final trendEmoji = delta > 0 ? '📈' : (delta < 0 ? '📉' : '➡️');
+      final deltaText = delta > 0 ? '+$delta' : '$delta';
+      final body =
+          '先月のスコアは$currentScore点でした（前月比 $deltaText）。今月も家計を振り返ってみましょう。';
+
+      const AndroidNotificationDetails androidPlatformChannelSpecifics =
+          AndroidNotificationDetails(
+        monthlyReportChannelId,
+        monthlyReportChannelName,
+        channelDescription: '月初に前月の財務健全性スコアをお知らせするレポート通知',
+        importance: Importance.high,
+        priority: Priority.high,
+        enableVibration: true,
+        playSound: true,
+      );
+      const NotificationDetails platformChannelSpecifics =
+          NotificationDetails(android: androidPlatformChannelSpecifics);
+
+      final scheduledDate = _nextMonthStart9AM();
+
+      await flutterLocalNotificationsPlugin.zonedSchedule(
+        _monthlyReportId,
+        '$trendEmoji 今月の財務レポート',
+        body,
+        scheduledDate,
+        platformChannelSpecifics,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+      );
+    } catch (e) {
+      debugPrint('月次レポート通知のスケジュール失敗: $e');
+    }
+  }
+
+  /// 翌月1日の指定時刻(デフォルト9:00)を返す。
+  tz.TZDateTime _nextMonthStart9AM({int hour = 9}) {
+    final now = tz.TZDateTime.now(tz.local);
+    var year = now.year;
+    var month = now.month + 1;
+    if (month > 12) {
+      month = 1;
+      year += 1;
+    }
+    return tz.TZDateTime(tz.local, year, month, 1, hour);
   }
 
   /// 次の月曜日の指定時刻(デフォルト10:00)を返す。
@@ -328,7 +403,7 @@ class NotificationService {
               procedure.applyWindow,
               scheduledDate,
               platformChannelSpecifics,
-              androidAllowWhileIdle: true,
+              androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
               uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
             );
           } catch (e) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/financial_insight.dart';
 import '../providers/financial_insights_provider.dart';
+import '../providers/financial_health_provider.dart';
 
 /// AI インサイトの詳細ページ（複数タブ）
 class InsightsDetailPage extends ConsumerStatefulWidget {
@@ -138,7 +139,7 @@ class _InsightsDetailPageState extends ConsumerState<InsightsDetailPage>
     final trendsAsync = ref.watch(financialHealthScoreTrendProvider(widget.groupId));
 
     return contextAsync.when(
-      data: (context) {
+      data: (_) {
         return scoreAsync.when(
           data: (score) {
             return trendsAsync.when(
@@ -408,7 +409,7 @@ class _InsightsDetailPageState extends ConsumerState<InsightsDetailPage>
                         ),
                       ),
                     ],
-                  );
+                  ),
                 );
               }).toList(),
             ],

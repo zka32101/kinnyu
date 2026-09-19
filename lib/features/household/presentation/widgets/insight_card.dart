@@ -261,8 +261,9 @@ class _InsightCardState extends State<InsightCard> {
               ),
             ),
           ],
-        );
+        ),
       );
     }).toList();
   }
 }
+

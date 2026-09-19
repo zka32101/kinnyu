@@ -63,11 +63,14 @@ dependencies:
   shared_preferences: ^2.2.0
   uuid: ^4.0.0
   flutter_secure_storage: ^9.0.0
-  # home_widget: ^0.5.0  # Commented out: Kotlin compilation error with AGP 9
+  # home_widget: ^0.5.0  # Commented out: 0.5.0 calls ViewConfiguration(size: ...),
+  # a parameter removed from the current Flutter engine (stable-3.47.5+) — build fails
+  # with "No named parameter with the name 'size'". Re-enable once a compatible
+  # release is confirmed against the CI-pinned Flutter version.
 
   # Local notifications
-  # flutter_local_notifications: ^14.1.0  # Commented out: Kotlin compilation error
-  # timezone: ^0.9.2  # Commented out with flutter_local_notifications
+  flutter_local_notifications: ^17.2.4
+  timezone: ^0.9.2
 
   # In-app purchases
   purchases_flutter: ^8.0.0
