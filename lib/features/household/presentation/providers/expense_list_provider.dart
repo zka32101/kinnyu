@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/receipt_service.dart';
+import '../../../receipt/data/receipt_service.dart';
 import '../../../receipt/domain/models/receipt.dart';
 import '../pages/expense_list_page.dart';
 

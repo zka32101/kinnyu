@@ -5,10 +5,14 @@ import './financial_health_provider.dart';
 /// Provider that monitors financial health score changes and triggers milestone notifications
 /// ENHANCEMENT: Detects when score crosses milestone thresholds (70, 75, 80, 85, 90)
 /// and sends celebratory notifications to motivate users
-class ScoreMilestoneNotifier extends StateNotifier<int?> {
-  final NotificationService _notificationService;
+class ScoreMilestoneNotifier extends Notifier<int?> {
+  late final NotificationService _notificationService;
 
-  ScoreMilestoneNotifier(this._notificationService) : super(null);
+  @override
+  int? build() {
+    _notificationService = ref.watch(notificationServiceProvider);
+    return null;
+  }
 
   /// Check if current score crosses a milestone and send notification if needed
   Future<void> checkAndNotifyMilestone(int newScore, {int? previousScore}) async {
@@ -60,12 +64,8 @@ final notificationServiceProvider = Provider((ref) {
 });
 
 /// Score milestone notifier - tracks score changes and triggers notifications
-final scoreMilestoneProvider = StateNotifierProvider<ScoreMilestoneNotifier, int?>(
-  (ref) {
-    final notificationService = ref.watch(notificationServiceProvider);
-    return ScoreMilestoneNotifier(notificationService);
-  },
-);
+final scoreMilestoneProvider =
+    NotifierProvider<ScoreMilestoneNotifier, int?>(ScoreMilestoneNotifier.new);
 
 /// Provider that watches score changes and automatically notifies on milestones
 /// Usage: watch this in a widget that displays the financial health score

@@ -31,9 +31,9 @@ class FinancialInsightsService {
   ) {
     final anomalies = <SpendingAnomaly>[];
 
-    for (final category in currentMonth.categoryExpenses.keys) {
-      final current = currentMonth.categoryExpenses[category] ?? 0;
-      final previous = previousMonth.categoryExpenses[category] ?? 0;
+    for (final category in currentMonth.categoryBreakdown.keys) {
+      final current = currentMonth.categoryBreakdown[category] ?? 0;
+      final previous = previousMonth.categoryBreakdown[category] ?? 0;
 
       // 前月がゼロの場合、スキップ（比較不可）
       if (previous == 0) continue;
