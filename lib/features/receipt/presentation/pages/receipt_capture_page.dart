@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../domain/models/receipt.dart';
 import '../../domain/models/receipt_quiz_generator.dart';
+import '../../domain/services/receipt_ocr_service.dart';
 import '../providers/receipt_provider.dart';
 import '../../../user_profile/presentation/providers/user_provider.dart';
 import '../../../../core/analytics/analytics_provider.dart';
@@ -21,12 +22,39 @@ class _ReceiptCapturePageState extends ConsumerState<ReceiptCapturePage> {
   ReceiptCategory selectedCategory = ReceiptCategory.convenience;
   final amountController = TextEditingController();
   bool isSaving = false;
+  bool isRecognizing = false;
+  bool _amountWasAutoDetected = false;
+  final _ocrService = ReceiptOcrService();
+
+  @override
+  void dispose() {
+    amountController.dispose();
+    _ocrService.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     final picker = ImagePicker();
     final image = await picker.pickImage(source: source, imageQuality: 70);
-    if (image != null) {
-      setState(() => capturedImage = image);
+    if (image == null) return;
+
+    setState(() {
+      capturedImage = image;
+      _amountWasAutoDetected = false;
+    });
+
+    setState(() => isRecognizing = true);
+    try {
+      final amount = await _ocrService.extractTotalAmount(image.path);
+      if (!mounted) return;
+      if (amount != null) {
+        setState(() {
+          amountController.text = '$amount';
+          _amountWasAutoDetected = true;
+        });
+      }
+    } finally {
+      if (mounted) setState(() => isRecognizing = false);
     }
   }
 
@@ -70,7 +98,7 @@ class _ReceiptCapturePageState extends ConsumerState<ReceiptCapturePage> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Text(
-                '現在は金額・カテゴリを手動入力してください（自動読み取り機能は準備中です）',
+                '撮影・選択すると合計金額を自動で読み取ります。カテゴリと金額は必要に応じて修正してください。',
                 style: TextStyle(fontSize: 12),
               ),
             ),
@@ -92,10 +120,27 @@ class _ReceiptCapturePageState extends ConsumerState<ReceiptCapturePage> {
             TextField(
               controller: amountController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: '金額',
                 prefixText: '¥',
+                suffixIcon: isRecognizing
+                    ? const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : (_amountWasAutoDetected
+                        ? Tooltip(
+                            message: '自動読み取りされた金額です。違う場合は修正してください',
+                            child: Icon(Icons.auto_awesome,
+                                color: Colors.blue.shade400, size: 20),
+                          )
+                        : null),
               ),
+              onChanged: (_) => setState(() => _amountWasAutoDetected = false),
             ),
             const SizedBox(height: 24),
             ElevatedButton(

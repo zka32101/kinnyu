@@ -75,6 +75,15 @@ final historicalComparisonProvider =
   },
 );
 
+/// 純資産の長期推移 (12ヶ月)
+final netWorthHistoryProvider =
+    FutureProvider.autoDispose.family<NetWorthHistory, String>(
+  (ref, groupId) async {
+    final service = ref.watch(spendingEvaluationServiceProvider);
+    return await service.getNetWorthHistory(groupId);
+  },
+);
+
 /// 月間支出評価
 final spendingEvaluationProvider =
     FutureProvider.autoDispose.family<SpendingEvaluation, (String, String)>(

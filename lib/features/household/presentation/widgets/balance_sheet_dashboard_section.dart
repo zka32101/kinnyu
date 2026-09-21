@@ -7,6 +7,7 @@ import 'balance_sheet/category_evaluation_card.dart';
 import 'balance_sheet/spending_recommendations_section.dart';
 import 'balance_sheet/six_month_trend_chart.dart';
 import 'balance_sheet/monthly_comparison_table.dart';
+import 'balance_sheet/net_worth_trend_chart.dart';
 
 /// バランスシートダッシュボードセクション - タブ付きインターフェース
 class BalanceSheetDashboardSection extends ConsumerWidget {
@@ -131,6 +132,7 @@ class _TrendTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final comparisonAsync = ref.watch(historicalComparisonProvider(groupId));
+    final netWorthAsync = ref.watch(netWorthHistoryProvider(groupId));
 
     return comparisonAsync.when(
       data: (comparison) {
@@ -139,6 +141,32 @@ class _TrendTab extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const Text(
+                '💰 純資産の推移',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Card(
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: netWorthAsync.when(
+                    data: (history) => NetWorthTrendChart(history: history),
+                    loading: () => const Padding(
+                      padding: EdgeInsets.all(32),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                    error: (error, st) => Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text('エラー: ${error.toString()}'),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
               const Text(
                 '📊 6ヶ月トレンド',
                 style: TextStyle(
