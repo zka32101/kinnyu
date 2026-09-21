@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../domain/models/household_balance_sheet.dart';
 import '../domain/models/household_budget.dart';
 import '../domain/models/household_expense_summary.dart';
 import '../domain/models/spending_evaluation.dart';
@@ -143,6 +144,59 @@ class SpendingEvaluationService {
     return HistoricalComparison(
       groupId: groupId,
       monthlySnapshots: snapshots,
+    );
+  }
+
+  /// 直近12ヶ月の純資産推移を取得
+  Future<NetWorthHistory> getNetWorthHistory(
+    String groupId, {
+    int months = 12,
+  }) async {
+    final now = DateTime.now();
+    final snapshots = <NetWorthSnapshot>[];
+
+    // プレースホルダー：直近月の総資産・総負債を基準に、過去に遡るほど
+    // 資産が少なかったと仮定して逆算する（月あたり貯蓄額の目安を差し引く）
+    const currentTotalAssets = 4500000;
+    const currentTotalLiabilities = 800000;
+    const assumedMonthlyNetWorthGrowth = 60000;
+
+    for (int i = months - 1; i >= 0; i--) {
+      final targetMonth = now.month - i;
+      var year = now.year;
+      var month = targetMonth;
+
+      while (month <= 0) {
+        month += 12;
+        year -= 1;
+      }
+
+      final monthStr =
+          '${year.toString()}-${month.toString().padLeft(2, '0')}';
+
+      try {
+        // 実装時に実際のFirestoreクエリ（資産口座・負債残高の記録）に置き換える
+        final totalAssets =
+            (currentTotalAssets - (i * assumedMonthlyNetWorthGrowth))
+                .clamp(0, currentTotalAssets);
+        final totalLiabilities =
+            (currentTotalLiabilities - (i * 5000)).clamp(0, currentTotalLiabilities);
+
+        snapshots.add(NetWorthSnapshot(
+          month: monthStr,
+          totalAssets: totalAssets,
+          totalLiabilities: totalLiabilities,
+        ));
+      } catch (e) {
+        debugPrint('Failed to fetch net worth history for $monthStr: $e');
+      }
+    }
+
+    snapshots.sort((a, b) => a.month.compareTo(b.month));
+
+    return NetWorthHistory(
+      groupId: groupId,
+      snapshots: snapshots,
     );
   }
 }

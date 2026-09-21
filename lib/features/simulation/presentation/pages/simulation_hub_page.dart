@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'household_simulator_page.dart';
 import 'investment_simulator_page.dart';
+import 'loan_repayment_simulator_page.dart';
+import 'take_home_pay_page.dart';
 
 class SimulationHubPage extends StatelessWidget {
   const SimulationHubPage({Key? key}) : super(key: key);
@@ -39,6 +41,31 @@ class SimulationHubPage extends StatelessWidget {
               context,
               MaterialPageRoute(
                   builder: (_) => const InvestmentSimulatorPage()),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildCard(
+            context,
+            icon: Icons.request_quote,
+            color: Colors.deepOrange,
+            title: '借入返済シミュレーション',
+            description: '住宅ローンなどの返済額・総利息・残高の推移を計算',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const LoanRepaymentSimulatorPage()),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildCard(
+            context,
+            icon: Icons.payments,
+            color: Colors.teal,
+            title: '手取り額シミュレーション',
+            description: '額面年収から税金・社会保険料を差し引いた手取り額を計算',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const TakeHomePayPage()),
             ),
           ),
         ],

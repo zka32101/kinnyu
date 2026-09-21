@@ -52,6 +52,7 @@ dependencies:
   image_picker: ^1.0.0
   image_cropper: ^7.0.0
   cached_network_image: ^3.0.0
+  google_mlkit_text_recognition: ^0.13.0
 
   # Data export
   excel: ^4.0.0
