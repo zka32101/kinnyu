@@ -15,6 +15,7 @@ import '../../../roleplay/presentation/pages/roleplay_page.dart';
 import '../../../receipt/presentation/pages/receipt_capture_page.dart';
 import '../../../glossary/presentation/pages/glossary_page.dart';
 import '../../../simulation/presentation/pages/simulation_hub_page.dart';
+import '../../../subscription_audit/presentation/pages/subscription_audit_page.dart';
 import '../../../user_profile/presentation/providers/user_provider.dart';
 import '../../../user_profile/presentation/providers/streak_provider.dart';
 import '../../../procedures/presentation/pages/procedure_finder_page.dart';
@@ -243,6 +244,8 @@ class HomePage extends ConsumerWidget {
             _buildRoleplayPromptCard(context),
             const SizedBox(height: 24),
             _buildDashboardPromptCard(context),
+            const SizedBox(height: 24),
+            _buildSubscriptionAuditPromptCard(context),
           ],
         ),
       ),
@@ -493,6 +496,51 @@ class HomePage extends ConsumerWidget {
               ),
             ),
             Icon(Icons.arrow_forward, color: Colors.amber.shade800),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubscriptionAuditPromptCard(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          PageRouteAnimations.slideTransition(const SubscriptionAuditPage()),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.orange.shade50,
+          border: Border.all(color: Colors.orange.shade300),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(Icons.subscriptions, color: Colors.orange.shade800, size: 28),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'サブスク棚卸し',
+                    style: TextStyle(
+                      color: Colors.orange.shade800,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    '契約中のサブスクを一覧管理して、ムダをチェック',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward, color: Colors.orange.shade800),
           ],
         ),
       ),

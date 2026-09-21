@@ -3,6 +3,10 @@ import 'household_simulator_page.dart';
 import 'investment_simulator_page.dart';
 import 'loan_repayment_simulator_page.dart';
 import 'take_home_pay_page.dart';
+import 'furusato_nozei_page.dart';
+import 'nisa_ideco_page.dart';
+import 'emergency_fund_page.dart';
+import 'insurance_coverage_page.dart';
 
 class SimulationHubPage extends StatelessWidget {
   const SimulationHubPage({Key? key}) : super(key: key);
@@ -66,6 +70,54 @@ class SimulationHubPage extends StatelessWidget {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const TakeHomePayPage()),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildCard(
+            context,
+            icon: Icons.volunteer_activism,
+            color: Colors.red,
+            title: 'ふるさと納税 控除上限額',
+            description: '年収・家族構成から、実質2,000円で寄付できる上限額を計算',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const FurusatoNozeiPage()),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildCard(
+            context,
+            icon: Icons.account_balance,
+            color: Colors.purple,
+            title: 'NISA・iDeCo枠管理',
+            description: '非課税投資枠の残り枠と、iDeCoの節税効果を計算',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const NisaIdecoPage()),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildCard(
+            context,
+            icon: Icons.shield,
+            color: Colors.blueGrey,
+            title: '生活防衛資金プランナー',
+            description: '目標の貯蓄額と、現在のペースでの達成時期を計算',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const EmergencyFundPage()),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildCard(
+            context,
+            icon: Icons.health_and_safety,
+            color: Colors.pink,
+            title: '必要保障額シミュレーション',
+            description: '万一の場合に遺族の生活を支える、必要な保険金額を計算',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const InsuranceCoveragePage()),
             ),
           ),
         ],
