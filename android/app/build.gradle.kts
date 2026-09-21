@@ -81,6 +81,10 @@ kotlin {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    // google_mlkit_text_recognition doesn't bundle any script-specific
+    // recognizer by default - the app must add whichever script(s) it
+    // actually uses. This app only uses TextRecognitionScript.japanese.
+    implementation("com.google.mlkit:text-recognition-japanese:16.0.1")
 }
 
 flutter {
