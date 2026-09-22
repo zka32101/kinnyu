@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/subscription.dart';
 import '../providers/subscription_audit_provider.dart';
 import '../../../user_profile/presentation/providers/user_provider.dart';
+import 'payment_calendar_page.dart';
 
 class SubscriptionAuditPage extends ConsumerWidget {
   const SubscriptionAuditPage({Key? key}) : super(key: key);
@@ -13,7 +14,20 @@ class SubscriptionAuditPage extends ConsumerWidget {
     final uid = user?.uid;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('サブスク棚卸し')),
+      appBar: AppBar(
+        title: const Text('サブスク棚卸し'),
+        actions: [
+          if (uid != null)
+            IconButton(
+              icon: const Icon(Icons.calendar_month),
+              tooltip: '支払いカレンダー',
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => PaymentCalendarPage(uid: uid)),
+              ),
+            ),
+        ],
+      ),
       body: uid == null
           ? const Center(child: Text('ログインしてください'))
           : _SubscriptionList(uid: uid),
@@ -183,6 +197,8 @@ class _AddSubscriptionSheetState extends ConsumerState<_AddSubscriptionSheet> {
   final _amountController = TextEditingController();
   SubscriptionBillingCycle _billingCycle = SubscriptionBillingCycle.monthly;
   SubscriptionCategory _category = SubscriptionCategory.video;
+  int? _billingDay;
+  int _billingMonth = DateTime.now().month;
   bool _isSaving = false;
 
   @override
@@ -211,6 +227,8 @@ class _AddSubscriptionSheetState extends ConsumerState<_AddSubscriptionSheet> {
         amount: amount,
         billingCycle: _billingCycle,
         category: _category,
+        billingDay: _billingDay,
+        billingMonth: _billingCycle == SubscriptionBillingCycle.yearly ? _billingMonth : null,
       );
       if (mounted) Navigator.pop(context);
     } catch (e) {
@@ -273,6 +291,40 @@ class _AddSubscriptionSheetState extends ConsumerState<_AddSubscriptionSheet> {
                 .map((c) => DropdownMenuItem(value: c, child: Text(c.displayName)))
                 .toList(),
             onChanged: (v) => setState(() => _category = v!),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<int?>(
+                  value: _billingDay,
+                  decoration: const InputDecoration(
+                    labelText: '請求日（任意・リマインダー用）',
+                    isDense: true,
+                  ),
+                  items: [
+                    const DropdownMenuItem(value: null, child: Text('設定しない')),
+                    for (var d = 1; d <= 28; d++)
+                      DropdownMenuItem(value: d, child: Text('毎月$d日')),
+                  ],
+                  onChanged: (v) => setState(() => _billingDay = v),
+                ),
+              ),
+              if (_billingCycle == SubscriptionBillingCycle.yearly && _billingDay != null) ...[
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonFormField<int>(
+                    value: _billingMonth,
+                    decoration: const InputDecoration(labelText: '請求月', isDense: true),
+                    items: [
+                      for (var m = 1; m <= 12; m++)
+                        DropdownMenuItem(value: m, child: Text('$m月')),
+                    ],
+                    onChanged: (v) => setState(() => _billingMonth = v!),
+                  ),
+                ),
+              ],
+            ],
           ),
           const SizedBox(height: 20),
           ElevatedButton(

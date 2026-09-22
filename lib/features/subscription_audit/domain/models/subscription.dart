@@ -43,6 +43,8 @@ class Subscription {
   final SubscriptionCategory category;
   final bool isActive;
   final DateTime createdAt;
+  final int? billingDay; // 請求日（1〜31）。支払いカレンダー・リマインダー用（任意）
+  final int? billingMonth; // 年払いの場合の請求月（1〜12）。月払いの場合は無視
 
   const Subscription({
     required this.id,
@@ -53,7 +55,33 @@ class Subscription {
     required this.category,
     this.isActive = true,
     required this.createdAt,
+    this.billingDay,
+    this.billingMonth,
   });
+
+  /// 次回の請求予定日。billingDayが未設定の場合はnull。
+  DateTime? get nextBillingDate {
+    final day = billingDay;
+    if (day == null) return null;
+
+    final now = DateTime.now();
+    if (billingCycle == SubscriptionBillingCycle.monthly) {
+      var candidate = _dateInMonth(now.year, now.month, day);
+      if (!candidate.isAfter(now)) {
+        final nextMonth = now.month == 12 ? 1 : now.month + 1;
+        final nextYear = now.month == 12 ? now.year + 1 : now.year;
+        candidate = _dateInMonth(nextYear, nextMonth, day);
+      }
+      return candidate;
+    } else {
+      final month = billingMonth ?? now.month;
+      var candidate = _dateInMonth(now.year, month, day);
+      if (!candidate.isAfter(now)) {
+        candidate = _dateInMonth(now.year + 1, month, day);
+      }
+      return candidate;
+    }
+  }
 
   /// 月額換算額（年払いの場合は12で割った金額）
   int get monthlyEquivalentAmount {
@@ -84,6 +112,8 @@ class Subscription {
       category: SubscriptionCategory.values[json['category'] as int? ?? 6],
       isActive: json['isActive'] as bool? ?? true,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      billingDay: json['billingDay'] as int?,
+      billingMonth: json['billingMonth'] as int?,
     );
   }
 
@@ -96,6 +126,8 @@ class Subscription {
       'category': category.index,
       'isActive': isActive,
       'createdAt': createdAt.toIso8601String(),
+      'billingDay': billingDay,
+      'billingMonth': billingMonth,
     };
   }
 
@@ -105,6 +137,8 @@ class Subscription {
     SubscriptionBillingCycle? billingCycle,
     SubscriptionCategory? category,
     bool? isActive,
+    int? billingDay,
+    int? billingMonth,
   }) {
     return Subscription(
       id: id,
@@ -115,6 +149,14 @@ class Subscription {
       category: category ?? this.category,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt,
+      billingDay: billingDay ?? this.billingDay,
+      billingMonth: billingMonth ?? this.billingMonth,
     );
   }
+}
+
+/// 指定した年月の中で有効な日付を返す（月末を超える日は月末に丸める）
+DateTime _dateInMonth(int year, int month, int day) {
+  final lastDayOfMonth = DateTime(year, month + 1, 0).day;
+  return DateTime(year, month, day.clamp(1, lastDayOfMonth));
 }

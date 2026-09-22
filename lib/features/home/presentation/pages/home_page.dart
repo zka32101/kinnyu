@@ -35,6 +35,7 @@ import '../../../../core/services/budget_alert_tracker.dart';
 import '../../../household/presentation/providers/financial_health_provider.dart';
 import '../../../household/presentation/providers/budget_alert_provider.dart';
 import '../../../household/domain/models/household_budget.dart';
+import '../../../subscription_audit/presentation/providers/subscription_audit_provider.dart';
 import '../widgets/dashboard_preview_card.dart';
 
 class HomePage extends ConsumerWidget {
@@ -129,6 +130,24 @@ class HomePage extends ConsumerWidget {
         }
       } catch (e) {
         debugPrint('Failed to check budget alerts: $e');
+      }
+      try {
+        if (uid != null) {
+          final subscriptions =
+              await ref.read(subscriptionsStreamProvider(uid).future);
+          final reminderInputs = subscriptions
+              .where((s) => s.isActive && s.nextBillingDate != null)
+              .map((s) => (
+                    subscriptionId: s.id,
+                    name: s.name,
+                    amount: s.amount,
+                    nextBillingDate: s.nextBillingDate!,
+                  ))
+              .toList();
+          await NotificationService().schedulePaymentReminders(reminderInputs);
+        }
+      } catch (e) {
+        debugPrint('Failed to schedule payment reminders: $e');
       }
     });
 
