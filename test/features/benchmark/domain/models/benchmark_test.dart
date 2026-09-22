@@ -61,30 +61,31 @@ void main() {
     });
 
     test('calculatePercentile returns correct ranges', () {
-      final average = 50000;
+      // 食費の全国平均は52,000円。ロジスティック曲線による滑らかな
+      // パーセンタイル変換（平均と同額で50になる）を検証する。
 
-      // 60% of average → 10th percentile
+      // 約58%の支出 → 平均以下の低めのパーセンタイル
       expect(
         BenchmarkStatsProvider.calculatePercentile(30000, BenchmarkCategory.food),
-        equals(10),
+        equals(22),
       );
 
-      // 100% of average → 40th percentile
+      // 平均に近い支出 → 50に近いパーセンタイル
       expect(
         BenchmarkStatsProvider.calculatePercentile(50000, BenchmarkCategory.food),
-        equals(40),
+        equals(47),
       );
 
-      // 150% of average → 80th percentile
+      // 平均より高い支出 → 平均以上の高めのパーセンタイル
       expect(
         BenchmarkStatsProvider.calculatePercentile(75000, BenchmarkCategory.food),
-        equals(80),
+        equals(79),
       );
 
-      // 200% of average → 90th percentile
+      // 平均の約2倍の支出 → 非常に高いパーセンタイル
       expect(
         BenchmarkStatsProvider.calculatePercentile(100000, BenchmarkCategory.food),
-        equals(90),
+        equals(94),
       );
     });
   });
