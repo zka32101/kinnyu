@@ -93,7 +93,7 @@ class BenchmarkPage extends ConsumerWidget {
             items: AgeGroup.values
                 .map((g) => DropdownMenuItem(value: g, child: Text(g.displayName)))
                 .toList(),
-            onChanged: (v) => ref.read(benchmarkAgeGroupProvider.notifier).state = v!,
+            onChanged: (v) => ref.read(benchmarkAgeGroupProvider.notifier).select(v!),
           ),
         ),
         const SizedBox(width: 12),
@@ -108,7 +108,7 @@ class BenchmarkPage extends ConsumerWidget {
             items: IncomeGroup.values
                 .map((g) => DropdownMenuItem(value: g, child: Text(g.displayName)))
                 .toList(),
-            onChanged: (v) => ref.read(benchmarkIncomeGroupProvider.notifier).state = v!,
+            onChanged: (v) => ref.read(benchmarkIncomeGroupProvider.notifier).select(v!),
           ),
         ),
       ],

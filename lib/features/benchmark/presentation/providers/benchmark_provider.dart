@@ -8,11 +8,28 @@ final benchmarkServiceProvider = Provider((ref) {
 });
 
 /// ベンチマーク比較の対象とする年代（デフォルト30代）
-final benchmarkAgeGroupProvider = StateProvider<AgeGroup>((ref) => AgeGroup.thirties);
+class BenchmarkAgeGroupNotifier extends Notifier<AgeGroup> {
+  @override
+  AgeGroup build() => AgeGroup.thirties;
+
+  void select(AgeGroup ageGroup) => state = ageGroup;
+}
+
+final benchmarkAgeGroupProvider =
+    NotifierProvider<BenchmarkAgeGroupNotifier, AgeGroup>(
+        BenchmarkAgeGroupNotifier.new);
 
 /// ベンチマーク比較の対象とする世帯年収帯（デフォルト500〜700万円）
+class BenchmarkIncomeGroupNotifier extends Notifier<IncomeGroup> {
+  @override
+  IncomeGroup build() => IncomeGroup.m5to7;
+
+  void select(IncomeGroup incomeGroup) => state = incomeGroup;
+}
+
 final benchmarkIncomeGroupProvider =
-    StateProvider<IncomeGroup>((ref) => IncomeGroup.m5to7);
+    NotifierProvider<BenchmarkIncomeGroupNotifier, IncomeGroup>(
+        BenchmarkIncomeGroupNotifier.new);
 
 final allBenchmarksProvider =
     FutureProvider.family<List<Benchmark>, String>((ref, uid) async {
