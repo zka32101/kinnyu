@@ -23,6 +23,8 @@ class NotificationService {
   static const String recommendationChannelName = 'おすすめ通知';
   static const String monthlyReportChannelId = 'monthly_report';
   static const String monthlyReportChannelName = '月次レポート';
+  static const String budgetAlertChannelId = 'budget_overspend';
+  static const String budgetAlertChannelName = '予算超過アラート';
   // 制度リマインダーの通知IDは他機能(0, timestampベース)と衝突しない範囲を予約する
   static const int _procedureReminderIdBase = 20000;
   // 週次おすすめ通知の固定通知ID（streakReminderの0番、mission/diagnosisの
@@ -30,6 +32,8 @@ class NotificationService {
   static const int _weeklyRecommendationId = 1;
   // 月次レポート通知の固定通知ID
   static const int _monthlyReportId = 2;
+  // 予算超過アラートの通知IDは他機能と衝突しない範囲を予約する
+  static const int _budgetAlertIdBase = 40000;
 
   late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
@@ -101,6 +105,15 @@ class NotificationService {
           enableVibration: true,
         );
         await androidImpl.createNotificationChannel(monthlyReportChannel);
+
+        const AndroidNotificationChannel budgetAlertChannel = AndroidNotificationChannel(
+          budgetAlertChannelId,
+          budgetAlertChannelName,
+          description: 'カテゴリ別予算を超過・接近した際にお知らせする通知',
+          importance: Importance.high,
+          enableVibration: true,
+        );
+        await androidImpl.createNotificationChannel(budgetAlertChannel);
       }
 
       // ここまで例外なく到達した場合のみ初期化完了とみなす
@@ -605,6 +618,57 @@ class NotificationService {
 
   /// 月間目標達成通知
   /// ユーザーが月間目標を達成したときに通知
+  /// カテゴリ別予算の超過・接近をお知らせする通知。
+  /// 通知IDはカテゴリ名＋年月から決定論的に生成するため、同一カテゴリ・同月内は
+  /// 再通知しても上書きになる（呼び出し側の重複送信防止と合わせて二重の対策）。
+  Future<void> showBudgetOverspendAlert({
+    required String categoryDisplayName,
+    required String categoryKey,
+    required int spent,
+    required int budget,
+    required bool isOverBudget,
+  }) async {
+    if (!_initialized) {
+      debugPrint('NotificationService: not initialized, skipping showBudgetOverspendAlert');
+      return;
+    }
+    try {
+      final now = DateTime.now();
+      final title = isOverBudget ? '⚠️ 予算を超過しています' : '📊 予算の80%に到達しました';
+      final body = isOverBudget
+          ? '$categoryDisplayNameの支出が予算(¥$budget)を超え、¥$spentになりました。'
+          : '$categoryDisplayNameの支出が予算(¥$budget)の80%を超え、¥$spentになりました。';
+
+      const AndroidNotificationDetails androidPlatformChannelSpecifics =
+          AndroidNotificationDetails(
+        budgetAlertChannelId,
+        budgetAlertChannelName,
+        channelDescription: 'カテゴリ別予算を超過・接近した際にお知らせする通知',
+        importance: Importance.high,
+        priority: Priority.high,
+        enableVibration: true,
+        playSound: true,
+      );
+      const NotificationDetails platformChannelSpecifics =
+          NotificationDetails(android: androidPlatformChannelSpecifics);
+
+      await flutterLocalNotificationsPlugin.show(
+        _budgetAlertNotificationId(categoryKey, now, isOverBudget),
+        title,
+        body,
+        platformChannelSpecifics,
+      );
+    } catch (e) {
+      debugPrint('予算超過アラート通知エラー: $e');
+    }
+  }
+
+  int _budgetAlertNotificationId(String categoryKey, DateTime month, bool isOverBudget) {
+    final monthPart = month.year * 100 + month.month;
+    final hashPart = _stableStringHash(categoryKey) % 100;
+    return _budgetAlertIdBase + monthPart * 1000 + hashPart * 10 + (isOverBudget ? 1 : 0);
+  }
+
   Future<void> showMonthlyGoalAchievedNotification({
     required String goalName,
     required int currentScore,

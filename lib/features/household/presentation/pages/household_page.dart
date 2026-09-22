@@ -8,6 +8,7 @@ import '../../../user_profile/presentation/providers/user_provider.dart';
 import '../../../../core/analytics/analytics_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'household_budget_page.dart';
+import 'family_dashboard_page.dart';
 import '../widgets/budget_settings_dialog.dart';
 
 class HouseholdPage extends ConsumerWidget {
@@ -154,6 +155,21 @@ class HouseholdPage extends ConsumerWidget {
         const SizedBox(height: 16),
         _buildContributionRanking(context, group, uid),
         const SizedBox(height: 16),
+        ElevatedButton.icon(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => FamilyDashboardPage(groupId: group.id, uid: uid),
+            ),
+          ),
+          icon: const Icon(Icons.dashboard_customize),
+          label: const Text('家族ダッシュボードを見る'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.indigo.shade600,
+            foregroundColor: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 8),
         ElevatedButton.icon(
           onPressed: () => Navigator.push(
             context,

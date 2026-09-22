@@ -180,6 +180,10 @@ class _AchievementsBody extends ConsumerWidget {
         return Icons.account_balance;
       case AchievementCategory.investment:
         return Icons.trending_up;
+      case AchievementCategory.savingsGoal:
+        return Icons.flag;
+      case AchievementCategory.budget:
+        return Icons.pie_chart;
     }
   }
 
@@ -195,6 +199,10 @@ class _AchievementsBody extends ConsumerWidget {
         return Colors.blue;
       case AchievementCategory.investment:
         return Colors.green;
+      case AchievementCategory.savingsGoal:
+        return Colors.pink;
+      case AchievementCategory.budget:
+        return Colors.cyan;
     }
   }
 }
@@ -216,6 +224,10 @@ class _AchievementCard extends StatelessWidget {
         return Colors.blue;
       case AchievementCategory.investment:
         return Colors.green;
+      case AchievementCategory.savingsGoal:
+        return Colors.pink;
+      case AchievementCategory.budget:
+        return Colors.cyan;
     }
   }
 
