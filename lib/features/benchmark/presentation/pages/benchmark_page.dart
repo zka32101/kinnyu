@@ -24,30 +24,163 @@ class BenchmarkPage extends ConsumerWidget {
     });
 
     final benchmarksAsync = ref.watch(allBenchmarksProvider(user.uid));
+    final indicatorsAsync = ref.watch(financialIndicatorBenchmarksProvider(user.uid));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('支出ベンチマーク')),
-      body: benchmarksAsync.when(
-        data: (benchmarks) => ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                '同年代・同年収の平均と比較しています（5人以上のグループで匿名集計）',
-                style: TextStyle(fontSize: 12, color: Colors.black87),
-              ),
+      appBar: AppBar(title: const Text('統計ベンチマーク')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(8),
             ),
-            const SizedBox(height: 16),
-            ...benchmarks.map((b) => _buildBenchmarkCard(context, b)),
+            child: const Text(
+              '同じ年代・年収帯の目安（公表統計を参考にした近似値）と比較しています。'
+              'あなたの状況に完全一致するものではなく、あくまで参考値です。',
+              style: TextStyle(fontSize: 12, color: Colors.black87),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildGroupSelectors(context, ref),
+          const SizedBox(height: 20),
+          const Text('貯蓄率・純資産', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 12),
+          indicatorsAsync.when(
+            data: (indicators) => Column(
+              children: indicators.map((i) => _buildIndicatorCard(i)).toList(),
+            ),
+            loading: () => const Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (error, stack) => Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text('エラー: $error'),
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text('カテゴリ別支出', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 12),
+          benchmarksAsync.when(
+            data: (benchmarks) => Column(
+              children: benchmarks.map((b) => _buildBenchmarkCard(context, b)).toList(),
+            ),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stack) => Center(child: Text('エラー: $error')),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGroupSelectors(BuildContext context, WidgetRef ref) {
+    final ageGroup = ref.watch(benchmarkAgeGroupProvider);
+    final incomeGroup = ref.watch(benchmarkIncomeGroupProvider);
+
+    return Row(
+      children: [
+        Expanded(
+          child: DropdownButtonFormField<AgeGroup>(
+            value: ageGroup,
+            decoration: const InputDecoration(
+              labelText: '年代',
+              isDense: true,
+              border: OutlineInputBorder(),
+            ),
+            items: AgeGroup.values
+                .map((g) => DropdownMenuItem(value: g, child: Text(g.displayName)))
+                .toList(),
+            onChanged: (v) => ref.read(benchmarkAgeGroupProvider.notifier).state = v!,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: DropdownButtonFormField<IncomeGroup>(
+            value: incomeGroup,
+            decoration: const InputDecoration(
+              labelText: '世帯年収',
+              isDense: true,
+              border: OutlineInputBorder(),
+            ),
+            items: IncomeGroup.values
+                .map((g) => DropdownMenuItem(value: g, child: Text(g.displayName)))
+                .toList(),
+            onChanged: (v) => ref.read(benchmarkIncomeGroupProvider.notifier).state = v!,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIndicatorCard(FinancialIndicatorBenchmark indicator) {
+    final isGood = indicator.isAboveAverage;
+    final displayUserValue = indicator.unit == '%'
+        ? '${indicator.userValue.toStringAsFixed(1)}%'
+        : '¥${indicator.userValue.toStringAsFixed(0)}';
+    final displayAverage = indicator.unit == '%'
+        ? '${indicator.ageGroupAverage.toStringAsFixed(1)}%'
+        : '¥${indicator.ageGroupAverage.toStringAsFixed(0)}';
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(indicator.indicatorName,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: (isGood ? Colors.green : Colors.orange).withAlpha(30),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '同世代内で上位${100 - indicator.ageGroupPercentile}%',
+                    style: TextStyle(
+                      color: isGood ? Colors.green.shade800 : Colors.orange.shade800,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Column(
+                  children: [
+                    const Text('あなた', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    const SizedBox(height: 4),
+                    Text(displayUserValue,
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: isGood ? Colors.green : Colors.orange)),
+                  ],
+                ),
+                const Icon(Icons.compare_arrows, color: Colors.grey),
+                Column(
+                  children: [
+                    const Text('同世代平均', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    const SizedBox(height: 4),
+                    Text(displayAverage,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  ],
+                ),
+              ],
+            ),
           ],
         ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('エラー: $error')),
       ),
     );
   }
@@ -97,6 +230,7 @@ class BenchmarkPage extends ConsumerWidget {
                 _buildAmountColumn('あなた', benchmark.userAmount, isGood ? Colors.green : Colors.red),
                 const Icon(Icons.compare_arrows, color: Colors.grey),
                 _buildAmountColumn('同年代平均', benchmark.ageGroupAverage, Colors.grey),
+                _buildAmountColumn('同年収帯平均', benchmark.incomeGroupAverage, Colors.grey),
               ],
             ),
             const SizedBox(height: 12),
@@ -118,7 +252,7 @@ class BenchmarkPage extends ConsumerWidget {
         const SizedBox(height: 4),
         Text(
           '¥$amount',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: color),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: color),
         ),
       ],
     );

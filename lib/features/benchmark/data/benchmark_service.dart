@@ -28,6 +28,8 @@ class BenchmarkService {
   Future<Benchmark> getBenchmark({
     required String uid,
     required BenchmarkCategory category,
+    required AgeGroup ageGroup,
+    required IncomeGroup incomeGroup,
   }) async {
     try {
       final doc = await _firestore
@@ -38,26 +40,37 @@ class BenchmarkService {
           .get();
 
       final userAmount = doc.exists ? (doc.data()?['amount'] as int? ?? 0) : 0;
-      final nationalAverage = BenchmarkStatsProvider.getNationalAverage(category);
-      final percentile =
-          BenchmarkStatsProvider.calculatePercentile(userAmount, category);
+      final ageGroupAverage =
+          BenchmarkStatsProvider.getAgeGroupAverage(category, ageGroup);
+      final incomeGroupAverage =
+          BenchmarkStatsProvider.getIncomeGroupAverage(category, incomeGroup);
+      final percentile = BenchmarkStatsProvider.calculatePercentileForLowerIsBetter(
+          userAmount, ageGroupAverage);
 
       return Benchmark(
         category: category,
         userAmount: userAmount,
-        ageGroupAverage: nationalAverage,
+        ageGroupAverage: ageGroupAverage,
         ageGroupPercentile: percentile,
-        incomeGroupAverage: nationalAverage,
+        incomeGroupAverage: incomeGroupAverage,
       );
     } catch (e) {
       throw Exception('Failed to fetch benchmark: $e');
     }
   }
 
-  Future<List<Benchmark>> getAllBenchmarks(String uid) async {
+  Future<List<Benchmark>> getAllBenchmarks(
+    String uid, {
+    required AgeGroup ageGroup,
+    required IncomeGroup incomeGroup,
+  }) async {
     final results = await Future.wait(
-      BenchmarkCategory.values
-          .map((category) => getBenchmark(uid: uid, category: category)),
+      BenchmarkCategory.values.map((category) => getBenchmark(
+            uid: uid,
+            category: category,
+            ageGroup: ageGroup,
+            incomeGroup: incomeGroup,
+          )),
     );
     return results;
   }
