@@ -16,6 +16,7 @@ import '../../../receipt/presentation/pages/receipt_capture_page.dart';
 import '../../../glossary/presentation/pages/glossary_page.dart';
 import '../../../simulation/presentation/pages/simulation_hub_page.dart';
 import '../../../subscription_audit/presentation/pages/subscription_audit_page.dart';
+import '../../../savings_goal/presentation/pages/savings_goal_page.dart';
 import '../../../user_profile/presentation/providers/user_provider.dart';
 import '../../../user_profile/presentation/providers/streak_provider.dart';
 import '../../../procedures/presentation/pages/procedure_finder_page.dart';
@@ -30,7 +31,10 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/engagement_tracker.dart';
 import '../../../../core/services/home_widget_service.dart';
+import '../../../../core/services/budget_alert_tracker.dart';
 import '../../../household/presentation/providers/financial_health_provider.dart';
+import '../../../household/presentation/providers/budget_alert_provider.dart';
+import '../../../household/domain/models/household_budget.dart';
 import '../widgets/dashboard_preview_card.dart';
 
 class HomePage extends ConsumerWidget {
@@ -102,6 +106,29 @@ class HomePage extends ConsumerWidget {
         }
       } catch (e) {
         debugPrint('Failed to update home widget: $e');
+      }
+      try {
+        if (uid != null) {
+          final now = DateTime.now();
+          final alertCategories =
+              await ref.read(budgetAlertCategoriesProvider(uid).future);
+          for (final summary in alertCategories) {
+            final alertKey =
+                '${uid}_${now.year}-${now.month}_${summary.category.name}_${summary.isOverBudget}';
+            if (await BudgetAlertTracker.shouldAlert(alertKey)) {
+              await NotificationService().showBudgetOverspendAlert(
+                categoryDisplayName: summary.category.displayName,
+                categoryKey: summary.category.name,
+                spent: summary.spent,
+                budget: summary.budget,
+                isOverBudget: summary.isOverBudget,
+              );
+              await BudgetAlertTracker.markAlerted(alertKey);
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('Failed to check budget alerts: $e');
       }
     });
 
@@ -246,6 +273,8 @@ class HomePage extends ConsumerWidget {
             _buildDashboardPromptCard(context),
             const SizedBox(height: 24),
             _buildSubscriptionAuditPromptCard(context),
+            const SizedBox(height: 24),
+            _buildSavingsGoalPromptCard(context),
           ],
         ),
       ),
@@ -541,6 +570,51 @@ class HomePage extends ConsumerWidget {
               ),
             ),
             Icon(Icons.arrow_forward, color: Colors.orange.shade800),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSavingsGoalPromptCard(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          PageRouteAnimations.slideTransition(const SavingsGoalPage()),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.pink.shade50,
+          border: Border.all(color: Colors.pink.shade200),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(Icons.flag, color: Colors.pink.shade700, size: 28),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '貯金目標プランナー',
+                    style: TextStyle(
+                      color: Colors.pink.shade700,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    '旅行資金や住宅頭金など、目標を決めて計画的に貯めよう',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward, color: Colors.pink.shade700),
           ],
         ),
       ),

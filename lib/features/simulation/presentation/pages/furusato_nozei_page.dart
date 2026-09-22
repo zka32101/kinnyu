@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/models/furusato_nozei_calculator.dart';
+import '../../../furusato_gift/presentation/pages/furusato_gift_page.dart';
 
 class FurusatoNozeiPage extends StatefulWidget {
   const FurusatoNozeiPage({Key? key}) : super(key: key);
@@ -94,6 +95,17 @@ class _FurusatoNozeiPageState extends State<FurusatoNozeiPage> {
           _buildSummaryCard(result),
           const SizedBox(height: 16),
           _buildDetailCard(result),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => FurusatoGiftPage(donationLimit: result.donationLimit),
+              ),
+            ),
+            icon: const Icon(Icons.card_giftcard),
+            label: const Text('寄付先・返礼品を記録する'),
+          ),
         ],
       ),
     );

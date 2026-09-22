@@ -6,6 +6,8 @@ import '../../../user_profile/presentation/providers/streak_provider.dart';
 import '../../../mission/presentation/providers/mission_provider.dart';
 import '../../../procedures/presentation/providers/procedures_provider.dart';
 import '../../../investment/presentation/providers/investment_provider.dart';
+import '../../../savings_goal/presentation/providers/savings_goal_provider.dart';
+import '../../../household/presentation/providers/budget_alert_provider.dart';
 
 /// 指定した uid のユーザーについて、全実績（バッジ）の進捗状況を
 /// 既存のプロバイダー・サービスの値から純粋に計算して返す。
@@ -63,12 +65,37 @@ final achievementProgressListProvider =
         'achievementProgressListProvider: investments fetch failed: $e');
   }
 
+  // 達成済みの貯金目標数
+  int achievedGoalsCount = 0;
+  try {
+    final savingsGoalService = ref.watch(savingsGoalServiceProvider);
+    achievedGoalsCount = await savingsGoalService.getAchievedGoalsCount(uid);
+  } catch (e) {
+    debugPrint(
+        'achievementProgressListProvider: achieved savings goals fetch failed: $e');
+  }
+
+  // 今月、予算内に収まっているカテゴリ数
+  // NOTE: uidをgroupIdとして代用する（household機能の他プロバイダーと同様の暫定対応）。
+  int categoriesWithinBudget = 0;
+  try {
+    final summaries =
+        await ref.watch(currentMonthCategoryExpenseSummariesProvider(uid).future);
+    categoriesWithinBudget =
+        summaries.where((s) => s.budget > 0 && !s.isOverBudget).length;
+  } catch (e) {
+    debugPrint(
+        'achievementProgressListProvider: budget summaries fetch failed: $e');
+  }
+
   final currentValues = <AchievementCategory, int>{
     AchievementCategory.streak: streakValue,
     AchievementCategory.level: level,
     AchievementCategory.mission: completedMissions,
     AchievementCategory.procedure: viewedProceduresCount,
     AchievementCategory.investment: investmentCount,
+    AchievementCategory.savingsGoal: achievedGoalsCount,
+    AchievementCategory.budget: categoriesWithinBudget,
   };
 
   final progressList = AchievementDefinitions.all.map((achievement) {

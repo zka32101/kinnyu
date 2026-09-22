@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
 
 /// 実績（バッジ）のカテゴリ
-enum AchievementCategory { streak, level, mission, procedure, investment }
+enum AchievementCategory {
+  streak,
+  level,
+  mission,
+  procedure,
+  investment,
+  savingsGoal,
+  budget,
+}
 
 extension AchievementCategoryX on AchievementCategory {
   String get label {
@@ -16,6 +24,10 @@ extension AchievementCategoryX on AchievementCategory {
         return '制度活用';
       case AchievementCategory.investment:
         return '資産形成';
+      case AchievementCategory.savingsGoal:
+        return '貯金目標';
+      case AchievementCategory.budget:
+        return '予算管理';
     }
   }
 }
@@ -203,6 +215,58 @@ class AchievementDefinitions {
       description: '10件の投資を開始しました',
       icon: Icons.trending_up,
       threshold: 10,
+    ),
+
+    // --- 貯金目標 ---
+    Achievement(
+      id: 'savings_goal_1',
+      category: AchievementCategory.savingsGoal,
+      title: '貯金目標デビュー',
+      description: '初めて貯金目標を達成しました',
+      icon: Icons.flag,
+      threshold: 1,
+    ),
+    Achievement(
+      id: 'savings_goal_3',
+      category: AchievementCategory.savingsGoal,
+      title: '計画的な貯め上手',
+      description: '3件の貯金目標を達成しました',
+      icon: Icons.flag,
+      threshold: 3,
+    ),
+    Achievement(
+      id: 'savings_goal_5',
+      category: AchievementCategory.savingsGoal,
+      title: '目標達成マスター',
+      description: '5件の貯金目標を達成しました',
+      icon: Icons.flag,
+      threshold: 5,
+    ),
+
+    // --- 予算管理（当月、予算内に収まっているカテゴリ数） ---
+    Achievement(
+      id: 'budget_3',
+      category: AchievementCategory.budget,
+      title: '予算管理はじめました',
+      description: '今月、3カテゴリを予算内に収めました',
+      icon: Icons.pie_chart,
+      threshold: 3,
+    ),
+    Achievement(
+      id: 'budget_5',
+      category: AchievementCategory.budget,
+      title: '予算コントロール上手',
+      description: '今月、5カテゴリを予算内に収めました',
+      icon: Icons.pie_chart,
+      threshold: 5,
+    ),
+    Achievement(
+      id: 'budget_8',
+      category: AchievementCategory.budget,
+      title: '完璧な家計管理',
+      description: '今月、全8カテゴリを予算内に収めました',
+      icon: Icons.pie_chart,
+      threshold: 8,
     ),
   ];
 }
