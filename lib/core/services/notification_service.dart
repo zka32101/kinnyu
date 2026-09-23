@@ -520,6 +520,17 @@ class NotificationService {
     return _paymentReminderIdBase + hashPart;
   }
 
+  /// 指定したサブスクの支払いリマインダー通知をキャンセルする
+  /// （サブスク削除時に呼び出し、削除済みのサブスクについて通知が届くのを防ぐ）
+  Future<void> cancelPaymentReminder(String subscriptionId) async {
+    if (!_initialized) {
+      debugPrint('NotificationService: not initialized, skipping cancelPaymentReminder');
+      return;
+    }
+    await flutterLocalNotificationsPlugin
+        .cancel(_paymentReminderNotificationId(subscriptionId));
+  }
+
   /// 指定した制度のリマインダー通知をすべてキャンセルする
   Future<void> cancelProcedureReminders(ProcedureReminderInput procedure) async {
     if (!_initialized) {

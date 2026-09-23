@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/subscription.dart';
 import '../providers/subscription_audit_provider.dart';
 import '../../../user_profile/presentation/providers/user_provider.dart';
+import '../../../../core/services/notification_service.dart';
 import 'payment_calendar_page.dart';
 
 class SubscriptionAuditPage extends ConsumerWidget {
@@ -173,7 +174,10 @@ class _SubscriptionTile extends ConsumerWidget {
             ),
             IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.grey),
-              onPressed: () => service.deleteSubscription(uid, subscription.id),
+              onPressed: () {
+                service.deleteSubscription(uid, subscription.id);
+                NotificationService().cancelPaymentReminder(subscription.id);
+              },
             ),
           ],
         ),
