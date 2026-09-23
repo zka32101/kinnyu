@@ -113,8 +113,9 @@ class EducationStageCost {
 
 class EducationCostResult {
   final List<EducationStageCost> stageCosts;
-  final int totalCost;
-  final int remainingCost; // totalCost - currentSavings（下限0）
+  final int totalCost; // 幼稚園〜大学の生涯教育費total（参考表示用）
+  final int remainingCost; // 大学費用 - currentSavings（下限0）。幼稚園〜高校は都度の家計から
+  // 支出される想定のため、事前にまとまった積立が必要な大学費用のみを対象とする。
   final int yearsUntilUniversity;
   final int requiredMonthlySavings; // 大学入学までに準備すべき月々の積立額の目安
 
@@ -146,7 +147,11 @@ class EducationCostPlanner {
       ));
     }
 
-    final remainingCost = (totalCost - input.currentSavings).clamp(0, totalCost);
+    final universityTrack = input.tracks[EducationStage.university] ?? SchoolTrack.public;
+    final universityCost =
+        EducationCostReference.totalCostByStage[EducationStage.university]![universityTrack]!;
+    final remainingCost =
+        (universityCost - input.currentSavings).clamp(0, universityCost);
     final yearsUntilUniversity =
         (EducationStage.university.startAge - input.childCurrentAge).clamp(0, 100);
     final monthsUntilUniversity = yearsUntilUniversity * 12;

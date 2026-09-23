@@ -13,6 +13,7 @@ class _PensionEstimatorPageState extends State<PensionEstimatorPage> {
   final _incomeController = TextEditingController(text: '4500000');
   final _savingsController = TextEditingController(text: '0');
   double _currentAge = 35;
+  double _retirementAge = 65;
   double _pensionEnrollmentYears = 38;
   double _yearsOfService = 20;
   CompanySize _companySize = CompanySize.medium;
@@ -28,6 +29,7 @@ class _PensionEstimatorPageState extends State<PensionEstimatorPage> {
     return PensionEstimator.calculate(
       PensionEstimatorInput(
         currentAge: _currentAge.round(),
+        retirementAge: _retirementAge.round(),
         averageAnnualIncome: int.tryParse(_incomeController.text) ?? 0,
         pensionEnrollmentYears: _pensionEnrollmentYears.round(),
         companySize: _companySize,
@@ -92,6 +94,25 @@ class _PensionEstimatorPageState extends State<PensionEstimatorPage> {
             label: '${_currentAge.round()}歳',
             onChanged: (v) => setState(() => _currentAge = v),
           ),
+          Text('年金の受給開始年齢: ${_retirementAge.round()}歳',
+              style: Theme.of(context).textTheme.titleMedium),
+          Slider(
+            value: _retirementAge,
+            min: 60,
+            max: 75,
+            divisions: 15,
+            label: '${_retirementAge.round()}歳',
+            onChanged: (v) => setState(() => _retirementAge = v),
+          ),
+          Text(
+            _retirementAge < 65
+                ? '65歳より前に受け取り始める「繰り上げ受給」（1ヶ月あたり0.4%減額）'
+                : _retirementAge > 65
+                    ? '65歳より後に受け取り始める「繰り下げ受給」（1ヶ月あたり0.7%増額）'
+                    : '標準的な受給開始年齢です',
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+          const SizedBox(height: 12),
           Text('厚生年金の加入見込み年数（通算）: ${_pensionEnrollmentYears.round()}年',
               style: Theme.of(context).textTheme.titleMedium),
           Slider(

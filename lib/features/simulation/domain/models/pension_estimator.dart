@@ -78,25 +78,32 @@ class PensionEstimator {
   static const int _fullBasicPensionMonths = 480;
   static const double _employeePensionRate = 5.481 / 1000;
 
+  // 繰り上げ・繰り下げ受給による減額・増額率（標準受給開始年齢は65歳、2022年4月以降の制度）
+  static const double _earlyClaimReductionPerMonth = 0.004; // 繰り上げ: 1ヶ月あたり0.4%減額
+  static const double _delayedClaimIncreasePerMonth = 0.007; // 繰り下げ: 1ヶ月あたり0.7%増額
+
   static PensionEstimatorResult calculate(PensionEstimatorInput input) {
     final enrollmentMonths = input.pensionEnrollmentYears * 12;
 
     final basicPensionMonths = enrollmentMonths.clamp(0, _fullBasicPensionMonths);
-    final annualBasicPension =
+    final baseAnnualBasicPension =
         (_fullBasicPensionAnnual * basicPensionMonths / _fullBasicPensionMonths).round();
 
     final avgMonthlyIncome = input.averageAnnualIncome / 12;
-    final annualEmployeePension = input.companySize == CompanySize.selfEmployed
+    final baseAnnualEmployeePension = input.companySize == CompanySize.selfEmployed
         ? 0
         : (avgMonthlyIncome * _employeePensionRate * enrollmentMonths).round();
+
+    final claimAgeAdjustment = _claimAgeAdjustmentFactor(input.retirementAge);
+    final annualBasicPension = (baseAnnualBasicPension * claimAgeAdjustment).round();
+    final annualEmployeePension = (baseAnnualEmployeePension * claimAgeAdjustment).round();
 
     final annualTotalPension = annualBasicPension + annualEmployeePension;
     final monthlyTotalPension = (annualTotalPension / 12).round();
 
-    final monthlySalary = input.averageAnnualIncome / 12;
     final estimatedRetirementLumpSum = input.companySize == CompanySize.selfEmployed
         ? 0
-        : (monthlySalary * input.yearsOfService * input.companySize.retirementLumpSumFactor)
+        : (avgMonthlyIncome * input.yearsOfService * input.companySize.retirementLumpSumFactor)
             .round();
 
     final totalRetirementFunds =
@@ -110,5 +117,13 @@ class PensionEstimator {
       estimatedRetirementLumpSum: estimatedRetirementLumpSum,
       totalRetirementFunds: totalRetirementFunds,
     );
+  }
+
+  /// 受給開始年齢による年金額の調整率を返す（標準受給開始年齢65歳を基準とする）。
+  static double _claimAgeAdjustmentFactor(int retirementAge) {
+    final monthsDiff = (retirementAge - 65) * 12;
+    return monthsDiff >= 0
+        ? 1 + monthsDiff * _delayedClaimIncreasePerMonth
+        : 1 + monthsDiff * _earlyClaimReductionPerMonth;
   }
 }
