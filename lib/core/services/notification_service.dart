@@ -13,6 +13,14 @@ typedef ProcedureReminderInput = ({
   List<int> reminderMonths,
 });
 
+/// 支払いリマインダーをスケジュールするための入力データ。
+typedef PaymentReminderInput = ({
+  String subscriptionId,
+  String name,
+  int amount,
+  DateTime nextBillingDate,
+});
+
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   static const String streakChannelId = 'streak_reminder';
@@ -25,6 +33,8 @@ class NotificationService {
   static const String monthlyReportChannelName = '月次レポート';
   static const String budgetAlertChannelId = 'budget_overspend';
   static const String budgetAlertChannelName = '予算超過アラート';
+  static const String paymentReminderChannelId = 'payment_reminder';
+  static const String paymentReminderChannelName = '支払いリマインダー';
   // 制度リマインダーの通知IDは他機能(0, timestampベース)と衝突しない範囲を予約する
   static const int _procedureReminderIdBase = 20000;
   // 週次おすすめ通知の固定通知ID（streakReminderの0番、mission/diagnosisの
@@ -34,6 +44,8 @@ class NotificationService {
   static const int _monthlyReportId = 2;
   // 予算超過アラートの通知IDは他機能と衝突しない範囲を予約する
   static const int _budgetAlertIdBase = 40000;
+  // 支払いリマインダーの通知IDは他機能と衝突しない範囲を予約する
+  static const int _paymentReminderIdBase = 50000;
 
   late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
@@ -114,6 +126,15 @@ class NotificationService {
           enableVibration: true,
         );
         await androidImpl.createNotificationChannel(budgetAlertChannel);
+
+        const AndroidNotificationChannel paymentReminderChannel = AndroidNotificationChannel(
+          paymentReminderChannelId,
+          paymentReminderChannelName,
+          description: 'サブスクなどの支払い予定日が近づいた際にお知らせする通知',
+          importance: Importance.high,
+          enableVibration: true,
+        );
+        await androidImpl.createNotificationChannel(paymentReminderChannel);
       }
 
       // ここまで例外なく到達した場合のみ初期化完了とみなす
@@ -429,6 +450,74 @@ class NotificationService {
     } catch (e) {
       debugPrint('制度リマインダーのスケジュール失敗: $e');
     }
+  }
+
+  /// 契約中サブスクの支払い予定日の2日前に、リマインダー通知をまとめてスケジュールする。
+  ///
+  /// 通知IDはsubscriptionIdから決定論的に生成するため、次回請求日が変わった際に
+  /// 再度このメソッドを呼び出せば、既存の予約が新しい日時で上書きされる
+  /// （呼び出し側は最新のnextBillingDateを毎回渡すこと）。
+  Future<void> schedulePaymentReminders(List<PaymentReminderInput> subscriptions) async {
+    if (!_initialized) {
+      debugPrint('NotificationService: not initialized, skipping schedulePaymentReminders');
+      return;
+    }
+    try {
+      const AndroidNotificationDetails androidPlatformChannelSpecifics =
+          AndroidNotificationDetails(
+        paymentReminderChannelId,
+        paymentReminderChannelName,
+        channelDescription: 'サブスクなどの支払い予定日が近づいた際にお知らせする通知',
+        importance: Importance.high,
+        priority: Priority.high,
+        enableVibration: true,
+        playSound: true,
+      );
+      const NotificationDetails platformChannelSpecifics =
+          NotificationDetails(android: androidPlatformChannelSpecifics);
+
+      for (final subscription in subscriptions) {
+        try {
+          final reminderDay =
+              subscription.nextBillingDate.subtract(const Duration(days: 2));
+          final now = tz.TZDateTime.now(tz.local);
+          var scheduledDate = tz.TZDateTime(
+            tz.local,
+            reminderDay.year,
+            reminderDay.month,
+            reminderDay.day,
+            9,
+          );
+          if (scheduledDate.isBefore(now)) {
+            continue; // 請求日が近すぎてリマインダー日時が過去になる場合はスキップ
+          }
+
+          final id = _paymentReminderNotificationId(subscription.subscriptionId);
+          final billingDate = subscription.nextBillingDate;
+          await flutterLocalNotificationsPlugin.zonedSchedule(
+            id,
+            '💳 ${subscription.name}の支払いが近づいています',
+            '${billingDate.month}月${billingDate.day}日頃に¥${subscription.amount}が'
+            '請求される予定です。',
+            scheduledDate,
+            platformChannelSpecifics,
+            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+            uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+          );
+        } catch (e) {
+          debugPrint(
+              '支払いリマインダーのスケジュール失敗 (subscription=${subscription.subscriptionId}): $e');
+          continue;
+        }
+      }
+    } catch (e) {
+      debugPrint('支払いリマインダーのスケジュール失敗: $e');
+    }
+  }
+
+  int _paymentReminderNotificationId(String subscriptionId) {
+    final hashPart = _stableStringHash(subscriptionId) % 100000;
+    return _paymentReminderIdBase + hashPart;
   }
 
   /// 指定した制度のリマインダー通知をすべてキャンセルする

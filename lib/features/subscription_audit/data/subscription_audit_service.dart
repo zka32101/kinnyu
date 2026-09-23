@@ -25,6 +25,8 @@ class SubscriptionAuditService {
     required int amount,
     required SubscriptionBillingCycle billingCycle,
     required SubscriptionCategory category,
+    int? billingDay,
+    int? billingMonth,
   }) async {
     final docRef = _subscriptionsRef(uid).doc();
     final subscription = Subscription(
@@ -36,6 +38,8 @@ class SubscriptionAuditService {
       category: category,
       isActive: true,
       createdAt: DateTime.now(),
+      billingDay: billingDay,
+      billingMonth: billingMonth,
     );
 
     try {

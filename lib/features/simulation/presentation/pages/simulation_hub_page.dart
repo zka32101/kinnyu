@@ -7,6 +7,9 @@ import 'furusato_nozei_page.dart';
 import 'nisa_ideco_page.dart';
 import 'emergency_fund_page.dart';
 import 'insurance_coverage_page.dart';
+import 'rent_vs_buy_page.dart';
+import 'education_cost_page.dart';
+import 'pension_estimator_page.dart';
 
 class SimulationHubPage extends StatelessWidget {
   const SimulationHubPage({Key? key}) : super(key: key);
@@ -118,6 +121,42 @@ class SimulationHubPage extends StatelessWidget {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const InsuranceCoveragePage()),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildCard(
+            context,
+            icon: Icons.compare_arrows,
+            color: Colors.brown,
+            title: '住宅購入 vs 賃貸',
+            description: '家賃と住宅ローンを比較し、何年で購入が有利になるかを計算',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const RentVsBuyPage()),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildCard(
+            context,
+            icon: Icons.school,
+            color: Colors.lightBlue,
+            title: '教育費プランナー',
+            description: '進路（公立/私立）別に、必要な教育費総額と積立目安を計算',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const EducationCostPage()),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildCard(
+            context,
+            icon: Icons.elderly,
+            color: Colors.indigo,
+            title: '年金・退職金シミュレーション',
+            description: '将来の年金受給見込み額と退職金の概算を計算',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PensionEstimatorPage()),
             ),
           ),
         ],
