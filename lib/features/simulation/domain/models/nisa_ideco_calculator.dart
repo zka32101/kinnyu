@@ -138,3 +138,42 @@ class NisaIdecoCalculator {
     );
   }
 }
+
+/// 積立投資の複利成長シミュレーション結果（1年ごとのポイント）
+class CompoundGrowthPoint {
+  final int year;
+  final int cumulativePrincipal; // 累計元本
+  final int estimatedValue; // 運用益を含めた評価額（概算）
+
+  const CompoundGrowthPoint({
+    required this.year,
+    required this.cumulativePrincipal,
+    required this.estimatedValue,
+  });
+}
+
+/// NISA・iDeCoなど、毎年一定額を積み立てた場合の複利成長を試算する（教育目的の概算）。
+/// 年1回・年初に積立額全体を投資し、年率リターンで複利運用されると仮定する簡易モデル。
+class CompoundGrowthSimulator {
+  static List<CompoundGrowthPoint> simulate({
+    required int annualContribution,
+    required double annualReturnRatePercent,
+    required int years,
+  }) {
+    final points = <CompoundGrowthPoint>[];
+    var cumulativePrincipal = 0;
+    var value = 0.0;
+
+    for (var y = 1; y <= years; y++) {
+      value = (value + annualContribution) * (1 + annualReturnRatePercent / 100);
+      cumulativePrincipal += annualContribution;
+      points.add(CompoundGrowthPoint(
+        year: y,
+        cumulativePrincipal: cumulativePrincipal,
+        estimatedValue: value.round(),
+      ));
+    }
+
+    return points;
+  }
+}

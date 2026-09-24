@@ -10,6 +10,8 @@ import 'insurance_coverage_page.dart';
 import 'rent_vs_buy_page.dart';
 import 'education_cost_page.dart';
 import 'pension_estimator_page.dart';
+import '../../../payslip/presentation/pages/payslip_capture_page.dart';
+import '../../../life_plan/presentation/pages/life_plan_timeline_page.dart';
 
 class SimulationHubPage extends StatelessWidget {
   const SimulationHubPage({Key? key}) : super(key: key);
@@ -26,6 +28,18 @@ class SimulationHubPage extends StatelessWidget {
             style: TextStyle(fontSize: 13, color: Colors.grey),
           ),
           const SizedBox(height: 16),
+          _buildCard(
+            context,
+            icon: Icons.timeline,
+            color: Colors.deepPurple,
+            title: 'ライフプランタイムライン',
+            description: '教育費・退職・年金など、人生のお金の出来事を年齢順に一覧表示',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const LifePlanTimelinePage()),
+            ),
+          ),
+          const SizedBox(height: 12),
           _buildCard(
             context,
             icon: Icons.home_work,
@@ -73,6 +87,18 @@ class SimulationHubPage extends StatelessWidget {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const TakeHomePayPage()),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildCard(
+            context,
+            icon: Icons.document_scanner,
+            color: Colors.cyan,
+            title: '給与明細OCR',
+            description: '給与明細を撮影するだけで、総支給額・手取り額を自動読み取り',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PayslipCapturePage()),
             ),
           ),
           const SizedBox(height: 12),

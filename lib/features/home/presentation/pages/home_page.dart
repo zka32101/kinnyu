@@ -17,6 +17,7 @@ import '../../../glossary/presentation/pages/glossary_page.dart';
 import '../../../simulation/presentation/pages/simulation_hub_page.dart';
 import '../../../subscription_audit/presentation/pages/subscription_audit_page.dart';
 import '../../../savings_goal/presentation/pages/savings_goal_page.dart';
+import '../../../data_export/presentation/pages/data_export_page.dart';
 import '../../../user_profile/presentation/providers/user_provider.dart';
 import '../../../user_profile/presentation/providers/streak_provider.dart';
 import '../../../procedures/presentation/pages/procedure_finder_page.dart';
@@ -294,6 +295,8 @@ class HomePage extends ConsumerWidget {
             _buildSubscriptionAuditPromptCard(context),
             const SizedBox(height: 24),
             _buildSavingsGoalPromptCard(context),
+            const SizedBox(height: 24),
+            _buildDataExportPromptCard(context),
           ],
         ),
       ),
@@ -634,6 +637,51 @@ class HomePage extends ConsumerWidget {
               ),
             ),
             Icon(Icons.arrow_forward, color: Colors.pink.shade700),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDataExportPromptCard(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          PageRouteAnimations.slideTransition(const DataExportPage()),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.brown.shade50,
+          border: Border.all(color: Colors.brown.shade200),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(Icons.file_download, color: Colors.brown.shade700, size: 28),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'データエクスポート',
+                    style: TextStyle(
+                      color: Colors.brown.shade700,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    '記録をExcelファイルで出力・共有できます',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward, color: Colors.brown.shade700),
           ],
         ),
       ),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 import '../../domain/models/nisa_ideco_calculator.dart';
 
 class NisaIdecoPage extends StatefulWidget {
@@ -19,6 +21,11 @@ class _NisaIdecoPageState extends State<NisaIdecoPage>
   IdecoOccupationType _occupation = IdecoOccupationType.employeeNoPension;
   final _idecoContributionController = TextEditingController(text: '10000');
   double _assumedTaxRate = 20.0;
+
+  double _nisaGrowthYears = 20;
+  double _nisaGrowthRate = 5.0;
+  double _idecoGrowthYears = 20;
+  double _idecoGrowthRate = 3.0;
 
   @override
   void initState() {
@@ -170,6 +177,16 @@ class _NisaIdecoPageState extends State<NisaIdecoPage>
             ],
           ),
         ),
+        const SizedBox(height: 20),
+        _buildGrowthSection(
+          annualContribution: (int.tryParse(_tsumitateController.text) ?? 0) +
+              (int.tryParse(_growthController.text) ?? 0),
+          years: _nisaGrowthYears,
+          rate: _nisaGrowthRate,
+          color: Colors.green,
+          onYearsChanged: (v) => setState(() => _nisaGrowthYears = v),
+          onRateChanged: (v) => setState(() => _nisaGrowthRate = v),
+        ),
       ],
     );
   }
@@ -268,6 +285,168 @@ class _NisaIdecoPageState extends State<NisaIdecoPage>
             ],
           ),
         ),
+        const SizedBox(height: 20),
+        _buildGrowthSection(
+          annualContribution: result.annualContribution,
+          years: _idecoGrowthYears,
+          rate: _idecoGrowthRate,
+          color: Colors.purple,
+          onYearsChanged: (v) => setState(() => _idecoGrowthYears = v),
+          onRateChanged: (v) => setState(() => _idecoGrowthRate = v),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGrowthSection({
+    required int annualContribution,
+    required double years,
+    required double rate,
+    required Color color,
+    required ValueChanged<double> onYearsChanged,
+    required ValueChanged<double> onRateChanged,
+  }) {
+    final amountFormat = NumberFormat('#,###');
+    final points = CompoundGrowthSimulator.simulate(
+      annualContribution: annualContribution,
+      annualReturnRatePercent: rate,
+      years: years.round(),
+    );
+    final finalPoint = points.isNotEmpty ? points.last : null;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('将来の資産成長シミュレーション（複利概算）',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            const Text(
+              '上記の年間投資額を毎年積み立て続けたと仮定した概算です。実際の運用成績を保証するものではありません。',
+              style: TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+            const SizedBox(height: 12),
+            Text('積立年数: ${years.round()}年'),
+            Slider(
+              value: years,
+              min: 1,
+              max: 40,
+              divisions: 39,
+              label: '${years.round()}年',
+              onChanged: onYearsChanged,
+            ),
+            Text('想定利回り: ${rate.toStringAsFixed(1)}%'),
+            Slider(
+              value: rate,
+              min: 0,
+              max: 10,
+              divisions: 100,
+              label: '${rate.toStringAsFixed(1)}%',
+              onChanged: onRateChanged,
+            ),
+            if (finalPoint != null && annualContribution > 0) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 180,
+                child: LineChart(
+                  LineChartData(
+                    gridData: FlGridData(
+                      show: true,
+                      getDrawingHorizontalLine: (value) => FlLine(
+                        color: Colors.grey.withValues(alpha: 0.1),
+                        strokeWidth: 1,
+                      ),
+                    ),
+                    titlesData: const FlTitlesData(
+                      topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    ),
+                    borderData: FlBorderData(show: false),
+                    lineBarsData: [
+                      LineChartBarData(
+                        spots: points
+                            .map((p) => FlSpot(
+                                p.year.toDouble(), p.cumulativePrincipal.toDouble()))
+                            .toList(),
+                        isCurved: false,
+                        color: Colors.grey,
+                        barWidth: 2,
+                        dotData: const FlDotData(show: false),
+                      ),
+                      LineChartBarData(
+                        spots: points
+                            .map((p) =>
+                                FlSpot(p.year.toDouble(), p.estimatedValue.toDouble()))
+                            .toList(),
+                        isCurved: true,
+                        color: color,
+                        barWidth: 3,
+                        dotData: const FlDotData(show: false),
+                        belowBarData: BarAreaData(show: true, color: color.withValues(alpha: 0.15)),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _legendDot('元本累計', Colors.grey),
+                  _legendDot('評価額（概算）', color),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('元本累計', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      Text('¥${amountFormat.format(finalPoint.cumulativePrincipal)}',
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      const Text('評価額（概算）', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      Text('¥${amountFormat.format(finalPoint.estimatedValue)}',
+                          style: TextStyle(fontWeight: FontWeight.bold, color: color)),
+                    ],
+                  ),
+                ],
+              ),
+            ] else
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  '年間投資額を入力すると、将来の資産成長の見込みが表示されます。',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _legendDot(String label, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 4),
+        Text(label, style: const TextStyle(fontSize: 12)),
       ],
     );
   }

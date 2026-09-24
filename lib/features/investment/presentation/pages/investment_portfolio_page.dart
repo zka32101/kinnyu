@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../../domain/models/investment.dart';
 import '../../domain/services/market_simulator.dart';
 import '../providers/investment_provider.dart';
@@ -96,6 +97,10 @@ class _InvestmentPortfolioPageState
       children: [
         _buildSummaryCard(totalSavings, totalCurrentValue, totalProfitLoss),
         const SizedBox(height: 16),
+        if (investments.length > 1) ...[
+          _buildAllocationChart(investments),
+          const SizedBox(height: 16),
+        ],
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
@@ -153,6 +158,92 @@ class _InvestmentPortfolioPageState
         ],
       ),
     );
+  }
+
+  Widget _buildAllocationChart(List<Investment> investments) {
+    final valueByType = <InvestmentType, double>{};
+    for (final inv in investments) {
+      final currentIndex = MarketSimulator.getCurrentIndexValue(inv.investmentType);
+      valueByType[inv.investmentType] =
+          (valueByType[inv.investmentType] ?? 0) + inv.currentValue(currentIndex);
+    }
+    final totalValue = valueByType.values.fold<double>(0, (sum, v) => sum + v);
+    if (totalValue <= 0) return const SizedBox.shrink();
+
+    final sections = valueByType.entries.map((entry) {
+      final percent = entry.value / totalValue * 100;
+      return PieChartSectionData(
+        value: entry.value,
+        title: '${percent.toStringAsFixed(0)}%',
+        color: _colorForType(entry.key),
+        radius: 60,
+        titleStyle: const TextStyle(
+            color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+      );
+    }).toList();
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('資産配分', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 180,
+              child: PieChart(
+                PieChartData(
+                  sections: sections,
+                  centerSpaceRadius: 32,
+                  sectionsSpace: 2,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              children: valueByType.keys.map((type) {
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: _colorForType(type),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(InvestmentTypeInfo.displayNames[type]!,
+                        style: const TextStyle(fontSize: 12)),
+                  ],
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _colorForType(InvestmentType type) {
+    switch (type) {
+      case InvestmentType.topix:
+        return Colors.blue;
+      case InvestmentType.nasdaq:
+        return Colors.purple;
+      case InvestmentType.sp500:
+        return Colors.green;
+      case InvestmentType.bond:
+        return Colors.orange;
+      case InvestmentType.gold:
+        return Colors.amber;
+      case InvestmentType.allCountry:
+        return Colors.teal;
+    }
   }
 
   Widget _buildInvestmentCard(

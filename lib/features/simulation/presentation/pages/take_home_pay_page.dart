@@ -2,14 +2,19 @@ import 'package:flutter/material.dart';
 import '../../domain/models/take_home_pay_calculator.dart';
 
 class TakeHomePayPage extends StatefulWidget {
-  const TakeHomePayPage({Key? key}) : super(key: key);
+  /// 給与明細OCR等から額面年収の目安を事前入力する場合に渡す。
+  final int? initialGrossAnnualIncome;
+
+  const TakeHomePayPage({Key? key, this.initialGrossAnnualIncome}) : super(key: key);
 
   @override
   State<TakeHomePayPage> createState() => _TakeHomePayPageState();
 }
 
 class _TakeHomePayPageState extends State<TakeHomePayPage> {
-  final _incomeController = TextEditingController(text: '4000000');
+  late final _incomeController = TextEditingController(
+    text: '${widget.initialGrossAnnualIncome ?? 4000000}',
+  );
   bool _isOver40 = false;
   int _dependents = 0;
 
