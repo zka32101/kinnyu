@@ -186,7 +186,7 @@ class _OkaneKoreAppState extends ConsumerState<OkaneKoreApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '金融オンライン大学',
+      title: 'お金コレ！',
       theme: AppTheme.lightTheme(),
       darkTheme: AppTheme.darkTheme(),
       themeMode: ThemeMode.system,
