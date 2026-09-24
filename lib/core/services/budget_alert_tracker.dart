@@ -7,13 +7,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 class BudgetAlertTracker {
   static const String _sentAlertsKey = 'budget_alert_sent_keys';
 
+  // 同一セッション内での重複送信を防ぐためのインメモリガード。
+  // shouldAlert()はSharedPreferencesへの非同期アクセスを挟むため、
+  // これが無いと短時間に複数回呼ばれた際（HomePageの再ビルドによる
+  // postFrameCallbackの多重登録など）に両方が「未送信」と判定してしまう
+  // （TOCTOU）。同期的に即座にキーを登録することで、その隙間を塞ぐ。
+  static final Set<String> _claimedThisSession = {};
+
   static Future<bool> shouldAlert(String alertKey) async {
+    if (_claimedThisSession.contains(alertKey)) return false;
+    _claimedThisSession.add(alertKey);
     try {
       final prefs = await SharedPreferences.getInstance();
       final sent = prefs.getStringList(_sentAlertsKey) ?? [];
       return !sent.contains(alertKey);
     } catch (e) {
       debugPrint('BudgetAlertTracker.shouldAlert failed: $e');
+      _claimedThisSession.remove(alertKey); // 失敗時は再試行できるよう解放する
       return false;
     }
   }

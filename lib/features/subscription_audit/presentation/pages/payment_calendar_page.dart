@@ -62,7 +62,11 @@ class _PaymentTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final amountFormat = NumberFormat('#,###');
     final nextDate = subscription.nextBillingDate!;
-    final daysUntil = nextDate.difference(DateTime.now()).inDays;
+    // nextDateは00:00:00固定のため、時刻を持つDateTime.now()とそのまま差分を
+    // 取ると.inDaysが1日分切り捨てられる。日付のみ（today）と比較する。
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final daysUntil = nextDate.difference(today).inDays;
     final isUrgent = daysUntil <= 3;
 
     return Card(

@@ -275,11 +275,14 @@ class BenchmarkStatsProvider {
     return _ratioToPercentile(ratio);
   }
 
-  /// 値が大きいほど良い指標（貯蓄率・純資産など）用のパーセンタイル
+  /// 値が大きいほど良い指標（貯蓄率・純資産など）用のパーセンタイル。
+  /// calculatePercentileForLowerIsBetterと同様、返り値は「実際の値が同世代内で
+  /// どの高さに位置するか」を表す（平均より高ければ50超）。「上位」表示への変換は
+  /// 呼び出し側（UI）で100からこの値を引いて行う。
   static int calculatePercentileForHigherIsBetter(double userValue, double average) {
     if (average <= 0) return 50;
     final ratio = userValue / average;
-    return 100 - _ratioToPercentile(ratio);
+    return _ratioToPercentile(ratio);
   }
 
   /// 平均に対する比率(ratio)を、なだらかなロジスティック曲線で

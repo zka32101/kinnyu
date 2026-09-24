@@ -286,17 +286,7 @@ class HomePage extends ConsumerWidget {
             const SizedBox(height: 24),
             _buildSectionHeader('サポート'),
             const SizedBox(height: 12),
-            _buildProcedureFinderPromptCard(context, ref),
-            const SizedBox(height: 24),
-            _buildRoleplayPromptCard(context),
-            const SizedBox(height: 24),
-            _buildDashboardPromptCard(context),
-            const SizedBox(height: 24),
-            _buildSubscriptionAuditPromptCard(context),
-            const SizedBox(height: 24),
-            _buildSavingsGoalPromptCard(context),
-            const SizedBox(height: 24),
-            _buildDataExportPromptCard(context),
+            _buildSupportGrid(context),
           ],
         ),
       ),
@@ -324,140 +314,117 @@ class HomePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildProcedureFinderPromptCard(BuildContext context, WidgetRef ref) {
-    final lifeStage = ref.watch(lifeStageProvider);
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
+  /// サポート系機能への導線。数が多いため、以前のような全幅カードの縦積みではなく
+  /// コンパクトなグリッドにまとめてスクロール量を抑える
+  /// （「家計改善ダッシュボード」はページ上部のDashboardPreviewCardと重複するため
+  /// ここには含めない）。
+  Widget _buildSupportGrid(BuildContext context) {
+    final tiles = <({String title, IconData icon, Color color, VoidCallback onTap})>[
+      (
+        title: '制度・補助金',
+        icon: Icons.account_balance,
+        color: Colors.blue,
+        onTap: () => Navigator.push(
           context,
           PageRouteAnimations.slideTransition(const ProcedureFinderPage()),
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.blue.shade50,
-          border: Border.all(color: Colors.blue.shade200),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Icon(Icons.account_balance, color: Colors.blue.shade700, size: 28),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '制度・補助金を探す',
-                    style: TextStyle(
-                      color: Colors.blue.shade700,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    lifeStage == null
-                        ? 'ライフステージを選ぶと、あなたに合った制度をお知らせします'
-                        : '${lifeStage.label}向けの制度・補助金をチェックしよう',
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
-            Icon(Icons.arrow_forward, color: Colors.blue.shade700),
-          ],
         ),
       ),
-    );
-  }
-
-  Widget _buildDashboardPromptCard(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          PageRouteAnimations.slideTransition(const SavingsDashboardPage()),
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.green.shade50,
-          border: Border.all(color: Colors.green.shade200),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Icon(Icons.dashboard, color: Colors.green.shade700, size: 28),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '家計改善ダッシュボード',
-                    style: TextStyle(
-                      color: Colors.green.shade700,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'あなたの成長・貯まる様子をまとめて確認しよう',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
-            Icon(Icons.arrow_forward, color: Colors.green.shade700),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRoleplayPromptCard(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
+      (
+        title: '家計ロールプレイ',
+        icon: Icons.family_restroom,
+        color: Colors.indigo,
+        onTap: () => Navigator.push(
           context,
           PageRouteAnimations.slideTransition(const RoleplayPage()),
+        ),
+      ),
+      (
+        title: 'サブスク棚卸し',
+        icon: Icons.subscriptions,
+        color: Colors.orange,
+        onTap: () => Navigator.push(
+          context,
+          PageRouteAnimations.slideTransition(const SubscriptionAuditPage()),
+        ),
+      ),
+      (
+        title: '貯金目標',
+        icon: Icons.flag,
+        color: Colors.pink,
+        onTap: () => Navigator.push(
+          context,
+          PageRouteAnimations.slideTransition(const SavingsGoalPage()),
+        ),
+      ),
+      (
+        title: 'データ出力',
+        icon: Icons.file_download,
+        color: Colors.brown,
+        onTap: () => Navigator.push(
+          context,
+          PageRouteAnimations.slideTransition(const DataExportPage()),
+        ),
+      ),
+    ];
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.4,
+      ),
+      itemCount: tiles.length,
+      itemBuilder: (context, index) {
+        final tile = tiles[index];
+        return _buildSupportTile(
+          title: tile.title,
+          icon: tile.icon,
+          color: tile.color,
+          onTap: tile.onTap,
         );
       },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.indigo.shade50,
-          border: Border.all(color: Colors.indigo.shade200),
+    );
+  }
+
+  Widget _buildSupportTile({
+    required String title,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color.withAlpha(20),
+        border: Border.all(color: color.withAlpha(60)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
           borderRadius: BorderRadius.circular(12),
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Icon(Icons.family_restroom, color: Colors.indigo.shade600, size: 28),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '家計ロールプレイ',
-                    style: TextStyle(
-                      color: Colors.indigo.shade600,
-                      fontWeight: FontWeight.w600,
-                    ),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: color, size: 28),
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    '仮想人生でお金の判断を練習しよう',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-            Icon(Icons.arrow_forward, color: Colors.indigo.shade600),
-          ],
+          ),
         ),
       ),
     );
@@ -547,141 +514,6 @@ class HomePage extends ConsumerWidget {
               ),
             ),
             Icon(Icons.arrow_forward, color: Colors.amber.shade800),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSubscriptionAuditPromptCard(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          PageRouteAnimations.slideTransition(const SubscriptionAuditPage()),
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.orange.shade50,
-          border: Border.all(color: Colors.orange.shade300),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Icon(Icons.subscriptions, color: Colors.orange.shade800, size: 28),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'サブスク棚卸し',
-                    style: TextStyle(
-                      color: Colors.orange.shade800,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    '契約中のサブスクを一覧管理して、ムダをチェック',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
-            Icon(Icons.arrow_forward, color: Colors.orange.shade800),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSavingsGoalPromptCard(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          PageRouteAnimations.slideTransition(const SavingsGoalPage()),
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.pink.shade50,
-          border: Border.all(color: Colors.pink.shade200),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Icon(Icons.flag, color: Colors.pink.shade700, size: 28),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '貯金目標プランナー',
-                    style: TextStyle(
-                      color: Colors.pink.shade700,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    '旅行資金や住宅頭金など、目標を決めて計画的に貯めよう',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
-            Icon(Icons.arrow_forward, color: Colors.pink.shade700),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDataExportPromptCard(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          PageRouteAnimations.slideTransition(const DataExportPage()),
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.brown.shade50,
-          border: Border.all(color: Colors.brown.shade200),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Icon(Icons.file_download, color: Colors.brown.shade700, size: 28),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'データエクスポート',
-                    style: TextStyle(
-                      color: Colors.brown.shade700,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    '記録をExcelファイルで出力・共有できます',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
-            Icon(Icons.arrow_forward, color: Colors.brown.shade700),
           ],
         ),
       ),
