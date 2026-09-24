@@ -65,9 +65,13 @@ class Subscription {
     if (day == null) return null;
 
     final now = DateTime.now();
+    // candidateは常に00:00:00なので、時刻を持つnowとそのまま比較すると
+    // 請求日当日でも「過ぎた」と判定され、1周期先に繰り上がってしまう。
+    // 日付のみ（時刻を切り捨てたtoday）と比較する。
+    final today = DateTime(now.year, now.month, now.day);
     if (billingCycle == SubscriptionBillingCycle.monthly) {
       var candidate = _dateInMonth(now.year, now.month, day);
-      if (!candidate.isAfter(now)) {
+      if (candidate.isBefore(today)) {
         final nextMonth = now.month == 12 ? 1 : now.month + 1;
         final nextYear = now.month == 12 ? now.year + 1 : now.year;
         candidate = _dateInMonth(nextYear, nextMonth, day);
@@ -76,7 +80,7 @@ class Subscription {
     } else {
       final month = billingMonth ?? now.month;
       var candidate = _dateInMonth(now.year, month, day);
-      if (!candidate.isAfter(now)) {
+      if (candidate.isBefore(today)) {
         candidate = _dateInMonth(now.year + 1, month, day);
       }
       return candidate;
