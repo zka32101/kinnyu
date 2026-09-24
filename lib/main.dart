@@ -36,9 +36,13 @@ void main() {
     // 安全に動作できるため、並列化はせずこの順序を維持すること。
 
     // Firebase 初期化（エラーハンドリング付き）
+    // ネットワーク不通やFirebase側の応答遅延で永久に完了しない場合でも
+    // runApp()に必ずたどり着けるよう、各ステップにタイムアウトを設ける
+    // （タイムアウト時はTimeoutExceptionとして下のcatchに落ちる）。
     bool firebaseInitialized = false;
     try {
-      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)
+          .timeout(const Duration(seconds: 10));
       firebaseInitialized = true;
     } catch (e, stack) {
       debugPrint('[main] Firebase initialization failed: $e\n$stack');
@@ -49,7 +53,7 @@ void main() {
     if (firebaseInitialized) {
       try {
         if (FirebaseAuth.instance.currentUser == null) {
-          await AuthService().signInAnonymously();
+          await AuthService().signInAnonymously().timeout(const Duration(seconds: 10));
         }
       } catch (e, stack) {
         debugPrint('[main] Anonymous sign-in failed: $e\n$stack');
@@ -79,14 +83,14 @@ void main() {
 
     // 通知サービス初期化
     try {
-      await NotificationService().initialize();
+      await NotificationService().initialize().timeout(const Duration(seconds: 10));
     } catch (e, stack) {
       debugPrint('[main] NotificationService initialization failed: $e\n$stack');
     }
 
     // サブスクリプション初期化
     try {
-      await SubscriptionService().initialize();
+      await SubscriptionService().initialize().timeout(const Duration(seconds: 10));
     } catch (e, stack) {
       debugPrint('[main] SubscriptionService initialization failed: $e\n$stack');
     }
@@ -97,7 +101,7 @@ void main() {
       // Firebase の準備完了の合図であり、追加の待機は本来不要。
       // 念のためごく短い安全マージンだけ残す（不安定な環境向けの保険）。
       await Future.delayed(const Duration(milliseconds: 100));
-      await FirebaseInitializer().initializeTestData();
+      await FirebaseInitializer().initializeTestData().timeout(const Duration(seconds: 10));
     } catch (e, stack) {
       debugPrint('[main] FirebaseInitializer.initializeTestData() failed: $e\n$stack');
       // クイズデータ初期化失敗時もアプリは起動可能にする

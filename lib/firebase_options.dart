@@ -6,11 +6,11 @@ import 'package:flutter/foundation.dart'
 
 class DefaultFirebaseOptions {
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCkIt1e0hN8K3dl7HN2CoH_h95ztkNrgmg',
-    appId: '1:216377882454:android:0d70a41d01bfac26d108f7',
-    messagingSenderId: '216377882454',
-    projectId: 'petit-works-apps-9029a',
-    storageBucket: 'petit-works-apps-9029a.firebasestorage.app',
+    apiKey: 'AIzaSyCYV-jBINoWdP8mpY-C3FO3qrMRhhM8Jto',
+    appId: '1:708529498053:android:c3f40ad54a69b6c7670dac',
+    messagingSenderId: '708529498053',
+    projectId: 'okane-bea50',
+    storageBucket: 'okane-bea50.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
