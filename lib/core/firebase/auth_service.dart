@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../features/user_profile/presentation/providers/user_provider.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   Future<UserCredential?> signInAnonymously() async {
     try {
@@ -16,6 +18,50 @@ class AuthService {
       return userCredential;
     } on FirebaseAuthException catch (e) {
       debugPrint('Anonymous sign-in failed: $e');
+      return null;
+    }
+  }
+
+  /// Googleアカウントでログインする。
+  ///
+  /// 現在のユーザーが匿名アカウントの場合は、匿名アカウントの認証情報に
+  /// Google認証情報をリンクすることで、それまでのデータ（uid）を
+  /// そのまま引き継ぐ。そのGoogleアカウントが既に別のFirebaseユーザーに
+  /// リンク済み（credential-already-in-use）の場合は、その既存アカウントへ
+  /// 通常サインインする（機種変更後の再ログイン等で想定される挙動）。
+  ///
+  /// ユーザーがGoogleアカウント選択をキャンセルした場合はnullを返す。
+  Future<UserCredential?> signInWithGoogle() async {
+    try {
+      final googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) return null;
+
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final currentUser = _auth.currentUser;
+      UserCredential userCredential;
+      if (currentUser != null && currentUser.isAnonymous) {
+        try {
+          userCredential = await currentUser.linkWithCredential(credential);
+        } on FirebaseAuthException catch (e) {
+          if (e.code == 'credential-already-in-use') {
+            userCredential = await _auth.signInWithCredential(credential);
+          } else {
+            rethrow;
+          }
+        }
+      } else {
+        userCredential = await _auth.signInWithCredential(credential);
+      }
+
+      await _initializeUserProfile(userCredential.user!.uid);
+      return userCredential;
+    } on FirebaseAuthException catch (e) {
+      debugPrint('Google sign-in failed: $e');
       return null;
     }
   }
@@ -143,6 +189,11 @@ class AuthService {
   }
 
   Future<void> signOut() async {
+    try {
+      await _googleSignIn.signOut();
+    } catch (e) {
+      debugPrint('Google sign-out failed: $e');
+    }
     try {
       await _auth.signOut();
     } catch (e) {

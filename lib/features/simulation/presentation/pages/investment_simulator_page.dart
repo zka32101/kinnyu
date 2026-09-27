@@ -25,15 +25,19 @@ class _InvestmentSimulatorPageState
   static const double _assumedInflationRatePercent = 2.0;
 
   final _amountController = TextEditingController(text: '10000');
+  final _initialController = TextEditingController(text: '0');
   double _years = 20;
+  double _contributionIncreasePercent = 0;
   InvestmentType _type = InvestmentType.allCountry;
   _SimMode _mode = _SimMode.ideal;
   String? _selectedPatternId;
   int _randomSeed = 1;
+  bool _showDetailedSettings = false;
 
   @override
   void dispose() {
     _amountController.dispose();
+    _initialController.dispose();
     super.dispose();
   }
 
@@ -69,27 +73,33 @@ class _InvestmentSimulatorPageState
   // --- 理論値モード（一定成長） ---
   List<CompoundYearResult> get _idealResults {
     final amount = int.tryParse(_amountController.text) ?? 0;
+    final initial = int.tryParse(_initialController.text) ?? 0;
     final rate = (InvestmentTypeInfo.annualGrowthRate[_type] ?? 0.05) * 100;
     return CompoundSimulator.simulate(
+      initial: initial,
       monthlyContribution: amount,
       annualRatePercent: rate,
       years: _years.round(),
       inflationRatePercent: _assumedInflationRatePercent,
+      contributionIncreasePercent: _contributionIncreasePercent,
     );
   }
 
   // --- リアル変動モード（好況・不況の波あり） ---
   List<RandomYearResult> get _realResults {
     final amount = int.tryParse(_amountController.text) ?? 0;
+    final initial = int.tryParse(_initialController.text) ?? 0;
     final rate = (InvestmentTypeInfo.annualGrowthRate[_type] ?? 0.05) * 100;
     final volatility = InvestmentTypeInfo.volatilityPercent[_type] ?? 15;
     return CompoundSimulator.simulateRandom(
+      initial: initial,
       monthlyContribution: amount,
       meanAnnualRatePercent: rate,
       volatilityPercent: volatility,
       years: _years.round(),
       seed: _randomSeed,
       inflationRatePercent: _assumedInflationRatePercent,
+      contributionIncreasePercent: _contributionIncreasePercent,
     );
   }
 
@@ -167,6 +177,8 @@ class _InvestmentSimulatorPageState
               _selectedPatternId = null;
             }),
           ),
+          const SizedBox(height: 8),
+          _buildDetailedSettings(),
           const SizedBox(height: 16),
           SegmentedButton<_SimMode>(
             segments: const [
@@ -206,6 +218,70 @@ class _InvestmentSimulatorPageState
             ..._buildRealSection(),
         ],
       ),
+    );
+  }
+
+  Widget _buildDetailedSettings() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: () => setState(() => _showDetailedSettings = !_showDetailedSettings),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                Icon(
+                  _showDetailedSettings ? Icons.expand_less : Icons.expand_more,
+                  size: 20,
+                  color: Colors.teal,
+                ),
+                const SizedBox(width: 4),
+                const Text(
+                  '詳細設定（初期投資額・積立額の増加率）',
+                  style: TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.bold, color: Colors.teal),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (_showDetailedSettings) ...[
+          const SizedBox(height: 8),
+          TextField(
+            controller: _initialController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: '初期投資額（一括投資分）',
+              prefixText: '¥',
+              isDense: true,
+              border: OutlineInputBorder(),
+              helperText: '積立とは別に、開始時点でまとまった金額を投資する場合に入力',
+            ),
+            onChanged: (_) => setState(() => _selectedPatternId = null),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            '積立額の年次増加率: ${_contributionIncreasePercent.toStringAsFixed(1)}%/年',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          Slider(
+            value: _contributionIncreasePercent,
+            min: 0,
+            max: 10,
+            divisions: 20,
+            label: '${_contributionIncreasePercent.toStringAsFixed(1)}%',
+            onChanged: (v) => setState(() {
+              _contributionIncreasePercent = v;
+              _selectedPatternId = null;
+            }),
+          ),
+          const Text(
+            '昇給などで積立額を毎年少しずつ増やしていく場合の増加率を設定できます（0%なら一定額）。',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+        ],
+      ],
     );
   }
 

@@ -25,6 +25,8 @@ import '../../../procedures/presentation/providers/procedures_provider.dart';
 import '../../../procedures/domain/models/procedure_info.dart';
 import '../../../dashboard/presentation/pages/savings_dashboard_page.dart';
 import '../../../about/presentation/pages/about_page.dart';
+import '../../../user_profile/presentation/pages/account_page.dart';
+import '../../../premium/presentation/pages/paywall_page.dart';
 import '../../../achievements/presentation/pages/achievements_page.dart';
 import '../../../../core/widgets/lottie_animations.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -154,10 +156,20 @@ class HomePage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('金融オンライン大学'),
+        title: const Text('お金コレ！'),
         centerTitle: true,
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.account_circle),
+            tooltip: 'アカウント',
+            onPressed: () {
+              Navigator.push(
+                context,
+                PageRouteAnimations.slideTransition(const AccountPage()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.family_restroom),
             tooltip: '世帯リーグ',
@@ -211,9 +223,26 @@ class HomePage extends ConsumerWidget {
                     PageRouteAnimations.slideTransition(const AboutPage()),
                   );
                   break;
+                case 'premium':
+                  Navigator.push(
+                    context,
+                    PageRouteAnimations.slideTransition(const PaywallPage()),
+                  );
+                  break;
               }
             },
             itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: 'premium',
+                child: Row(
+                  children: [
+                    Icon(Icons.workspace_premium, color: Colors.amber),
+                    SizedBox(width: 12),
+                    Text('プレミアムにアップグレード'),
+                  ],
+                ),
+              ),
+              PopupMenuDivider(),
               PopupMenuItem(
                 value: 'achievements',
                 child: Row(
