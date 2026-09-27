@@ -26,6 +26,21 @@ class _HouseholdSimulatorPageState
   final _incomeController = TextEditingController(text: '300000');
   final _expenseController = TextEditingController(text: '220000');
 
+  // 支出の詳細内訳（任意）
+  bool _showExpenseBreakdown = false;
+  static const List<String> _expenseCategories = [
+    '食費',
+    '住居費',
+    '水道光熱費',
+    '通信費',
+    '保険料',
+    '娯楽・交際費',
+    'その他',
+  ];
+  late final Map<String, TextEditingController> _expenseCategoryControllers = {
+    for (final c in _expenseCategories) c: TextEditingController(text: '0'),
+  };
+
   // 共通
   double _returnRate = 0; // 0 = 貯金のみ
   double _inflationRate = 2.0;
@@ -54,7 +69,18 @@ class _HouseholdSimulatorPageState
     for (final c in _yearExpenseControllers) {
       c.dispose();
     }
+    for (final c in _expenseCategoryControllers.values) {
+      c.dispose();
+    }
     super.dispose();
+  }
+
+  /// カテゴリー別の支出内訳を合計し、簡易モードの支出合計フィールドへ反映する。
+  void _recalculateExpenseFromBreakdown() {
+    final total = _expenseCategoryControllers.values
+        .map((c) => int.tryParse(c.text) ?? 0)
+        .fold(0, (a, b) => a + b);
+    setState(() => _expenseController.text = '$total');
   }
 
   void _syncDetailedControllers() {
@@ -318,6 +344,8 @@ class _HouseholdSimulatorPageState
           label: const Text('直近のレシート記録から自動入力'),
         ),
       ),
+      const SizedBox(height: 8),
+      ..._buildExpenseBreakdown(),
       const SizedBox(height: 20),
       ..._buildSharedControls(),
       const SizedBox(height: 16),
@@ -333,6 +361,55 @@ class _HouseholdSimulatorPageState
           balance: last.balance,
           profit: last.profit,
           realBalance: last.realBalance,
+        ),
+      ],
+    ];
+  }
+
+  List<Widget> _buildExpenseBreakdown() {
+    return [
+      InkWell(
+        onTap: () => setState(() => _showExpenseBreakdown = !_showExpenseBreakdown),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              Icon(
+                _showExpenseBreakdown ? Icons.expand_less : Icons.expand_more,
+                size: 20,
+                color: Colors.indigo,
+              ),
+              const SizedBox(width: 4),
+              const Text(
+                '支出をカテゴリー別に詳しく入力する（任意）',
+                style: TextStyle(
+                    fontSize: 13, fontWeight: FontWeight.bold, color: Colors.indigo),
+              ),
+            ],
+          ),
+        ),
+      ),
+      if (_showExpenseBreakdown) ...[
+        const SizedBox(height: 8),
+        ..._expenseCategories.map((category) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: TextField(
+              controller: _expenseCategoryControllers[category],
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: category,
+                prefixText: '¥',
+                isDense: true,
+                border: const OutlineInputBorder(),
+              ),
+              onChanged: (_) => _recalculateExpenseFromBreakdown(),
+            ),
+          );
+        }),
+        const Text(
+          'カテゴリー別の合計が「毎月の支出合計」に反映されます。',
+          style: TextStyle(fontSize: 12, color: Colors.grey),
         ),
       ],
     ];

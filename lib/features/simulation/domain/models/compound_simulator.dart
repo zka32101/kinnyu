@@ -46,18 +46,23 @@ class CompoundSimulator {
     required double annualRatePercent,
     required int years,
     double inflationRatePercent = 0.0,
+    double contributionIncreasePercent = 0.0,
   }) {
     assert(years > 0, 'years must be positive');
     final monthlyRate = annualRatePercent / 100 / 12;
 
     double balance = initial.toDouble();
     int principal = initial;
+    double currentContribution = monthlyContribution.toDouble();
     final results = <CompoundYearResult>[];
 
     for (var year = 1; year <= years; year++) {
+      if (year > 1 && contributionIncreasePercent != 0) {
+        currentContribution *= (1 + contributionIncreasePercent / 100);
+      }
       for (var m = 0; m < 12; m++) {
-        balance += monthlyContribution;
-        principal += monthlyContribution;
+        balance += currentContribution;
+        principal += currentContribution.round();
         balance *= (1 + monthlyRate);
       }
       final inflationFactor = pow(1 + inflationRatePercent / 100, year);
@@ -84,15 +89,20 @@ class CompoundSimulator {
     required int years,
     int? seed,
     double inflationRatePercent = 0.0,
+    double contributionIncreasePercent = 0.0,
   }) {
     assert(years > 0, 'years must be positive');
     final random = Random(seed);
 
     double balance = initial.toDouble();
     int principal = initial;
+    double currentContribution = monthlyContribution.toDouble();
     final results = <RandomYearResult>[];
 
     for (var year = 1; year <= years; year++) {
+      if (year > 1 && contributionIncreasePercent != 0) {
+        currentContribution *= (1 + contributionIncreasePercent / 100);
+      }
       final annualReturn = _nextGaussianReturn(
         random,
         meanAnnualRatePercent,
@@ -101,8 +111,8 @@ class CompoundSimulator {
       final monthlyRate = annualReturn / 100 / 12;
 
       for (var m = 0; m < 12; m++) {
-        balance += monthlyContribution;
-        principal += monthlyContribution;
+        balance += currentContribution;
+        principal += currentContribution.round();
         balance *= (1 + monthlyRate);
       }
       if (balance < 0) balance = 0; // 理論上ほぼ発生しないが下限ガード

@@ -20,8 +20,8 @@ class FirstMonthGuideCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isCompleted = step.isCompleted;
-    final tutorialWatched = ref.watch(tutorialWatchedProvider(step.type));
-    final hasTutorial = step.tutorialVideoUrl != null;
+    final explanationRead = ref.watch(tutorialWatchedProvider(step.type));
+    final hasExplanation = step.explanationText != null;
 
     return Card(
       elevation: isCompleted ? 4 : 1,
@@ -78,7 +78,7 @@ class FirstMonthGuideCard extends ConsumerWidget {
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            if (hasTutorial)
+                            if (hasExplanation)
                               Padding(
                                 padding: const EdgeInsets.only(left: 8),
                                 child: Container(
@@ -87,7 +87,7 @@ class FirstMonthGuideCard extends ConsumerWidget {
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: tutorialWatched
+                                    color: explanationRead
                                         ? Colors.green[50]
                                         : Colors.orange[50],
                                     borderRadius: BorderRadius.circular(4),
@@ -96,21 +96,21 @@ class FirstMonthGuideCard extends ConsumerWidget {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Icon(
-                                        tutorialWatched
+                                        explanationRead
                                             ? Icons.check_circle
-                                            : Icons.play_circle_outline,
+                                            : Icons.menu_book,
                                         size: 12,
-                                        color: tutorialWatched
+                                        color: explanationRead
                                             ? Colors.green[700]
                                             : Colors.orange[700],
                                       ),
                                       const SizedBox(width: 3),
                                       Text(
-                                        tutorialWatched ? '視聴済' : '動画',
+                                        explanationRead ? '既読' : '解説',
                                         style: theme.textTheme.labelSmall?.copyWith(
                                           fontSize: 10,
                                           fontWeight: FontWeight.bold,
-                                          color: tutorialWatched
+                                          color: explanationRead
                                               ? Colors.green[700]
                                               : Colors.orange[700],
                                         ),

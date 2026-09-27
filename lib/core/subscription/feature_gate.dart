@@ -10,8 +10,8 @@ enum PremiumFeature {
   /// Excel エクスポート機能
   excelExport('ダッシュボード・レポート出力'),
 
-  /// 全政策・制度・補助金情報（22制度の詳細表示）
-  governmentBenefitsUnlimited('政策・制度・補助金（全22制度）'),
+  /// 全政策・制度・補助金情報（34制度の詳細表示）
+  governmentBenefitsUnlimited('政策・制度・補助金（全34制度）'),
 
   /// 高度な分析・カスタムレポート
   advancedAnalytics('カスタム分析レポート'),

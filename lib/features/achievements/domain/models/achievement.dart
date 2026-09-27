@@ -186,9 +186,9 @@ class AchievementDefinitions {
       id: 'procedure_22',
       category: AchievementCategory.procedure,
       title: '制度マスター',
-      description: '全22件の制度・補助金を確認しました',
+      description: '全34件の制度・補助金を確認しました',
       icon: Icons.account_balance,
-      threshold: 22,
+      threshold: 34,
     ),
 
     // --- 投資 ---

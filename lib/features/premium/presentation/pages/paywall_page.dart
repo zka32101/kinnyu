@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import '../../../../core/subscription/subscription_provider.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../procedures/domain/models/procedure_info.dart';
 
 class PaywallPage extends ConsumerStatefulWidget {
   const PaywallPage({Key? key}) : super(key: key);
@@ -101,7 +102,7 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
     final packages = _offerings?.current?.availablePackages ?? [];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('金融オンライン大学 プレミアム')),
+      appBar: AppBar(title: const Text('お金コレ！プレミアム')),
       body: ListView(
         padding: AppSpacing.paddingLg,
         children: [
@@ -146,7 +147,7 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
           const SizedBox(height: 16),
           _buildFeatureRow(
             Icons.account_balance,
-            '政策・制度・補助金全22制度',
+            '政策・制度・補助金全${ProcedureLibrary.all.length}制度',
             '児童手当からNISA・医療費控除まで詳細に確認',
           ),
           const SizedBox(height: 16),

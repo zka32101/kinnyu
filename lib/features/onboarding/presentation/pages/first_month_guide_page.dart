@@ -191,7 +191,7 @@ class FirstMonthGuidePage extends ConsumerWidget {
           Row(
             children: [
               Text(
-                '🎥 チュートリアル進捗',
+                '📖 解説の確認状況',
                 style: theme.textTheme.bodySmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: Colors.amber[900],
@@ -219,7 +219,7 @@ class FirstMonthGuidePage extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'すべてのチュートリアル動画を視聴すると、各ステップをより効果的に完了できます。',
+            'すべての解説を確認すると、各ステップをより効果的に完了できます。',
             style: theme.textTheme.labelSmall?.copyWith(
               color: Colors.amber[900],
               height: 1.4,
@@ -300,7 +300,7 @@ class _QuizSheetState extends ConsumerState<_QuizSheet> {
   int _currentQuizIndex = 0;
   int _score = 0;
   bool _showResult = false;
-  bool _tutorialWatched = false;
+  bool _explanationRead = false;
 
   final List<QuizQuestion> _quizzes = [
     QuizQuestion(
@@ -346,8 +346,8 @@ class _QuizSheetState extends ConsumerState<_QuizSheet> {
       return _buildResultScreen();
     }
 
-    // チュートリアルが視聴されていない場合は表示
-    if (!_tutorialWatched && widget.step.tutorialVideoUrl != null) {
+    // 解説がまだ確認されていない場合は表示
+    if (!_explanationRead && widget.step.explanationText != null) {
       return _buildTutorialSheet();
     }
 
@@ -407,16 +407,15 @@ class _QuizSheetState extends ConsumerState<_QuizSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (widget.step.tutorialVideoUrl != null)
+            if (widget.step.explanationText != null)
               TutorialModule(
-                tutorialTitle: widget.step.tutorialTitle ?? 'チュートリアル',
-                videoUrl: widget.step.tutorialVideoUrl!,
-                durationSeconds: widget.step.tutorialDurationSeconds ?? 180,
+                explanationTitle: widget.step.explanationTitle ?? '解説',
+                explanationText: widget.step.explanationText!,
                 stepDescription: widget.step.description,
                 stepEmoji: widget.step.emoji,
-                onVideoComplete: () {
-                  setState(() => _tutorialWatched = true);
-                  // プロバイダーでチュートリアル視聴状態を記録
+                onRead: () {
+                  setState(() => _explanationRead = true);
+                  // プロバイダーで解説の確認状態を記録
                   ref.read(tutorialStateProvider.notifier)
                       .markTutorialAsWatched(widget.step.type);
                 },
@@ -426,7 +425,7 @@ class _QuizSheetState extends ConsumerState<_QuizSheet> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  setState(() => _tutorialWatched = true);
+                  setState(() => _explanationRead = true);
                   ref.read(tutorialStateProvider.notifier)
                       .markTutorialAsWatched(widget.step.type);
                 },
