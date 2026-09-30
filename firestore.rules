@@ -1,0 +1,90 @@
+rules_version = '2';
+
+// お金コレ！ Firestore ルール（プロジェクト: okane-bea50）
+// 方針: デフォルト全拒否。問題データ(questions)はクライアント読み取り専用。
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+    function isMember(groupId) {
+      return signedIn()
+        && request.auth.uid in get(/databases/$(database)/documents/household_groups/$(groupId)).data.members;
+    }
+
+    // クイズ問題: 認証済みは読み取りのみ。投入は管理者(Admin SDK/コンソール)。
+    match /questions/{id} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // ユーザー個別データ（プロフィール・サブコレクション全て本人のみ）
+    match /users/{uid} {
+      allow read, write: if isOwner(uid);
+      match /{sub=**} {
+        allow read, write: if isOwner(uid);
+      }
+    }
+
+    match /streaks/{uid} {
+      allow read, write: if isOwner(uid);
+    }
+
+    // 旧構造のレシート(ルート)。本人、または同一世帯メンバーの読み取り。
+    match /receipts/{id} {
+      allow read: if signedIn() && (
+        resource.data.uid == request.auth.uid
+        || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.householdGroupId
+           == get(/databases/$(database)/documents/users/$(resource.data.uid)).data.householdGroupId
+      );
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // 世帯グループ（ドキュメントID=招待コード）
+    match /household_groups/{groupId} {
+      // 招待コードでの参加のため get は認証済みに許可。一覧(list)は不可。
+      allow get: if signedIn();
+      allow list: if signedIn() && request.auth.uid in resource.data.members;
+      allow create: if signedIn()
+        && request.resource.data.members == [request.auth.uid];
+      allow update: if signedIn() && (
+        // メンバーによる更新（メンバー構成の他人の追加・削除は不可）
+        (request.auth.uid in resource.data.members
+          && request.resource.data.members.hasAll([request.auth.uid])
+          && request.resource.data.members.toSet().difference(resource.data.members.toSet()).size() == 0)
+        // 招待コードでの自己参加（自分だけを追加）
+        || (!(request.auth.uid in resource.data.members)
+          && request.resource.data.members.toSet().difference(resource.data.members.toSet()) == [request.auth.uid].toSet()
+          && resource.data.members.toSet().difference(request.resource.data.members.toSet()).size() == 0
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members', 'memberNicknames']))
+      );
+      allow delete: if false;
+
+      match /{sub=**} {
+        allow read, write: if isMember(groupId);
+      }
+    }
+
+    match /household_budgets/{groupId} {
+      allow read, write: if isMember(groupId);
+    }
+
+    // 週次チャレンジ（全員共通）。参加者リストのみクライアントが更新可。
+    match /challenges/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn();
+      allow update: if signedIn()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['participants']);
+      allow delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
