@@ -13,9 +13,8 @@ class SecureStorageService {
   static const String _authTokenKey = 'auth_token';
   static const String _refreshTokenKey = 'refresh_token';
 
-  // User credentials
+  // User credentials（パスワードは保存しない。認証はFirebase Authに任せる）
   static const String _userEmailKey = 'user_email';
-  static const String _userPasswordKey = 'user_password';
 
   // Premium/subscription keys
   static const String _premiumTokenKey = 'premium_token';
@@ -87,7 +86,6 @@ class SecureStorageService {
       _authTokenKey,
       _refreshTokenKey,
       _userEmailKey,
-      _userPasswordKey,
       _premiumTokenKey,
       _subscriptionIdKey,
     ];

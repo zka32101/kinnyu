@@ -57,8 +57,14 @@ android {
 
     buildTypes {
         release {
+            val requireSigning = System.getenv("REQUIRE_RELEASE_SIGNING") == "true"
             signingConfig = if (signingConfigs.getByName("release").storeFile != null) {
                 signingConfigs.getByName("release")
+            } else if (requireSigning) {
+                // 署名必須ビルド(CIのAAB等)では、debug署名へ黙ってフォールバックせず失敗させる
+                throw GradleException(
+                    "REQUIRE_RELEASE_SIGNING=true but no release keystore is configured"
+                )
             } else {
                 // Fallback to debug for local development without keystore
                 signingConfigs.getByName("debug")

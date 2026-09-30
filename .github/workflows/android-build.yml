@@ -261,6 +261,7 @@ jobs:
         if: steps.check-signing.outputs.signing-available == 'true'
         id: build-aab
         env:
+          REQUIRE_RELEASE_SIGNING: 'true'
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_STORE_PASSWORD }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
