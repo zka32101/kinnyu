@@ -55,8 +55,11 @@ service cloud.firestore {
       allow update: if signedIn() && (
         // メンバーによる更新（メンバー構成の他人の追加・削除は不可）
         (request.auth.uid in resource.data.members
-          && request.resource.data.members.hasAll([request.auth.uid])
-          && request.resource.data.members.toSet().difference(resource.data.members.toSet()).size() == 0)
+          && request.resource.data.members.toSet() == resource.data.members.toSet())
+        // 脱退・アカウント削除: 自分だけをメンバーから外す（他人の削除は不可）
+        || (request.auth.uid in resource.data.members
+          && request.resource.data.members.toSet() == resource.data.members.toSet().difference([request.auth.uid].toSet())
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members', 'memberNicknames', 'memberContributions']))
         // 招待コードでの自己参加（自分だけを追加）
         || (!(request.auth.uid in resource.data.members)
           && request.resource.data.members.toSet().difference(resource.data.members.toSet()) == [request.auth.uid].toSet()
@@ -65,7 +68,11 @@ service cloud.firestore {
       );
       allow delete: if false;
 
-      match /{sub=**} {
+      // サブコレクション（family_missions 等）はメンバーのみ。
+      // ※ `match /{sub=**}` だと rules_version 2 では「0階層以上」に一致し、
+      //   グループ文書そのものにもメンバーの全面書き込みが許可されてしまう
+      //   （他人を外す・totalSavings の書き換え等）。そのため1階層以上を要求する。
+      match /{col}/{docId}/{rest=**} {
         allow read, write: if isMember(groupId);
       }
     }
