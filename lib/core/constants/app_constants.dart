@@ -1,6 +1,6 @@
 class AppConstants {
   // App info
-  static const String appName = 'お金コレ！';
+  static const String appName = '金融・家計学校';
   static const String appVersion = '1.0.0';
 
   // UI/UX

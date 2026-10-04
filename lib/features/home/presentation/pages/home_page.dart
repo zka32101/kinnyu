@@ -158,7 +158,7 @@ class HomePage extends ConsumerWidget {
     return Scaffold(
       bottomNavigationBar: const AdBanner(),
       appBar: AppBar(
-        title: const Text('お金コレ！'),
+        title: const Text('金融・家計学校'),
         centerTitle: true,
         elevation: 0,
         actions: [

@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// お金コレ！ Firestore ルール（プロジェクト: okane-bea50）
+// 金融・家計学校 Firestore ルール（プロジェクト: okane-bea50）
 // 方針: デフォルト全拒否。問題データ(questions)はクライアント読み取り専用。
 service cloud.firestore {
   match /databases/{database}/documents {

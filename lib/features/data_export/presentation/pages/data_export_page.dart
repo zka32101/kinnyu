@@ -33,7 +33,7 @@ class _DataExportPageState extends ConsumerState<DataExportPage> {
 
       final shareResult = await Share.shareXFiles(
         [XFile(file.path)],
-        text: 'お金コレ！ データエクスポート',
+        text: '金融・家計学校 データエクスポート',
       );
       // ユーザーが共有シートを閉じただけの場合は例外にならないため、
       // デバッグ用にログのみ残す（_isExporting のリセットは finally で行う）。

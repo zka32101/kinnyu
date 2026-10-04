@@ -172,7 +172,7 @@ class _HouseholdSimulatorPageState
       final file = await HouseholdExcelExporter.export(results);
       final shareResult = await Share.shareXFiles(
         [XFile(file.path)],
-        text: 'お金コレ！ 家計シミュレーション結果',
+        text: '金融・家計学校 家計シミュレーション結果',
       );
       // Share.shareXFiles does not throw when the user dismisses the share
       // sheet without picking a target — it resolves normally with a

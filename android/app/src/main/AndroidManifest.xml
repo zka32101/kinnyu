@@ -2,7 +2,7 @@
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
-        android:label="お金コレ！"
+        android:label="金融・家計学校"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <!-- AdMob アプリID。本番IDは ADMOB_APP_ID 環境変数で渡す（未指定時は Google 公式のテスト用ID）。 -->

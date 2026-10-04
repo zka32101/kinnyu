@@ -1,6 +1,6 @@
 # Monetization Implementation Guide
 
-**お金コレ！** uses a freemium model with the following structure:
+**金融・家計学校** uses a freemium model with the following structure:
 - **Free Tier**: 広告つき（画面下部のバナー広告）・一部機能に制限
 - **Premium Tier**: **月額1米ドル**。広告なし＋出力などの全機能。実際の請求額・表示価格は Google Play の商品設定（RevenueCat 経由）が正
 
@@ -125,7 +125,7 @@ RevenueCat Project Settings → App Store Configuration
 RevenueCat Dashboard → Products
 Create subscription:
   - ID: premium_monthly
-  - Name: お金コレ！プレミアム - 月額
+  - Name: 金融・家計学校プレミアム - 月額
   - Base Plan: Standard
   - Link to Google Play product
 ```
