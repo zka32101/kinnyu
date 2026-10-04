@@ -1,8 +1,8 @@
 # Monetization Implementation Guide
 
 **お金コレ！** uses a freemium model with the following structure:
-- **Free Tier**: Ad-supported, limited features
-- **Premium Tier**: ¥200/month subscription, full feature access, no ads
+- **Free Tier**: 広告つき（画面下部のバナー広告）・一部機能に制限
+- **Premium Tier**: **月額1米ドル**。広告なし＋出力などの全機能。実際の請求額・表示価格は Google Play の商品設定（RevenueCat 経由）が正
 
 ## Architecture Overview
 
@@ -59,53 +59,29 @@ PremiumFeatureDialog.show(
 );
 ```
 
-### 3. Ad System (Google Mobile Ads)
+### 3. Ad System (Google Mobile Ads 9.0.0)
 
-**Service**: `lib/core/ads/ad_service.dart`
-- Singleton service managing banner and interstitial ads
-- Gracefully degrades if MobileAds not initialized
-- Test ad unit IDs (replace with production IDs before release)
+> `google_mobile_ads` は **9.0.0 固定**（9.1.0 は iOS の Release ビルドで非モジュラーヘッダーのエラーが出た実績あり）。
 
-**Initialization**: Called in `lib/main.dart` after subscription service
+**Files** (`lib/core/ads/`):
+- `ad_config.dart` — 広告ユニットID・表示判定 `AdConfig.shouldShowAds`（プレミアム購読中は常に非表示）
+- `ad_service.dart` — SDK 初期化と UMP 同意取得（失敗しても広告が出ないだけでアプリは動く）
+- `ad_banner.dart` — `AdBanner` ウィジェット。購読中・同意未取得・非対応端末では何も描画しない
 
-**Ad Types**:
-1. **Banner Ads** - Bottom of free tier screens (constantly loaded)
-2. **Interstitial Ads** - Full-screen ads on major navigation (preloaded, shown on demand)
+**対応範囲**: 現在は **Android のバナー広告のみ**（iOS は広告ユニット未発行のため無効）。インタースティシャルは未実装。
 
-**Provider**: `lib/core/ads/ad_provider.dart`
-- `shouldShowAdsProvider`: Checks if user is free tier
-- `interstitialAdProvider`: Auto-preloads full-screen ads
-- `bannerAdProvider`: Manages banner ad lifecycle
+**組み込み**: `lib/main.dart` で `AdService().initialize()`（非ブロッキング）、`HomePage` の `bottomNavigationBar` に `AdBanner`。他の画面にも広げる場合は同じウィジェットを置く。
 
-### 4. UI Integration
+## Ad Unit IDs (Test → Production)
 
-#### AdScaffold (Recommended)
+未指定のときは Google 公式のテスト用ID（収益なし）で動く。**公開前に必ず本番IDを渡すこと。**
 
-Replace `Scaffold` with `AdScaffold` to auto-add banner ads:
-```dart
-AdScaffold(
-  appBar: AppBar(title: const Text('Dashboard')),
-  body: const DashboardPage(),
-)
-```
+| 種類 | 渡し方 | テスト用既定値 |
+|---|---|---|
+| バナー広告ユニットID | `--dart-define=ADMOB_ANDROID_BANNER_ID=ca-app-pub-xxx/yyy` | `ca-app-pub-3940256099942544/6300978111` |
+| AdMob アプリID | 環境変数 `ADMOB_APP_ID`（`android/app/build.gradle.kts` の manifestPlaceholders） | `ca-app-pub-3940256099942544~3347511713` |
 
-#### Manual Ad Display
-
-For custom layouts:
-```dart
-AdBannerWidget(adService: ref.watch(adServiceProvider))
-```
-
-#### Showing Interstitial Ads
-
-Call before navigation to important pages:
-```dart
-final adService = ref.read(adServiceProvider);
-if (ref.read(shouldShowAdsProvider)) {
-  await adService.showInterstitialAd();
-}
-Navigator.push(context, MaterialPageRoute(...));
-```
+`AdConfig.isUsingTestIds` で、テストIDのままかどうかを確認できる。
 
 ## Feature Gate Mapping
 
@@ -122,18 +98,7 @@ Navigator.push(context, MaterialPageRoute(...));
 - Excel/report export functionality 🔒
 - Complete government programs database (22 programs) 🔒
 - Custom analysis reports 🔒
-- No ads 🔒
-
-## Ad Unit IDs (Test → Production)
-
-**Current Test IDs**:
-- Banner: `ca-app-pub-3940256099942544/6300978111`
-- Interstitial: `ca-app-pub-3940256099942544/1033173712`
-
-**To Update Production IDs**:
-1. Get IDs from Google AdMob dashboard
-2. Update `lib/core/ads/ad_service.dart` lines 23-24
-3. Rebuild and submit to Play Store
+- 広告なし 🔒
 
 ## RevenueCat Setup Steps
 
