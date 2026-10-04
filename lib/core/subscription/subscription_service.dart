@@ -5,7 +5,7 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 /// 同名の Entitlement を作成し、Google Play Console の商品と紐付けること。
 const String premiumEntitlementId = 'okane-premium';
 
-/// お金コレ！のプレミアム課金（RevenueCat）を管理するサービス。
+/// 金融・家計学校のプレミアム課金（RevenueCat）を管理するサービス。
 /// API キー未設定時は課金機能を無効化した状態で安全に動作する
 /// （開発中・審査待ちでもアプリ本体はクラッシュしない）。
 class SubscriptionService {

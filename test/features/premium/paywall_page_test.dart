@@ -12,9 +12,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('金融オンライン大学 プレミアム'), findsOneWidget);
+      expect(find.text('金融・家計学校プレミアム'), findsOneWidget);
       expect(find.textContaining('投資シミュレーション'), findsWidgets);
-      expect(find.textContaining('Excel出力'), findsWidgets);
+      expect(find.textContaining('レポート出力'), findsWidgets);
 
       // RevenueCat 未設定のため getOfferings() は null → 商品なしメッセージが出る
       expect(find.textContaining('準備中'), findsOneWidget);

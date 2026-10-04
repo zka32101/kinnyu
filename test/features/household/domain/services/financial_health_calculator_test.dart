@@ -103,13 +103,14 @@ void main() {
     });
 
     test('calculates budget adherence score correctly', () {
+      // 月間予算の合計は300,000円（testBudget のカテゴリ合計）
       // Test case 1: Spending 80% of budget (excellent)
       final summary1 = HouseholdExpenseSummary(
         groupId: 'group123',
         month: '2026-09',
         totalIncome: 500000,
-        totalExpense: 160000, // 80% of 200000
-        savingAmount: 340000,
+        totalExpense: 240000, // 80% of 300000
+        savingAmount: 260000,
         categoryBreakdown: {},
       );
 
@@ -128,8 +129,8 @@ void main() {
         groupId: 'group123',
         month: '2026-09',
         totalIncome: 500000,
-        totalExpense: 240000, // 120% of 200000
-        savingAmount: 260000,
+        totalExpense: 360000, // 120% of 300000
+        savingAmount: 140000,
         categoryBreakdown: {},
       );
 
@@ -256,8 +257,8 @@ void main() {
         groupId: 'group123',
         month: '2026-09',
         totalIncome: 500000,
-        totalExpense: 220000, // 110% of budget
-        savingAmount: 280000,
+        totalExpense: 375000, // 125% of budget（予算遵守スコアが70未満になる超過）
+        savingAmount: 125000,
         categoryBreakdown: {},
       );
 

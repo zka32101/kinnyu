@@ -227,18 +227,18 @@ class SavingsDashboardPage extends ConsumerWidget {
         return _StatTile(
           icon: Icons.trending_up,
           color: Colors.green,
-          label: '運用中の投資',
+          label: '仮想運用中の投資',
           value: '${investments.length}件',
           sub: investments.isEmpty
               ? '未実施'
-              : '${isProfit ? '+' : ''}¥${profit.toStringAsFixed(0)}',
+              : '仮想 ${isProfit ? '+' : ''}¥${profit.toStringAsFixed(0)}',
           subColor: investments.isEmpty
               ? Colors.grey
               : (isProfit ? Colors.green.shade700 : Colors.red.shade700),
         );
       },
       loading: () => const _StatTileLoading(),
-      error: (_, __) => const _StatTileError(label: '運用中の投資'),
+      error: (_, __) => const _StatTileError(label: '仮想運用中の投資'),
     );
 
     final missionTile = missionsAsync.when(

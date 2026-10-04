@@ -66,7 +66,7 @@ class InvestmentSimulationPatterns {
     InvestmentSimulationPattern(
       id: 'p_aggressive',
       title: '積極運用プラン',
-      description: '値動きが大きくても高いリターンを狙いたい人向け',
+      description: '値動きが大きく、利益も損失も大きくなり得るパターン',
       monthlyAmount: 30000,
       investmentType: InvestmentType.nasdaq,
       years: 15,

@@ -32,7 +32,7 @@ List<Question> savingsQuestions() => [
           '借金を先に返す'
         ],
         correctAnswerIndex: 1,
-        explanation: '先取り貯蓄は、給料が入ったらまず貯蓄分を別口座に移す方法。余りを貯めるより確実に貯まります。',
+        explanation: '先取り貯蓄は、給料が入ったらまず貯蓄分を別口座に移す方法。余りを貯めるより貯まりやすくなります。',
       ),
       Question(
         id: 'q_savings_004',

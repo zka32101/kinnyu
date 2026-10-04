@@ -111,7 +111,9 @@ void main() {
 
     test('daysRemaining calculates correctly', () {
       final now = DateTime.now();
-      final endDate = now.add(const Duration(days: 5));
+      // daysRemaining は端数を切り捨てる。getter が内部で DateTime.now() を再取得するため、
+      // ちょうど5日後だと経過時間ぶん4日になる(時計の粒度で結果が変わる)。余裕を持たせる。
+      final endDate = now.add(const Duration(days: 5, hours: 1));
 
       final challenge = Challenge(
         id: 'ch1',

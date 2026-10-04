@@ -5,9 +5,17 @@ import 'package:okane_kore/features/simulation/presentation/pages/simulation_hub
 import 'package:okane_kore/features/simulation/presentation/pages/investment_simulator_page.dart';
 import 'package:okane_kore/features/simulation/presentation/pages/household_simulator_page.dart';
 
+/// 一覧が長く、画面外のウィジェットが構築されないため、縦長の表示領域にする。
+void _tall(WidgetTester tester) {
+  tester.view.physicalSize = const Size(800, 4000);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.reset);
+}
+
 void main() {
   group('SimulationHubPage', () {
     testWidgets('renders both simulation cards', (tester) async {
+      _tall(tester);
       await tester.pumpWidget(const ProviderScope(child: MaterialApp(home: SimulationHubPage())));
       await tester.pumpAndSettle();
 
@@ -17,6 +25,7 @@ void main() {
 
     testWidgets('tapping household card navigates to HouseholdSimulatorPage',
         (tester) async {
+      _tall(tester);
       await tester.pumpWidget(const ProviderScope(child: MaterialApp(home: SimulationHubPage())));
       await tester.pumpAndSettle();
 
@@ -28,6 +37,7 @@ void main() {
 
     testWidgets('tapping investment card navigates to InvestmentSimulatorPage',
         (tester) async {
+      _tall(tester);
       await tester.pumpWidget(const ProviderScope(child: MaterialApp(home: SimulationHubPage())));
       await tester.pumpAndSettle();
 
@@ -40,6 +50,7 @@ void main() {
 
   group('InvestmentSimulatorPage', () {
     testWidgets('renders without crash and shows a result', (tester) async {
+      _tall(tester);
       await tester.pumpWidget(
         const ProviderScope(child: MaterialApp(home: InvestmentSimulatorPage())),
       );
@@ -50,6 +61,7 @@ void main() {
     });
 
     testWidgets('changing monthly amount updates the result', (tester) async {
+      _tall(tester);
       await tester.pumpWidget(
         const ProviderScope(child: MaterialApp(home: InvestmentSimulatorPage())),
       );
@@ -64,6 +76,7 @@ void main() {
 
     testWidgets('tapping the free pattern card applies its values directly',
         (tester) async {
+      _tall(tester);
       await tester.pumpWidget(
         const ProviderScope(child: MaterialApp(home: InvestmentSimulatorPage())),
       );
@@ -80,6 +93,7 @@ void main() {
 
     testWidgets('tapping a locked pattern card opens the paywall',
         (tester) async {
+      _tall(tester);
       await tester.pumpWidget(
         const ProviderScope(child: MaterialApp(home: InvestmentSimulatorPage())),
       );
@@ -90,11 +104,12 @@ void main() {
       await tester.tap(find.text('新NISAつみたて満額'));
       await tester.pumpAndSettle();
 
-      expect(find.text('金融オンライン大学 プレミアム'), findsOneWidget);
+      expect(find.text('金融・家計学校プレミアム'), findsOneWidget);
     });
 
     testWidgets('switching to real-fluctuation mode shows yearly returns',
         (tester) async {
+      _tall(tester);
       await tester.pumpWidget(
         const ProviderScope(child: MaterialApp(home: InvestmentSimulatorPage())),
       );
@@ -119,6 +134,7 @@ void main() {
 
     testWidgets('reroll button changes yearly returns in real mode',
         (tester) async {
+      _tall(tester);
       await tester.pumpWidget(
         const ProviderScope(child: MaterialApp(home: InvestmentSimulatorPage())),
       );
@@ -148,6 +164,7 @@ void main() {
   group('HouseholdSimulatorPage', () {
     testWidgets('renders without crash and shows monthly savings',
         (tester) async {
+      _tall(tester);
       await tester.pumpWidget(
         const ProviderScope(child: MaterialApp(home: HouseholdSimulatorPage())),
       );
@@ -158,6 +175,7 @@ void main() {
 
     testWidgets('shows deficit warning when expense exceeds income',
         (tester) async {
+      _tall(tester);
       await tester.pumpWidget(
         const ProviderScope(child: MaterialApp(home: HouseholdSimulatorPage())),
       );
@@ -172,6 +190,7 @@ void main() {
 
     testWidgets('starts in simple mode with 2 text fields',
         (tester) async {
+      _tall(tester);
       await tester.pumpWidget(
         const ProviderScope(child: MaterialApp(home: HouseholdSimulatorPage())),
       );
@@ -205,6 +224,7 @@ void main() {
     });
 
     testWidgets('has an Excel export button in the app bar', (tester) async {
+      _tall(tester);
       await tester.pumpWidget(
         const ProviderScope(child: MaterialApp(home: HouseholdSimulatorPage())),
       );
@@ -215,6 +235,7 @@ void main() {
 
     testWidgets('tapping Excel export without premium opens the paywall',
         (tester) async {
+      _tall(tester);
       await tester.pumpWidget(
         const ProviderScope(child: MaterialApp(home: HouseholdSimulatorPage())),
       );
@@ -223,7 +244,7 @@ void main() {
       await tester.tap(find.byIcon(Icons.ios_share));
       await tester.pumpAndSettle();
 
-      expect(find.text('金融オンライン大学 プレミアム'), findsOneWidget);
+      expect(find.text('金融・家計学校プレミアム'), findsOneWidget);
     });
   });
 }
