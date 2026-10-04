@@ -192,7 +192,7 @@ class NotificationService {
         body,
         scheduledDate,
         platformChannelSpecifics,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.time,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
@@ -250,7 +250,7 @@ class NotificationService {
         body,
         scheduledDate,
         platformChannelSpecifics,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
     } catch (e) {
@@ -300,7 +300,7 @@ class NotificationService {
         body,
         scheduledDate,
         platformChannelSpecifics,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
     } catch (e) {
@@ -437,7 +437,7 @@ class NotificationService {
               procedure.applyWindow,
               scheduledDate,
               platformChannelSpecifics,
-              androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+              androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
               uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
             );
           } catch (e) {
@@ -501,7 +501,7 @@ class NotificationService {
             '請求される予定です。',
             scheduledDate,
             platformChannelSpecifics,
-            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+            androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
             uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
           );
         } catch (e) {
