@@ -15,6 +15,7 @@ import 'core/services/notification_service.dart';
 import 'core/firebase/firebase_init.dart';
 import 'core/firebase/auth_service.dart';
 import 'core/subscription/subscription_service.dart';
+import 'core/ads/ad_service.dart';
 import 'core/subscription/subscription_provider.dart';
 import 'features/procedures/presentation/providers/procedures_provider.dart';
 
@@ -94,6 +95,9 @@ void main() {
     } catch (e, stack) {
       debugPrint('[main] SubscriptionService initialization failed: $e\n$stack');
     }
+
+    // 広告SDK・同意取得（起動をブロックしない。失敗しても広告が出ないだけ）
+    unawaited(AdService().initialize());
 
     // Firestore 初期化（Firebaseの完全初期化後）
     try {

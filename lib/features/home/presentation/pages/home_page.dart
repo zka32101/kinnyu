@@ -40,6 +40,7 @@ import '../../../household/presentation/providers/budget_alert_provider.dart';
 import '../../../household/domain/models/household_budget.dart';
 import '../../../subscription_audit/presentation/providers/subscription_audit_provider.dart';
 import '../widgets/dashboard_preview_card.dart';
+import '../../../../core/ads/ad_banner.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -155,6 +156,7 @@ class HomePage extends ConsumerWidget {
     });
 
     return Scaffold(
+      bottomNavigationBar: const AdBanner(),
       appBar: AppBar(
         title: const Text('お金コレ！'),
         centerTitle: true,

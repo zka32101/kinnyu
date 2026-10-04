@@ -39,7 +39,8 @@ class AppConstants {
   };
 
   // Pricing
-  static const double pricePerCategory = 300.0; // ¥300/month per category
-  static const double priceBundle = 1200.0; // ¥1,200/month for all 4 categories
+  // プレミアム(広告なし+出力などの全機能)は月額1米ドル。実際の請求額・表示価格は
+  // Google Play の商品設定を RevenueCat 経由で取得した値が正（この定数は参考値）。
+  static const double premiumMonthlyUsd = 1.0;
   static const int trialDays = 14; // 2-week free trial
 }
