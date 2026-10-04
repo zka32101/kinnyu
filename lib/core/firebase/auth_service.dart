@@ -188,6 +188,43 @@ class AuthService {
     return _auth.currentUser;
   }
 
+  /// Google でログイン中なら、アカウント削除前に再認証する。
+  ///
+  /// Firebase は、ログインから時間が経つとユーザー削除を拒否する
+  /// （requires-recent-login）。データを消してから拒否されると、データだけが
+  /// 失われてアカウントが残るため、データ削除の**前**に呼ぶ。
+  /// 匿名ユーザーは再認証が不要なので true を返す。
+  /// ユーザーがアカウント選択をキャンセルしたときは false を返す。
+  Future<bool> reauthenticateForDeletion() async {
+    final user = _auth.currentUser;
+    if (user == null) return true;
+    final isGoogle = user.providerData.any((p) => p.providerId == 'google.com');
+    if (!isGoogle) return true;
+
+    final googleUser = await _googleSignIn.signIn();
+    if (googleUser == null) return false;
+    final googleAuth = await googleUser.authentication;
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+    await user.reauthenticateWithCredential(credential);
+    return true;
+  }
+
+  /// ログイン中の Firebase ユーザーを削除する（Firestore のデータ削除は済ませておく）。
+  Future<void> deleteCurrentUser() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      await user.delete();
+    }
+    try {
+      await _googleSignIn.signOut();
+    } catch (e) {
+      debugPrint('Google sign-out after deletion failed: $e');
+    }
+  }
+
   Future<void> signOut() async {
     try {
       await _googleSignIn.signOut();
