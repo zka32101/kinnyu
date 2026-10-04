@@ -15,7 +15,7 @@ void main() {
         ),
       );
 
-      expect(find.text('金融オンライン大学'), findsOneWidget);
+      expect(find.text('お金コレ！'), findsOneWidget);
       expect(find.text('ストリーク'), findsOneWidget);
       expect(find.text('ジャンルを選択'), findsOneWidget);
     });
@@ -70,7 +70,7 @@ void main() {
         ),
       );
 
-      expect(find.byIcon(Icons.family_restroom), findsOneWidget);
+      expect(find.byIcon(Icons.family_restroom), findsWidgets); // AppBarとカテゴリグリッドの両方にある
       expect(find.byIcon(Icons.bar_chart), findsOneWidget);
       expect(find.byIcon(Icons.emoji_events), findsOneWidget);
     });

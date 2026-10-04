@@ -41,10 +41,10 @@ void main() {
         savingAmount: 170000,
         month: '2026-09',
         categoryBreakdown: {
-          'food': 68000, // 36% increase - should be detected
+          'food': 62000, // 24% increase - warning (20-30%)
           'transportation': 20000,
           'utilities': 10000,
-          'entertainment': 32000, // 60% increase - critical
+          'entertainment': 32000, // 60% increase - critical (>30%)
         },
       );
 
@@ -59,7 +59,7 @@ void main() {
 
       // Check food anomaly
       final foodAnomaly = anomalies.firstWhere((a) => a.categoryName == 'food');
-      expect(foodAnomaly.variancePercent, equals(36));
+      expect(foodAnomaly.variancePercent, equals(24));
       expect(foodAnomaly.trendDirection, equals(TrendDirection.increasing));
       expect(foodAnomaly.severity, equals(AnomalySeverity.warning));
 
