@@ -93,7 +93,7 @@ class GlossaryData {
       term: '先取り貯蓄',
       reading: 'さきどりちょちく',
       category: GlossaryCategory.savings,
-      definition: '給料が入ったら使う前に一定額を貯蓄に回す方法。確実に貯まりやすい。',
+      definition: '給料が入ったら使う前に一定額を貯蓄に回す方法。貯まりやすくなる。',
     ),
     GlossaryTerm(
       id: 'g_fixed_cost',

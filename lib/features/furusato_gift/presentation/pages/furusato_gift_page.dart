@@ -126,6 +126,11 @@ class _GiftList extends ConsumerWidget {
                   : '控除上限を¥${amountFormat.format(-remaining)}超えています',
               style: const TextStyle(color: Colors.white70, fontSize: 12),
             ),
+            const SizedBox(height: 4),
+            const Text(
+              '控除上限は目安です。実際の控除額は収入や家族構成などで変わります。',
+              style: TextStyle(color: Colors.white60, fontSize: 11),
+            ),
             const SizedBox(height: 8),
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
