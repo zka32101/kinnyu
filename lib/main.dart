@@ -14,6 +14,7 @@ import 'core/theme/app_theme.dart';
 import 'core/services/notification_service.dart';
 import 'core/firebase/firebase_init.dart';
 import 'core/firebase/auth_service.dart';
+import 'core/firebase/auth_provider.dart';
 import 'core/subscription/subscription_service.dart';
 import 'core/ads/ad_service.dart';
 import 'core/subscription/subscription_provider.dart';
@@ -165,6 +166,13 @@ class _OkaneKoreAppState extends ConsumerState<OkaneKoreApp> {
   @override
   void initState() {
     super.initState();
+    // ログイン中のユーザーを userProvider に反映する。
+    // これが無いと userProvider が常に null のままで、世帯・ミッション・
+    // チャレンジ等の画面がログイン済みでも「ログインが必要です」と表示される。
+    ref.listenManual(currentUserProvider, (previous, next) {
+      // initState 中に provider を書き換えられないため、描画後に反映する。
+      Future.microtask(() => _syncUserProfile(next.asData?.value));
+    }, fireImmediately: true);
     // 一度だけプレミアム状態を取得（initState で一度実行）
     Future.microtask(() async {
       if (!_initializedPremium) {
@@ -189,6 +197,33 @@ class _OkaneKoreAppState extends ConsumerState<OkaneKoreApp> {
         debugPrint('[OkaneKoreApp] rescheduleRemindersForSavedLifeStage() failed: $e');
       }
     });
+  }
+
+  Future<void> _syncUserProfile(User? user) async {
+    final notifier = ref.read(userProvider.notifier);
+    if (user == null) {
+      notifier.clear();
+      return;
+    }
+    UserProfile? profile;
+    try {
+      profile = await AuthService().getUserProfile(user.uid);
+    } catch (e) {
+      debugPrint('[OkaneKoreApp] getUserProfile() failed: $e');
+    }
+    // 読み込み中にユーザーが切り替わっていたら反映しない。
+    if (!mounted || FirebaseAuth.instance.currentUser?.uid != user.uid) return;
+    notifier.initializeUser(
+      profile ??
+          UserProfile(
+            uid: user.uid,
+            email: user.email,
+            streak: 0,
+            totalXP: 0,
+            level: 1,
+            ahaAchieved: false,
+          ),
+    );
   }
 
   @override

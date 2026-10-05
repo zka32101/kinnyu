@@ -55,6 +55,11 @@ class UserNotifier extends Notifier<UserProfile?> {
     state = user;
   }
 
+  /// サインアウト・アカウント削除時に、前のユーザーの情報を残さない。
+  void clear() {
+    state = null;
+  }
+
   void updateStreak(int newStreak) {
     if (state != null) {
       state = state!.copyWith(streak: newStreak);
