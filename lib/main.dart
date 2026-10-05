@@ -170,7 +170,8 @@ class _OkaneKoreAppState extends ConsumerState<OkaneKoreApp> {
     // これが無いと userProvider が常に null のままで、世帯・ミッション・
     // チャレンジ等の画面がログイン済みでも「ログインが必要です」と表示される。
     ref.listenManual(currentUserProvider, (previous, next) {
-      _syncUserProfile(next.asData?.value);
+      // initState 中に provider を書き換えられないため、描画後に反映する。
+      Future.microtask(() => _syncUserProfile(next.asData?.value));
     }, fireImmediately: true);
     // 一度だけプレミアム状態を取得（initState で一度実行）
     Future.microtask(() async {
