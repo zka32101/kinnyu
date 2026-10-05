@@ -5,7 +5,10 @@ import 'package:flutter/foundation.dart';
 import '../domain/models/mission.dart';
 
 class MissionService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore;
+
+  MissionService({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   CollectionReference<Map<String, dynamic>> _userMissionsRef(String uid) {
     return _firestore.collection('users').doc(uid).collection('missions');
@@ -27,6 +30,45 @@ class MissionService {
     } catch (e) {
       throw Exception('Failed to fetch missions: $e');
     }
+  }
+
+  /// 今週のミッションを用意し、期限切れの未完了ミッションを「期限切れ」にする。
+  ///
+  /// 「今週分を作成済み」の印（users/{uid}.lastMissionSeedWeek）を残すため、
+  /// 今週のミッションを全て完了しても同じ週に作り直されない
+  /// （作り直すと状態が未完了に戻り、XPを繰り返し得られてしまう）。
+  Future<void> ensureWeeklyMissions(String uid) async {
+    final now = DateTime.now();
+    final batch = _firestore.batch();
+    var hasWrites = false;
+
+    final pending = await _userMissionsRef(uid)
+        .where('status', isEqualTo: MissionStatus.pending.index)
+        .get();
+    for (final doc in pending.docs) {
+      final deadline = DateTime.tryParse('${doc.data()['deadline'] ?? ''}');
+      if (deadline != null && deadline.isBefore(now)) {
+        batch.update(doc.reference, {'status': MissionStatus.expired.index});
+        hasWrites = true;
+      }
+    }
+
+    final userRef = _firestore.collection('users').doc(uid);
+    final seed = _weeklySeed();
+    final userDoc = await userRef.get();
+    if (userDoc.data()?['lastMissionSeedWeek'] != seed) {
+      for (final mission in MissionTemplates.generateWeeklyMissions(seed: seed)) {
+        batch.set(
+          _userMissionsRef(uid).doc(mission.id),
+          mission.toJson(),
+          SetOptions(merge: true),
+        );
+      }
+      batch.set(userRef, {'lastMissionSeedWeek': seed}, SetOptions(merge: true));
+      hasWrites = true;
+    }
+
+    if (hasWrites) await batch.commit();
   }
 
   /// 現在の暦週に対して決定的なシード値を計算する。
