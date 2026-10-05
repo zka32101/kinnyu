@@ -17,7 +17,7 @@ class IsPremiumNotifier extends Notifier<bool> {
 
   @override
   bool build() {
-    // currentUserProvider（authStateChanges）を監視し、ログインユーザーが
+    // currentUserProvider（userChanges）を監視し、ログインユーザーが
     // 変わったとき（サインアウト→別ユーザーでサインインなど）に
     // プレミアム状態が前のユーザーのものが残らないようリセットして
     // 再取得する。これによりユーザーセッションをまたいだ
