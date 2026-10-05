@@ -8,7 +8,7 @@ final authServiceProvider = Provider((ref) {
 });
 
 final currentUserProvider = StreamProvider((ref) {
-  return FirebaseAuth.instance.authStateChanges();
+  return FirebaseAuth.instance.userChanges();
 });
 
 final userProfileProvider = FutureProvider((ref) async {
