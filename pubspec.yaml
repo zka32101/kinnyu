@@ -118,6 +118,7 @@ flutter:
     - assets/images/roleplay/
     - assets/images/mascot/
     - assets/icon/
+    - assets/branding/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
