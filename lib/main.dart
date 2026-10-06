@@ -19,6 +19,7 @@ import 'core/subscription/subscription_service.dart';
 import 'core/ads/ad_service.dart';
 import 'core/subscription/subscription_provider.dart';
 import 'features/procedures/presentation/providers/procedures_provider.dart';
+import 'widgets/startup_splash.dart';
 
 /// アプリ全体で捕捉できなかった例外がプロセスごとクラッシュするのを防ぐための
 /// グローバルなエラーハンドリング。
@@ -31,6 +32,9 @@ import 'features/procedures/presentation/providers/procedures_provider.dart';
 void main() {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
+
+    // 初期化の間は組織ロゴの起動画面を出す（本物のrunAppが後でこれを置き換える）。
+    runApp(const MaterialApp(debugShowCheckedModeBanner: false, home: StartupSplash()));
 
     // 以下の初期化は意図的に「順番に」await している。
     // Firebase.initializeApp() が完了して初めて、Firestore に依存する
